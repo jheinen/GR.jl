@@ -1,4 +1,4 @@
-using gr
+using GR
 using Base.Test
 
 # write your own tests here
