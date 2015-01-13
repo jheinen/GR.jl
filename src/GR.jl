@@ -1,4 +1,4 @@
-module gr
+module GR
 
 export
   opengks,
@@ -945,4 +945,4 @@ FONT_PALATINO_BOLDITALIC = 129
 FONT_ZAPFCHANCERY_MEDIUMITALIC = 130
 FONT_ZAPFDINGBATS = 131
 
-end
+end # module

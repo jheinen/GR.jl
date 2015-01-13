@@ -1,12 +1,12 @@
-# The gr (GR framework) module for Julia
+# The GR module for Julia
 
 This module provides a Julia interface to the
-[GR framework](http://gr-framework.org/) plotting library.
+[GR framework](http://gr-framework.org/) graphics library.
 
 You will need to have the GR framework installed on your
-machine in order to use gr. Once gr is installed you can use
-`Pkg.add("gr")` in Julia to install gr.
+machine in order to use GR. Once GR is installed you can use
+`Pkg.add("GR")` in Julia to install the GR module.
 
-Once gr is installed you can simply type `using gr` and begin
-calling functions in the [GR framework](http://gr-framework.org/gr.html) API.
+In Julia simply type `using GR` and begin calling functions
+in the [GR framework](http://gr-framework.org/gr.html) API.
 
