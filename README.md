@@ -1,4 +1,4 @@
-# The GR module for Julia
+# Julia package for GR, a visualization framework
 
 This module provides a Julia interface to the
 [GR framework](http://gr-framework.org/).
