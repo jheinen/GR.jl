@@ -1,7 +1,8 @@
-# Julia package for GR, a visualization framework
+# The GR module for Julia
 
-This module provides a Julia interface to the
-[GR framework](http://gr-framework.org/).
+This module provides a Julia interface to
+[GR](http://gr-framework.org/), a framework for
+visualisation applications.
 
 You will need to have the GR framework installed on your
 machine in order to use GR. Clone the main source using:
