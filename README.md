@@ -14,9 +14,15 @@ and build and install as usual with:
     cd gr
     make
     make install
-    make clean
 
 This will install the GR framework into the directory ``/usr/local/gr``.
+
+If you don't have privileges to write to the ``/usr/local`` directory,
+you should install the GR framework in your home folder:
+
+    cd gr
+    make GRDIR=$HOME/gr
+    make GRDIR=$HOME/gr install
 
 Once the GR framework is installed you can use `Pkg.add("GR")`
 in Julia to install the GR module. You are now ready tu use GR.

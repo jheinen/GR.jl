@@ -89,9 +89,21 @@ export
   setcoordxform,
   begingraphics,
   endgraphics,
-  mathtex
+  mathtex,
+  # Convenience functions
+  jlgr,
+  plot,
+  plot3d
 
-const libGR = "/usr/local/gr/lib/libGR.so"
+function __init__()
+    global libGR
+    grdir = joinpath(homedir(), "gr")
+    if isdir(grdir)
+        const libGR = joinpath(grdir, "lib", "libGR.so")
+    else
+        const libGR = "/usr/local/gr/lib/libGR.so"
+    end
+end
 
 function opengks()
   ccall( (:gr_opengks, libGR),
@@ -458,10 +470,10 @@ function updategks()
         )
 end
 
-function setspace(zmin::Real, zmax::Real, rotation::Real, tilt::Real)
+function setspace(zmin::Real, zmax::Real, rotation::Int, tilt::Int)
   ccall( (:gr_setspace, libGR),
         Void,
-        (Float64, Float64, Float64, Float64),
+        (Float64, Float64, Int32, Int32),
         zmin, zmax, rotation, tilt)
 end
 
@@ -946,6 +958,14 @@ FONT_ZAPFCHANCERY_MEDIUMITALIC = 130
 FONT_ZAPFDINGBATS = 131
 
 # Convenience functions
-include("plot.jl")
+include("jlgr.jl")
+
+function plot(x, y; kwargs...)
+  jlgr.plot(x, y; kwargs...)
+end
+
+function plot3d(z; kwargs...)
+  jlgr.plot3d(z; kwargs...)
+end
 
 end # module
