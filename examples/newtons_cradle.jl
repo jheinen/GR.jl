@@ -10,7 +10,7 @@ function rk4(x, h, y, f)
   return x + h, y + (k1 + 2 * (k2 + k3) + k4) / 6.0
 end
 
-function deriv(t, state) 
+function deriv(t, state)
   theta, omega = state
   return [omega, -gamma * omega - 9.81 / L * sin(theta)]
 end
@@ -50,13 +50,12 @@ start = refresh = time_ns()
 while t < 30
   t, state = rk4(t, dt, state, deriv)
   theta, omega = state
-  acceleration = sqrt(2 * 9.81 * L * (1 - cos(theta)))
 
   if time_ns() - refresh > 20 * 1000000   # 20ms
     draw_cradle(theta)
     refresh = time_ns()
   end
-    
+
   now = (time_ns() - start) / 1000000000
   if t > now
       sleep(t - now)

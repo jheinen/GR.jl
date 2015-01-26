@@ -97,11 +97,23 @@ export
 
 function __init__()
     global libGR
-    grdir = joinpath(homedir(), "gr")
-    if isdir(grdir)
-        const libGR = joinpath(grdir, "lib", "libGR.so")
+    if "GRDIR" in keys(ENV)
+        grdir = ENV["GRDIR"]
     else
-        const libGR = "/usr/local/gr/lib/libGR.so"
+        grdir = joinpath(homedir(), "gr")
+        if !isdir(grdir)
+            grdir = "/usr/local/gr"
+        end
+    end
+    if contains(grdir, "site-packages")
+        const libGR = joinpath(grdir, "libGR.so")
+        ENV["GKS_FONTPATH"] = grdir
+    else
+        const libGR = joinpath(grdir, "lib", "libGR.so")
+    end
+    if !isfile(libGR)
+        println("Unable to load GR framework runtime environment")
+        exit(-1)
     end
 end
 

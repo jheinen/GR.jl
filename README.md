@@ -24,9 +24,14 @@ you should install the GR framework in your home folder:
     make GRDIR=$HOME/gr
     make GRDIR=$HOME/gr install
 
-Once the GR framework is installed you can use `Pkg.add("GR")`
+Once the GR framework is installed you can use ``Pkg.add("GR")``
 in Julia to install the GR module. You are now ready tu use GR.
 
-In Julia simply type `using GR` and begin calling functions
+In Julia simply type ``using GR`` and begin calling functions
 in the [GR framework](http://gr-framework.org/gr.html) API.
+
+You may also set the ``GRDIR`` environment to the GR Python module path
+of an existing Anaconda (or Miniconda) installation, e.g.:
+
+    export GRDIR=${HOME}/anaconda/lib/python2.7/site-packages/gr
 
