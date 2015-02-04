@@ -93,10 +93,12 @@ export
   # Convenience functions
   jlgr,
   plot,
-  plot3d
+  plot3d,
+  libGR3,
+  gr3
 
 function __init__()
-    global libGR
+    global libGR, libGR3
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
     else
@@ -115,6 +117,7 @@ function __init__()
         println("Unable to load GR framework runtime environment")
         exit(-1)
     end
+    const libGR3 = replace(libGR, "libGR", "libGR3")
 end
 
 function opengks()
@@ -230,6 +233,9 @@ function fillarea(x, y)
 end
 
 function cellarray(xmin::Real, xmax::Real, ymin::Real, ymax::Real, dimx::Int, dimy::Int, color)
+  if ndims(color) == 2
+    color = reshape(color, dimx * dimy)
+  end
   ccall( (:gr_cellarray, libGR),
         Void,
         (Float64, Float64, Float64, Float64, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
@@ -564,22 +570,44 @@ end
 function surface(px, py, pz, option::Int)
   nx = length(px)
   ny = length(py)
-  assert(nx * ny == length(pz))
-  ccall( (:gr_surface, libGR),
-        Void,
-        (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
-        nx, ny, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz), option)
+  nz = length(pz)
+  if ndims(pz) == 1
+    out_of_bounds = nz != nx * ny
+  elseif ndims(pz) == 2
+    out_of_bounds = size(pz)[1] != nx || size(pz)[2] != ny
+  else
+    out_of_bounds = True
+  end
+  if !out_of_bounds
+    ccall( (:gr_surface, libGR),
+          Void,
+          (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
+          nx, ny, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz), option)
+  else
+    println("Arrays have incorrect length or dimension.")
+  end
 end
 
 function contour(px, py, h, pz, major_h::Int)
   nx = length(px)
   ny = length(py)
   nh = length(h)
-  assert(nx * ny == length(pz))
-  ccall( (:gr_contour, libGR),
-        Void,
-        (Int32, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
-        nx, ny, nh, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, h), convert(Vector{Float64}, pz), major_h)
+  nz = length(pz)
+  if ndims(pz) == 1
+    out_of_bounds = nz != nx * ny
+  elseif ndims(pz) == 2
+    out_of_bounds = size(pz)[1] != nx || size(pz)[2] != ny
+  else
+    out_of_bounds = True
+  end
+  if !out_of_bounds
+    ccall( (:gr_contour, libGR),
+          Void,
+          (Int32, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
+          nx, ny, nh, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, h), convert(Vector{Float64}, pz), major_h)
+  else
+    println("Arrays have incorrect length or dimension.")
+  end
 end
 
 function setcolormap(index::Int)
@@ -745,10 +773,13 @@ function readimage(path)
 end
 
 function drawimage(xmin::Real, xmax::Real, ymin::Real, ymax::Real, width::Int, height::Int, data, model::Int = 0)
+  if ndims(data) == 2
+    data = reshape(data, width * height)
+  end
   ccall( (:gr_drawimage, libGR),
         Void,
-        (Float64, Float64, Float64, Float64, Int32, Int32, Ptr{Int32}, Int32),
-        xmin, xmax, ymin, ymax, width, height, convert(Vector{Int32}, data), model)
+        (Float64, Float64, Float64, Float64, Int32, Int32, Ptr{Uint32}, Int32),
+        xmin, xmax, ymin, ymax, width, height, convert(Vector{Uint32}, data), model)
 end
 
 function importgraphics(path)
@@ -968,6 +999,11 @@ FONT_PALATINO_BOLD = 128
 FONT_PALATINO_BOLDITALIC = 129
 FONT_ZAPFCHANCERY_MEDIUMITALIC = 130
 FONT_ZAPFDINGBATS = 131
+
+# GR3 functions
+include("gr3.jl")
+
+const gr3 = GR.GR3
 
 # Convenience functions
 include("jlgr.jl")

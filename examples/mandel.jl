@@ -57,7 +57,7 @@ for i in 0:200
     GR.clearws()
     GR.setviewport(0, 1, 0, 1)
     GR.setcolormap(13)
-    GR.cellarray(0, 1, 0, 1, 500, 500, reshape(image, 500 * 500) + 1000)
+    GR.cellarray(0, 1, 0, 1, 500, 500, image + 1000)
     GR.updatews()
 
     f *= 0.9

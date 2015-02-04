@@ -2,6 +2,8 @@ module jlgr
 
 import GR
 
+const gr3 = GR.gr3
+
 function plot(x, y;
               bgcolor=0,
               viewport=(0.1, 0.95, 0.1, 0.95),
@@ -89,10 +91,16 @@ function plot3d(z;
                 contours=true,
                 xtitle="",
                 ytitle="",
-                ztitle="")
+                ztitle="",
+                accelerate=false)
     GR.clearws()
     xmin, ymin = (1, 1)
-    xmax, ymax = _guessdimension(length(z))[1]
+    if ndims(z) == 2
+        xmax, ymax = size(z)
+        z = reshape(z, xmax * ymax)
+    else
+        xmax, ymax = _guessdimension(length(z))[1]
+    end
     zmin = minimum(z)
     zmax = maximum(z)
     xtick = GR.tick(xmin, xmax) / 5
@@ -107,7 +115,11 @@ function plot3d(z;
     charheight = 0.024 * (viewport[4] - viewport[3])
     GR.setcharheight(charheight)
     GR.setcolormap(colormap)
-    GR.surface(x, y, z, option)
+    if accelerate
+        gr3.surface(x, y, z, option)
+    else
+        GR.surface(x, y, z, option)
+    end
 
     if rotation != 0 || tilt != 90
         GR.axes3d(xtick, 0, ztick, xmin, ymin, zmin, 5, 0, 5, -0.01)
