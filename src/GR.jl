@@ -742,7 +742,7 @@ function drawpath(points, codes, fill::Int)
   len = length(points)
   ccall( (:gr_drawpath, libGR),
         Void,
-        (Int32, Ptr{Float64}, Ptr{Uunit8}, Int32),
+        (Int32, Ptr{Float64}, Ptr{Uint8}, Int32),
         len, convert(Vector{Float64}, points), convert(Vector{Uint8}, codes), fill)
 end
 
