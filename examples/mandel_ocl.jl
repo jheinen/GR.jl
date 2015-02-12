@@ -8,10 +8,7 @@ const cl = OpenCL
 
 import GR
 
-ctx   = cl.Context(cl.devices()[2])
-queue = cl.CmdQueue(ctx)
-
-prg = cl.Program(ctx, source = """
+const mandel_kernel = "
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
 __kernel void mandelbrot(__global double2 *q, __global ushort *output,
                          double const min_x, double const max_x,
@@ -42,9 +39,19 @@ __kernel void mandelbrot(__global double2 *q, __global ushort *output,
         if (ci == 0 || ci == 255)
             inc = -inc;
     }
-}
-""") |> cl.build!
+}"
 
+for device in reverse(cl.available_devices(cl.platforms()[1]))
+    global ctx, queue, prg
+
+    ctx = cl.Context(device)
+    queue = cl.CmdQueue(ctx)
+    try
+        prg = cl.Program(ctx, source = mandel_kernel) |> cl.build!
+        println(device[:name])
+        break
+    end
+end
 
 function calc_fractal(q, min_x, max_x, min_y, max_y, width, height, iters)
     global ctx, queue, prg
