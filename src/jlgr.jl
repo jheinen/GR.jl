@@ -4,6 +4,31 @@ import GR
 
 const gr3 = GR.gr3
 
+import Base.writemime
+
+type SVG
+   s::Array{Uint8}
+end
+
+writemime(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
+
+function _readfile(path)
+    data = Array(Uint8, filesize(path))
+    s = open(path, "r")
+    bytestring(read!(s, data))
+end
+
+interactive_mode = true
+
+function inline()
+    global interactive_mode
+    if interactive_mode
+        ccall( (:putenv, "libc"), Ptr{Uint8}, (Ptr{Uint8},), "GKS_WSTYPE=svg")
+        GR.emergencyclosegks()
+        interactive_mode = false
+    end
+end
+
 function plot(x, y;
               bgcolor=0,
               viewport=(0.1, 0.95, 0.1, 0.95),
@@ -66,6 +91,12 @@ function plot(x, y;
     end
     if update
         GR.updatews()
+    end
+
+    if !interactive_mode
+        GR.emergencyclosegks()
+        img = SVG(_readfile("gks.svg"))
+        return img
     end
 end
 
@@ -135,6 +166,12 @@ function plot3d(z;
         GR.titles3d(xtitle, ytitle, ztitle)
     end
     GR.updatews()
+
+    if !interactive_mode
+        GR.emergencyclosegks()
+        img = SVG(_readfile("gks.svg"))
+        return img
+    end
 end
 
 end # module
