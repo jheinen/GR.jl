@@ -4,48 +4,6 @@ import GR
 
 const gr3 = GR.gr3
 
-import Base.writemime
-
-type SVG
-   s::Array{Uint8}
-end
-writemime(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
-
-type PNG
-   s::Array{Uint8}
-end
-writemime(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
-
-function _readfile(path)
-    data = Array(Uint8, filesize(path))
-    s = open(path, "r")
-    bytestring(read!(s, data))
-end
-
-mime_type = None
-
-function inline(mime="svg")
-    global mime_type
-    if mime_type == None
-        ccall((:putenv, "libc"), Ptr{Uint8}, (Ptr{Uint8}, ),
-              bytestring(string("GKS_WSTYPE=", mime)))
-        GR.emergencyclosegks()
-        mime_type = mime
-    end
-end
-
-function _reprmime()
-    global mime_type
-    GR.emergencyclosegks()
-    if mime_type == "svg"
-        return SVG(_readfile("gks.svg"))
-    elseif mime_type == "png"
-        return PNG(_readfile("gks_p001.png"))
-    else
-        return None
-    end
-end
-
 function plot(x, y;
               bgcolor=0,
               viewport=(0.1, 0.95, 0.1, 0.95),
@@ -110,8 +68,8 @@ function plot(x, y;
         GR.updatews()
     end
 
-    if mime_type != None
-        return _reprmime()
+    if !GR.isinteractive()
+        return GR.show()
     end
 end
 
@@ -184,8 +142,8 @@ function plot3d(z;
     end
     GR.updatews()
 
-    if mime_type != None
-        return _reprmime()
+    if !GR.isinteractive()
+        return GR.show()
     end
 end
 

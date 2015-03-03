@@ -1,5 +1,7 @@
 module GR
 
+import Base.writemime
+
 export
   opengks,
   closegks,
@@ -95,7 +97,12 @@ export
   plot,
   plot3d,
   libGR3,
-  gr3
+  gr3,
+  isinteractive,
+  inline,
+  show
+
+mime_type = None
 
 function __init__()
     global libGR, libGR3
@@ -1021,6 +1028,58 @@ end
 
 function plot3d(z; kwargs...)
   jlgr.plot3d(z; kwargs...)
+end
+
+type SVG
+   s::Array{Uint8}
+end
+writemime(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
+
+type PNG
+   s::Array{Uint8}
+end
+writemime(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
+
+type HTML
+   s::String
+end
+writemime(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
+
+function _readfile(path)
+    data = Array(Uint8, filesize(path))
+    s = open(path, "r")
+    bytestring(read!(s, data))
+end
+
+function isinteractive()
+    global mime_type
+    return mime_type == None
+end
+
+function inline(mime="svg")
+    global mime_type
+    if mime_type == None
+        ccall((:putenv, "libc"), Ptr{Uint8}, (Ptr{Uint8}, ),
+              bytestring(string("GKS_WSTYPE=", mime)))
+        GR.emergencyclosegks()
+        mime_type = mime
+    end
+end
+
+function show()
+    global mime_type
+
+    GR.emergencyclosegks()
+    if mime_type == "svg"
+        content = SVG(_readfile("gks.svg"))
+    elseif mime_type == "png"
+        content = PNG(_readfile("gks_p001.png"))
+    elseif mime_type == "mov"
+        content = HTML(string("""<video autoplay controls><source src="data:video/x-mov;base64,""", base64(open(readbytes,"gks.mov")),"""" type="video/mp4"></video>"""))
+    else
+        content = None
+    end
+    return content
 end
 
 end # module
