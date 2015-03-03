@@ -9,8 +9,12 @@ import Base.writemime
 type SVG
    s::Array{Uint8}
 end
-
 writemime(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
+
+type PNG
+   s::Array{Uint8}
+end
+writemime(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 
 function _readfile(path)
     data = Array(Uint8, filesize(path))
@@ -18,14 +22,27 @@ function _readfile(path)
     bytestring(read!(s, data))
 end
 
-interactive_mode = true
+mime_type = None
 
-function inline()
-    global interactive_mode
-    if interactive_mode
-        ccall( (:putenv, "libc"), Ptr{Uint8}, (Ptr{Uint8},), "GKS_WSTYPE=svg")
+function inline(mime="svg")
+    global mime_type
+    if mime_type == None
+        ccall((:putenv, "libc"), Ptr{Uint8}, (Ptr{Uint8}, ),
+              bytestring(string("GKS_WSTYPE=", mime)))
         GR.emergencyclosegks()
-        interactive_mode = false
+        mime_type = mime
+    end
+end
+
+function _reprmime()
+    global mime_type
+    GR.emergencyclosegks()
+    if mime_type == "svg"
+        return SVG(_readfile("gks.svg"))
+    elseif mime_type == "png"
+        return PNG(_readfile("gks_p001.png"))
+    else
+        return None
     end
 end
 
@@ -93,10 +110,8 @@ function plot(x, y;
         GR.updatews()
     end
 
-    if !interactive_mode
-        GR.emergencyclosegks()
-        img = SVG(_readfile("gks.svg"))
-        return img
+    if mime_type != None
+        return _reprmime()
     end
 end
 
@@ -124,6 +139,8 @@ function plot3d(z;
                 ytitle="",
                 ztitle="",
                 accelerate=false)
+    global mime_type
+
     GR.clearws()
     xmin, ymin = (1, 1)
     if ndims(z) == 2
@@ -167,10 +184,8 @@ function plot3d(z;
     end
     GR.updatews()
 
-    if !interactive_mode
-        GR.emergencyclosegks()
-        img = SVG(_readfile("gks.svg"))
-        return img
+    if mime_type != None
+        return _reprmime()
     end
 end
 
