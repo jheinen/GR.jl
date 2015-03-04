@@ -1053,13 +1053,13 @@ end
 
 function isinteractive()
     global mime_type
-    return mime_type == None
+    return mime_type == None || mime_type == "mov"
 end
 
 function inline(mime="svg")
     global mime_type
     if mime_type == None
-        ccall((:putenv, "libc"), Ptr{Uint8}, (Ptr{Uint8}, ),
+        ccall((:putenv, "libc"), Int32, (Ptr{Uint8}, ),
               bytestring(string("GKS_WSTYPE=", mime)))
         GR.emergencyclosegks()
         mime_type = mime
@@ -1075,7 +1075,7 @@ function show()
     elseif mime_type == "png"
         content = PNG(_readfile("gks_p001.png"))
     elseif mime_type == "mov"
-        content = HTML(string("""<video autoplay controls><source src="data:video/x-mov;base64,""", base64(open(readbytes,"gks.mov")),"""" type="video/mp4"></video>"""))
+        content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64(open(readbytes,"gks.mov")),""""></video>"""))
     else
         content = None
     end
