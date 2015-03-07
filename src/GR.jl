@@ -96,6 +96,7 @@ export
   jlgr,
   plot,
   plot3d,
+  imshow,
   libGR3,
   gr3,
   isinteractive,
@@ -1028,6 +1029,10 @@ end
 
 function plot3d(z; kwargs...)
   jlgr.plot3d(z; kwargs...)
+end
+
+function imshow(data; kwargs...)
+  jlgr.imshow(data; kwargs...)
 end
 
 type SVG

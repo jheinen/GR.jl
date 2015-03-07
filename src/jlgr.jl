@@ -97,8 +97,6 @@ function plot3d(z;
                 ytitle="",
                 ztitle="",
                 accelerate=false)
-    global mime_type
-
     GR.clearws()
     xmin, ymin = (1, 1)
     if ndims(z) == 2
@@ -140,6 +138,34 @@ function plot3d(z;
     if xtitle != "" || ytitle != "" || ztitle != ""
         GR.titles3d(xtitle, ytitle, ztitle)
     end
+    GR.updatews()
+
+    if !GR.isinteractive()
+        return GR.show()
+    end
+end
+
+function imshow(data; cmap=GR.COLORMAP_GRAYSCALE)
+    height, width = size(data)
+    d = float(reshape(data, width * height))
+    ca = int(8 + 72 * (d - minimum(d)) / (maximum(d) - minimum(d)))
+    GR.clearws()
+    if width < height
+        ratio = float(width) / height
+        xmin = max(0.5 * (1 - ratio), 0)
+        xmax = min(xmin + ratio, 1)
+        ymin = 0
+        ymax = 1
+    else
+        ratio = float(height) / width
+        xmin = 0
+        xmax = 1
+        ymin = max(0.5 * (1 - ratio), 0)
+        ymax = min(ymin + ratio, 1)
+    end
+    GR.selntran(0)
+    GR.setcolormap(cmap)
+    GR.cellarray(xmin, xmax, ymin, ymax, width, height, ca)
     GR.updatews()
 
     if !GR.isinteractive()
