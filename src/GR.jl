@@ -1078,7 +1078,7 @@ function show()
     if mime_type == "svg"
         content = SVG(_readfile("gks.svg"))
     elseif mime_type == "png"
-        content = PNG(_readfile("gks_p001.png"))
+        content = PNG(_readfile("gks.png"))
     elseif mime_type == "mov"
         content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64(open(readbytes,"gks.mov")),""""></video>"""))
     else
