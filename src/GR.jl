@@ -70,6 +70,7 @@ export
   inqcolorfromrgb,
   hsvtorgb,
   tick,
+  validaterange,
   adjustrange,
   beginprint,
   beginprintext,
@@ -663,6 +664,13 @@ end
 function tick(amin::Real, amax::Real)
   return ccall( (:gr_tick, libGR),
                Float64,
+               (Float64, Float64),
+               amin, amax)
+end
+
+function validaterange(amin::Real, amax::Real)
+  return ccall( (:gr_validaterange, libGR),
+               Int32,
                (Float64, Float64),
                amin, amax)
 end
