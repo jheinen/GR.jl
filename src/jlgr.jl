@@ -130,7 +130,7 @@ function plot3d(z;
         GR.axes3d(0, ytick, 0, xmax, ymin, zmin, 0, 5, 0, 0.01)
     end
     if contours
-        GR.contour(x, y, [0], z, 0)
+        GR.contour(x, y, [], z, 0)
     end
     if rotation == 0 && tilt == 90
         GR.axes(xtick, ytick, xmin, ymin, 5, 5, -0.01)
