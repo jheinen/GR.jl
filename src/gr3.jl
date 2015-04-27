@@ -2,6 +2,28 @@ module GR3
 
 import GR
 
+if VERSION >= v"0.4-"
+  macro _float32(x)
+    :( Float32($x) )
+  end
+  macro _uint16(x)
+    :( UInt16($x) )
+  end
+  macro triplet(t)
+    :( Tuple{$t, $t, $t} )
+  end
+else
+  macro _float32(x)
+    :( float32($x) )
+  end
+  macro _uint16(x)
+    :( uint16($x) )
+  end
+  macro triplet(t)
+    :( ($t, $t, $t) )
+  end
+end
+
 function perror(error_code)
   msgs = [ "none", "invalid value", "invalid attribute", "init failed",
            "OpenGL error", "out of memory", "not initialized",
@@ -77,9 +99,9 @@ export drawimage
 
 function createmesh(n, vertices, normals, colors)
   mesh = Cint[0]
-  _vertices = [ float32(x) for x in vertices ]
-  _normals = [ float32(x) for x in normals ]
-  _colors = [ float32(x) for x in colors ]
+  _vertices = [ @_float32(x) for x in vertices ]
+  _normals = [ @_float32(x) for x in normals ]
+  _colors = [ @_float32(x) for x in colors ]
   err = ccall((:gr3_createmesh, GR.libGR3),
               Int32,
               (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -93,10 +115,10 @@ export createmesh
 
 function createindexedmesh(num_vertices, vertices, normals, colors, num_indices, indices)
   mesh = Cint[0]
-  _vertices = [ float32(x) for x in vertices ]
-  _normals = [ float32(x) for x in normals ]
-  _colors = [ float32(x) for x in colors ]
-  _indices = [ float32(x) for x in indices ]
+  _vertices = [ @_float32(x) for x in vertices ]
+  _normals = [ @_float32(x) for x in normals ]
+  _colors = [ @_float32(x) for x in colors ]
+  _indices = [ @_float32(x) for x in indices ]
   err = ccall((:gr3_createindexedmesh, GR.libGR3),
               Int32,
               (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32, Ptr{Int32}),
@@ -108,12 +130,12 @@ function createindexedmesh(num_vertices, vertices, normals, colors, num_indices,
 end
 export createindexedmesh
 
-function drawmesh(mesh::Int32, n, positions::(Real,Real,Real), directions::(Real,Real,Real), ups::(Real,Real,Real), colors::(Real,Real,Real), scales::(Real,Real,Real))
-  _positions = [ float32(x) for x in positions ]
-  _directions = [ float32(x) for x in directions ]
-  _ups = [ float32(x) for x in ups ]
-  _colors = [ float32(x) for x in colors ]
-  _scales = [ float32(x) for x in scales ]
+function drawmesh(mesh::Int32, n, positions::@triplet(Real), directions::@triplet(Real), ups::@triplet(Real), colors::@triplet(Real), scales::@triplet(Real))
+  _positions = [ @_float32(x) for x in positions ]
+  _directions = [ @_float32(x) for x in directions ]
+  _ups = [ @_float32(x) for x in ups ]
+  _colors = [ @_float32(x) for x in colors ]
+  _scales = [ @_float32(x) for x in scales ]
   ccall((:gr3_drawmesh, GR.libGR3),
         Void,
         (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -141,8 +163,8 @@ function drawheightmap(heightmap, num_columns, num_rows, positions, scales)
     if ndims(heightmap) == 2
       heightmap = reshape(heightmap, num_columns * num_rows)
     end
-    _positions = [ float32(x) for x in positions ]
-    _scales = [ float32(x) for x in scales ]
+    _positions = [ @_float32(x) for x in positions ]
+    _scales = [ @_float32(x) for x in scales ]
     ccall((:gr3_drawheightmap, GR.libGR3),
           Void,
           (Ptr{Float32}, Int32, Int32, Ptr{Float32}, Ptr{Float32}),
@@ -195,11 +217,11 @@ end
 export setlightdirection
 
 function drawcylindermesh(n, positions, directions, colors, radii, lengths)
-  _positions = [ float32(x) for x in positions ]
-  _directions = [ float32(x) for x in directions ]
-  _colors = [ float32(x) for x in colors ]
-  _radii = [ float32(x) for x in radii ]
-  _lengths = [ float32(x) for x in lengths ]
+  _positions = [ @_float32(x) for x in positions ]
+  _directions = [ @_float32(x) for x in directions ]
+  _colors = [ @_float32(x) for x in colors ]
+  _radii = [ @_float32(x) for x in radii ]
+  _lengths = [ @_float32(x) for x in lengths ]
   ccall((:gr3_drawcylindermesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -208,11 +230,11 @@ end
 export drawcylindermesh
 
 function drawconemesh(n, positions, directions, colors, radii, lengths)
-  _positions = [ float32(x) for x in positions ]
-  _directions = [ float32(x) for x in directions ]
-  _colors = [ float32(x) for x in colors ]
-  _radii = [ float32(x) for x in radii ]
-  _lengths = [ float32(x) for x in lengths ]
+  _positions = [ @_float32(x) for x in positions ]
+  _directions = [ @_float32(x) for x in directions ]
+  _colors = [ @_float32(x) for x in colors ]
+  _radii = [ @_float32(x) for x in radii ]
+  _lengths = [ @_float32(x) for x in lengths ]
   ccall((:gr3_drawconemesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -221,9 +243,9 @@ end
 export drawconemesh
 
 function drawspheremesh(n, positions, colors, radii)
-  _positions = [ float32(x) for x in positions ]
-  _colors = [ float32(x) for x in colors ]
-  _radii = [ float32(x) for x in radii ]
+  _positions = [ @_float32(x) for x in positions ]
+  _colors = [ @_float32(x) for x in colors ]
+  _radii = [ @_float32(x) for x in radii ]
   ccall((:gr3_drawspheremesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -232,11 +254,11 @@ end
 export drawspheremesh
 
 function drawcubemesh(n, positions, directions, ups, colors, scales)
-  _positions = [ float32(x) for x in positions ]
-  _directions = [ float32(x) for x in directions ]
-  _ups = [ float32(x) for x in ups ]
-  _colors = [ float32(x) for x in colors ]
-  _scales = [ float32(x) for x in scales ]
+  _positions = [ @_float32(x) for x in positions ]
+  _directions = [ @_float32(x) for x in directions ]
+  _ups = [ @_float32(x) for x in ups ]
+  _colors = [ @_float32(x) for x in colors ]
+  _scales = [ @_float32(x) for x in scales ]
   ccall((:gr3_drawcubemesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -252,7 +274,7 @@ function setbackgroundcolor(red, green, blue, alpha)
 end
 export setbackgroundcolor
 
-function createisosurfacemesh(grid::Array{Uint16,3}, step::(Float64,Float64,Float64), offset::(Float64,Float64,Float64), isolevel::Int64)
+function createisosurfacemesh(grid::Array{Uint16,3}, step::@triplet(Float64), offset::@triplet(Float64), isolevel::Int64)
   mesh = Cint[0]
   dim_x, dim_y, dim_z = size(grid)
   data = reshape(grid, dim_x * dim_y * dim_z)
@@ -262,7 +284,7 @@ function createisosurfacemesh(grid::Array{Uint16,3}, step::(Float64,Float64,Floa
   err = ccall((:gr3_createisosurfacemesh, GR.libGR3),
               Int32,
               (Ptr{Cint}, Ptr{Uint16}, Uint16, Int32, Int32, Int32, Int32, Int32, Int32, Float64, Float64, Float64, Float64, Float64, Float64),
-              mesh, convert(Vector{Uint16}, data), uint16(isolevel), dim_x, dim_y, dim_z, stride_x, stride_y, stride_z, step_x, step_y, step_z, offset_x, offset_y, offset_z)
+              mesh, convert(Vector{Uint16}, data), @_uint16(isolevel), dim_x, dim_y, dim_z, stride_x, stride_y, stride_z, step_x, step_y, step_z, offset_x, offset_y, offset_z)
   if err != 0
     perror(err)
   end
