@@ -50,9 +50,9 @@ end
 function plot_domain(color_func, f; re=[-1, 1], im=[-1, 1], N=100, n=15)
     w = func_vals(f, re, im, N)
     domc = color_func(w, n) * 255
-    h = int(domc[:,1])
-    s = int(domc[:,2])
-    v = int(domc[:,3])
+    h = round(domc[:,1])
+    s = round(domc[:,2])
+    v = round(domc[:,3])
     alpha = 255
     width, height = size(w)
     c = Array(Uint32, width * height)

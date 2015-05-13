@@ -17,7 +17,7 @@ for i = 1:200
     PyPlot.draw()
 end
 
-fps_mpl = int(200 / toq())
+fps_mpl = round(200 / toq())
 println("fps (mpl): ", fps_mpl)
 
 import GR
@@ -27,7 +27,7 @@ for i = 1:200
     GR.plot(x, sin(x + i / 10.0))
 end
 
-fps_gr = int(200 / toq())
+fps_gr = round(200 / toq())
 println("fps  (GR): ", fps_gr)
 
 println(@sprintf("  speedup: %6.1f",  float(fps_gr) / fps_mpl))

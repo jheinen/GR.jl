@@ -81,7 +81,7 @@ while t < 3
   polymarker(p[:,1], p[:,2])
 
   if n > 0
-    text(0.01, 0.95, @sprintf("%10s: %4d fps", "Julia", int(n / t)))
+    text(0.01, 0.95, @sprintf("%10s: %4d fps", "Julia", round(n / t)))
   end
   updatews()
 
