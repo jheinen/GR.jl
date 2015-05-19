@@ -263,9 +263,9 @@ end
 function gridit(xd, yd, zd, nx, ny)
   assert(length(xd) == length(yd) == length(zd))
   nd = length(xd)
-  x = Cdouble[1 : nx]
-  y = Cdouble[1 : ny]
-  z = Cdouble[1 : nx*ny]
+  x = Cdouble[1 : nx ;]
+  y = Cdouble[1 : ny ;]
+  z = Cdouble[1 : nx*ny ;]
   ccall( (:gr_gridit, libGR),
         Void,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
