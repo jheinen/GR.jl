@@ -114,6 +114,13 @@ function __init__()
         grdir = joinpath(homedir(), "gr")
         if !isdir(grdir)
             grdir = "/usr/local/gr"
+            if !isdir(grdir)
+                grdir = joinpath(Pkg.dir(), "GR", "deps", "gr")
+                if isdir(grdir)
+                    ENV["GRDIR"] = grdir
+                    ENV["GKS_FONTPATH"] = grdir
+                end
+            end
         end
     end
     if contains(grdir, "site-packages")
