@@ -126,8 +126,10 @@ function __init__()
     if contains(grdir, "site-packages")
         const libGR = joinpath(grdir, "libGR.so")
         ENV["GKS_FONTPATH"] = grdir
-    else
+    elseif OS_NAME != :Windows
         const libGR = joinpath(grdir, "lib", "libGR.so")
+    else
+        const libGR = joinpath(grdir, "libGR.dll")
     end
     if !isfile(libGR)
         println("Unable to load GR framework runtime environment")
