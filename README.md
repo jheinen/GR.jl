@@ -12,7 +12,7 @@ run-time (for your hardware architecture), if the GR software is not
 already installed in the recommended locations.
 
 If you don't want those binaries to be copied to your Julia run-time,
-you will have have to install the GR framework before using the Julia
+you will have to install the GR framework before using the Julia
 GR package. Clone the main source using:
 
     git clone https://github.com/jheinen/gr
