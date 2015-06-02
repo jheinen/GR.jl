@@ -1,5 +1,6 @@
 # The GR module for Julia
 
+[![Build Status](https://travis-ci.org/jheinen/GR.jl.svg?branch=master)](https://travis-ci.org/jheinen/GR.jl)
 [![GR](http://pkg.julialang.org/badges/GR_release.svg)](http://pkg.julialang.org/?pkg=GR&ver=release)
 
 This module provides a Julia interface to
