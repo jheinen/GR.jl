@@ -1,5 +1,7 @@
 # The GR module for Julia
 
+[![GR](http://pkg.julialang.org/badges/GR_release.svg)](http://pkg.julialang.org/?pkg=GR&ver=release)
+
 This module provides a Julia interface to
 [GR](http://gr-framework.org/), a framework for
 visualisation applications.
