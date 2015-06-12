@@ -102,7 +102,8 @@ export
   gr3,
   isinteractive,
   inline,
-  show
+  show,
+  regenflags
 
 mime_type = None
 
@@ -1032,6 +1033,9 @@ PATH_CURVE3    = 0x03
 PATH_CURVE4    = 0x04
 PATH_CLOSEPOLY = 0x4f
 
+MPL_SUPPRESS_CLEAR = 1
+MPL_POSTPONE_UPDATE = 2
+
 # GR3 functions
 include("gr3.jl")
 
@@ -1103,5 +1107,21 @@ function show()
     end
     return content
 end
+
+function setregenflags(flags=0)
+  ccall( (:gr_setregenflags, libGR),
+        Void,
+        (Int32, ),
+        flags)
+end
+
+function inqregenflags()
+  flags = ccall( (:gr_inqregenflags, libGR),
+                Int32,
+                ()
+                )
+  return int(flags)
+end
+
 
 end # module

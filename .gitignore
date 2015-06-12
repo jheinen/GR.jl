@@ -2,3 +2,4 @@
 *.jl.mem
 deps/*
 !deps/build.jl
+demos/*
