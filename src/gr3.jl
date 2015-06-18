@@ -1,5 +1,7 @@
 module GR3
 
+import Base.writemime
+
 import GR
 
 if VERSION >= v"0.4-"
@@ -22,6 +24,22 @@ else
   macro triplet(t)
     :( ($t, $t, $t) )
   end
+end
+
+type PNG
+   s::Array{Uint8}
+end
+writemime(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
+
+type HTML
+   s::String
+end
+writemime(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
+
+function _readfile(path)
+    data = Array(Uint8, filesize(path))
+    s = open(path, "r")
+    bytestring(read!(s, data))
 end
 
 function perror(error_code)
@@ -76,6 +94,15 @@ function save(filename, width, height)
   if err != 0
     perror(err)
   end
+  ext = splitext(filename)[end:end][1]
+  if ext == ".png"
+    content = PNG(_readfile(filename))
+  elseif ext == ".html"
+    content = HTML(@sprintf("<iframe src=\"%s\" width=%d height=%d></iframe>", filename, width, height))
+  else
+    content = None
+  end
+  return content
 end
 export save
 
