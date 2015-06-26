@@ -1084,7 +1084,7 @@ end
 function inline(mime="svg")
     global mime_type
     if mime_type == None
-        ENV["GKS_WSTYPE"] = "pdf"
+        ENV["GKS_WSTYPE"] = mime
         GR.emergencyclosegks()
         mime_type = mime
     end
