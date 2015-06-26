@@ -328,7 +328,7 @@ function surface(px, py, pz, option::Int)
   elseif ndims(pz) == 2
     out_of_bounds = size(pz)[1] != nx || size(pz)[2] != ny
   else
-    out_of_bounds = True
+    out_of_bounds = true
   end
   if !out_of_bounds
     ccall((:gr3_surface, GR.libGR3),

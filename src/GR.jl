@@ -102,8 +102,7 @@ export
   gr3,
   isinteractive,
   inline,
-  show,
-  regenflags
+  show
 
 mime_type = None
 
@@ -595,7 +594,7 @@ function surface(px, py, pz, option::Int)
   elseif ndims(pz) == 2
     out_of_bounds = size(pz)[1] != nx || size(pz)[2] != ny
   else
-    out_of_bounds = True
+    out_of_bounds = true
   end
   if !out_of_bounds
     ccall( (:gr_surface, libGR),
@@ -617,7 +616,7 @@ function contour(px, py, h, pz, major_h::Int)
   elseif ndims(pz) == 2
     out_of_bounds = size(pz)[1] != nx || size(pz)[2] != ny
   else
-    out_of_bounds = True
+    out_of_bounds = true
   end
   if !out_of_bounds
     ccall( (:gr_contour, libGR),
@@ -1085,8 +1084,7 @@ end
 function inline(mime="svg")
     global mime_type
     if mime_type == None
-        ccall((:putenv, "libc"), Int32, (Ptr{Uint8}, ),
-              bytestring(string("GKS_WSTYPE=", mime)))
+        ENV["GKS_WSTYPE"] = "pdf"
         GR.emergencyclosegks()
         mime_type = mime
     end

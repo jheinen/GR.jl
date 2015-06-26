@@ -2,10 +2,15 @@
 
 [![Build Status](https://travis-ci.org/jheinen/GR.jl.svg?branch=master)](https://travis-ci.org/jheinen/GR.jl)
 [![GR](http://pkg.julialang.org/badges/GR_release.svg)](http://pkg.julialang.org/?pkg=GR&ver=release)
+[![GR](http://pkg.julialang.org/badges/GR_nightly.svg)](http://pkg.julialang.org/?pkg=GR&ver=nightly)
 
 This module provides a Julia interface to
 [GR](http://gr-framework.org/), a framework for
 visualisation applications.
+
+From the Julia REPL an up to date version can be installed with:
+
+    Pkg.add("GR")
 
 The Julia package manager will download and install a pre-compiled
 run-time (for your hardware architecture), if the GR software is not
