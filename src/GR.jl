@@ -100,11 +100,17 @@ export
   imshow,
   libGR3,
   gr3,
-  isinteractive,
+  isinline,
   inline,
   show
 
 mime_type = None
+
+have_clear_output = Pkg.installed("IJulia") > v"0.2.5"
+if have_clear_output
+    import IJulia
+end
+
 
 function __init__()
     global libGR, libGR3
@@ -193,6 +199,9 @@ function deactivatews(workstation_id::Int)
 end
 
 function clearws()
+  if isinline() && have_clear_output
+    IJulia.clear_output(true)
+  end
   ccall( (:gr_clearws, libGR),
         Void,
         ()
@@ -1076,9 +1085,9 @@ function _readfile(path)
     bytestring(read!(s, data))
 end
 
-function isinteractive()
+function isinline()
     global mime_type
-    return mime_type == None || mime_type == "mov"
+    return mime_type != None && mime_type != "mov"
 end
 
 function inline(mime="svg")
@@ -1096,14 +1105,15 @@ function show()
     GR.emergencyclosegks()
     if mime_type == "svg"
         content = SVG(_readfile("gks.svg"))
+        display(content)
     elseif mime_type == "png"
         content = PNG(_readfile("gks.png"))
+        display(content)
     elseif mime_type == "mov"
         content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64(open(readbytes,"gks.mov")),""""></video>"""))
-    else
-        content = None
+        return content
     end
-    return content
+    return None
 end
 
 function setregenflags(flags=0)

@@ -68,7 +68,7 @@ function plot(x, y;
         GR.updatews()
     end
 
-    if !GR.isinteractive()
+    if GR.isinline()
         return GR.show()
     end
 end
@@ -140,7 +140,7 @@ function plot3d(z;
     end
     GR.updatews()
 
-    if !GR.isinteractive()
+    if GR.isinline()
         return GR.show()
     end
 end
@@ -168,7 +168,7 @@ function imshow(data; cmap=GR.COLORMAP_GRAYSCALE)
     GR.cellarray(xmin, xmax, ymin, ymax, width, height, ca)
     GR.updatews()
 
-    if !GR.isinteractive()
+    if GR.isinline()
         return GR.show()
     end
 end
