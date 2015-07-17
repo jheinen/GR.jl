@@ -106,9 +106,14 @@ export
 
 mime_type = None
 
-have_clear_output = Pkg.installed("IJulia") > v"0.2.5"
-if have_clear_output
+have_clear_output = false
+try
+  if isinteractive()
     import IJulia
+    if Pkg.installed("IJulia") > v"0.2.5"
+      have_clear_output = true
+    end
+  end
 end
 
 
