@@ -1,6 +1,6 @@
 have_env = "GRDIR" in keys(ENV)
 if !have_env && !isdir("/usr/local/gr") && !isdir(joinpath(homedir(),"gr"))
-  const version = v"0.13.1"
+  const version = v"0.14.1"
   const gr = "gr-$version"
   const os = OS_NAME
   const tarball = "gr-$version-$os.tar.gz"
