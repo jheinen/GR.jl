@@ -110,7 +110,7 @@ have_clear_output = false
 try
   if isinteractive()
     import IJulia
-    if Pkg.installed("IJulia") > v"0.2.5"
+    if typeof(IJulia.clear_output) == Function
       have_clear_output = true
     end
   end
