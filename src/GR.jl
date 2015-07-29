@@ -109,9 +109,11 @@ mime_type = None
 have_clear_output = false
 try
   if isinteractive()
-    import IJulia
-    if typeof(IJulia.clear_output) == Function
-      have_clear_output = true
+    if isdefined(Main, :IJulia)
+      import IJulia
+      if isdefined(IJulia, :clear_output)
+        have_clear_output = true
+      end
     end
   end
 end
