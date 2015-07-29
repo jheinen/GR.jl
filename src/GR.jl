@@ -105,19 +105,8 @@ export
   show
 
 mime_type = None
-
-have_clear_output = false
-try
-  if isinteractive()
-    if isdefined(Main, :IJulia)
-      import IJulia
-      if isdefined(IJulia, :clear_output)
-        have_clear_output = true
-      end
-    end
-  end
-end
-
+have_clear_output = isinteractive() && isdefined(Main, :IJulia) &&
+                    isdefined(Main.IJulia, :clear_output)
 
 function __init__()
     global libGR, libGR3
