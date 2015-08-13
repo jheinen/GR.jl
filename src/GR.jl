@@ -813,10 +813,11 @@ function drawimage(xmin::Real, xmax::Real, ymin::Real, ymax::Real, width::Int, h
 end
 
 function importgraphics(path)
-  ccall( (:gr_importgraphics, libGR),
-        Void,
-        (Ptr{Cchar}, ),
-        path)
+  ret = ccall( (:gr_importgraphics, libGR),
+              Int32,
+              (Ptr{Cchar}, ),
+              path)
+  return int(ret)
 end
 
 function setshadow(offsetx::Real, offsety::Real, blur::Real)
@@ -853,6 +854,22 @@ function endgraphics()
         Void,
         ()
         )
+end
+
+function getgraphics()
+  string = ccall( (:gr_getgraphics, libGR),
+                 Ptr{Cchar},
+                 (),
+                 )
+  return bytestring(string)
+end
+
+function drawgraphics(string)
+  ret = ccall( (:gr_drawgraphics, libGR),
+              Int32,
+              (Ptr{Cchar}, ),
+              string)
+  return int(ret)
 end
 
 function mathtex(x::Real, y::Real, string)
