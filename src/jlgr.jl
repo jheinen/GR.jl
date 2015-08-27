@@ -89,7 +89,7 @@ end
 function plot3d(z;
                 viewport=(0.1, 0.9, 0.1, 0.9),
                 rotation=30,
-                tilt=70,
+                tilt=50,
                 colormap=1,
                 option=4,
                 contours=true,
@@ -126,14 +126,14 @@ function plot3d(z;
     end
 
     if rotation != 0 || tilt != 90
-        GR.axes3d(xtick, 0, ztick, xmin, ymin, zmin, 5, 0, 5, -0.01)
-        GR.axes3d(0, ytick, 0, xmax, ymin, zmin, 0, 5, 0, 0.01)
+        GR.axes3d(xtick, 0, ztick, xmin, ymin, zmin, 2, 0, 2, -0.01)
+        GR.axes3d(0, ytick, 0, xmax, ymin, zmin, 0, 2, 0, 0.01)
     end
     if contours
         GR.contour(x, y, [], z, 0)
     end
     if rotation == 0 && tilt == 90
-        GR.axes(xtick, ytick, xmin, ymin, 5, 5, -0.01)
+        GR.axes(xtick, ytick, xmin, ymin, 2, 2, -0.01)
     end
     if xtitle != "" || ytitle != "" || ztitle != ""
         GR.titles3d(xtitle, ytitle, ztitle)
