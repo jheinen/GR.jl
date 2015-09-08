@@ -92,6 +92,8 @@ export
   setcoordxform,
   begingraphics,
   endgraphics,
+  getgraphics,
+  drawgraphics,
   mathtex,
   # Convenience functions
   jlgr,
@@ -163,7 +165,7 @@ function inqdspsize()
         Void,
         (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Ptr{Cint}),
         mwidth, mheight, width, height)
-  return mwidth[1], mheight[1], int(width[1]), int(height[1])
+  return mwidth[1], mheight[1], width[1], height[1]
 end
 
 function openws(workstation_id::Int, connection, workstation_type::Int)
@@ -653,7 +655,7 @@ function inqcolor(color::Int)
         Void,
         (Int32, Ptr{Int32}),
         color, rgb)
-  return int(rgb)
+  return rgb
 end
 
 function inqcolorfromrgb(red::Real, green::Real, blue::Real)
@@ -661,7 +663,7 @@ function inqcolorfromrgb(red::Real, green::Real, blue::Real)
                 Int32,
                 (Float64, Float64, Float64),
                 red, green, blue)
-  return int(color)
+  return color
 end
 
 function hsvtorgb(h::Real, s::Real, v::Real)
@@ -793,13 +795,13 @@ end
 function readimage(path)
   width = Cint[0]
   height = Cint[0]
-  data = Array(Ptr{Int32}, 1)
+  data = Array(Ptr{Uint32}, 1)
   ccall( (:gr_readimage, libGR),
         Void,
-        (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{Int32}}),
+        (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{Uint32}}),
         path, width, height, data)
   data = pointer_to_array(data[1], width[1] * height[1])
-  return int(width[1]), int(height[1]), data
+  return width[1], height[1], data
 end
 
 function drawimage(xmin::Real, xmax::Real, ymin::Real, ymax::Real, width::Int, height::Int, data, model::Int = 0)
@@ -813,11 +815,10 @@ function drawimage(xmin::Real, xmax::Real, ymin::Real, ymax::Real, width::Int, h
 end
 
 function importgraphics(path)
-  ret = ccall( (:gr_importgraphics, libGR),
-              Int32,
-              (Ptr{Cchar}, ),
-              path)
-  return int(ret)
+  ccall( (:gr_importgraphics, libGR),
+        Void,
+        (Ptr{Cchar}, ),
+        path)
 end
 
 function setshadow(offsetx::Real, offsety::Real, blur::Real)
@@ -1141,7 +1142,7 @@ function inqregenflags()
                 Int32,
                 ()
                 )
-  return int(flags)
+  return flags
 end
 
 

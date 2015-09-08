@@ -56,8 +56,9 @@ function plot(x, y;
     if grid
          GR.grid(xtick, ytick, xmax, ymax, majorx, majory)
     end
-    GR.axes(xtick, ytick, xmin, ymin, majorx, majory, 0.01)
-    GR.axes(xtick, ytick, xmax, ymax, -majorx, -majory, -0.01)
+    ticksize = 0.0125 * (viewport[2] - viewport[1])
+    GR.axes(xtick, ytick, xmin, ymin, majorx, majory, ticksize)
+    GR.axes(xtick, ytick, xmax, ymax, -majorx, -majory, -ticksize)
     GR.setlinetype(linetype)
     GR.polyline(x, y)
     if markertype != GR.MARKERTYPE_DOT
@@ -74,7 +75,7 @@ function plot(x, y;
 end
 
 function _guessdimension(len)
-    x = int(sqrt(len))
+    x = Int(sqrt(len))
     d = Array((Int, Int), 0)
     while x >= 1
         y = div(len, x)
@@ -96,8 +97,12 @@ function plot3d(z;
                 xtitle="",
                 ytitle="",
                 ztitle="",
-                accelerate=false)
-    GR.clearws()
+                accelerate=false,
+                clear=true,
+                update=true)
+    if clearws
+        GR.clearws()
+    end
     xmin, ymin = (1, 1)
     if ndims(z) == 2
         xmax, ymax = size(z)
@@ -109,8 +114,8 @@ function plot3d(z;
     zmax = maximum(z)
     xtick = GR.tick(xmin, xmax) / 5
     ytick = GR.tick(ymin, ymax) / 5
-    x = linspace(1, xmax, int(xmax))
-    y = linspace(1, ymax, int(ymax))
+    x = linspace(1, xmax, Int(xmax))
+    y = linspace(1, ymax, Int(ymax))
     zmin, zmax = GR.adjustrange(zmin, zmax)
     ztick = GR.tick(zmin, zmax) / 5
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
@@ -125,20 +130,23 @@ function plot3d(z;
         GR.surface(x, y, z, option)
     end
 
+    ticksize = 0.0125 * (viewport[2] - viewport[1])
     if rotation != 0 || tilt != 90
-        GR.axes3d(xtick, 0, ztick, xmin, ymin, zmin, 2, 0, 2, -0.01)
-        GR.axes3d(0, ytick, 0, xmax, ymin, zmin, 0, 2, 0, 0.01)
+        GR.axes3d(xtick, 0, ztick, xmin, ymin, zmin, 5, 0, 5, -ticksize)
+        GR.axes3d(0, ytick, 0, xmax, ymin, zmin, 0, 5, 0, ticksize)
     end
     if contours
         GR.contour(x, y, [], z, 0)
     end
     if rotation == 0 && tilt == 90
-        GR.axes(xtick, ytick, xmin, ymin, 2, 2, -0.01)
+        GR.axes(xtick, ytick, xmin, ymin, 5, 5, -ticksize)
     end
     if xtitle != "" || ytitle != "" || ztitle != ""
         GR.titles3d(xtitle, ytitle, ztitle)
     end
-    GR.updatews()
+    if update
+        GR.updatews()
+    end
 
     if GR.isinline()
         return GR.show()
@@ -148,7 +156,7 @@ end
 function imshow(data; cmap=GR.COLORMAP_GRAYSCALE)
     height, width = size(data)
     d = float(reshape(data, width * height))
-    ca = int(8 + 72 * (d - minimum(d)) / (maximum(d) - minimum(d)))
+    ca = Int(8 + 72 * (d - minimum(d)) / (maximum(d) - minimum(d)))
     GR.clearws()
     if width < height
         ratio = float(width) / height
