@@ -1,5 +1,7 @@
 # The GR module for Julia
 
+[![Join the chat at https://gitter.im/jheinen/GR.jl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jheinen/GR.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/jheinen/GR.jl.svg?branch=master)](https://travis-ci.org/jheinen/GR.jl)
 [![GR](http://pkg.julialang.org/badges/GR_release.svg)](http://pkg.julialang.org/?pkg=GR&ver=release)
 [![GR](http://pkg.julialang.org/badges/GR_nightly.svg)](http://pkg.julialang.org/?pkg=GR&ver=nightly)
