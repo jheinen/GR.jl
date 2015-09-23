@@ -1,8 +1,11 @@
 # The GR module for Julia
 
+[![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
 [![Build Status](https://travis-ci.org/jheinen/GR.jl.svg?branch=master)](https://travis-ci.org/jheinen/GR.jl)
-[![GR](http://pkg.julialang.org/badges/GR_release.svg)](http://pkg.julialang.org/?pkg=GR&ver=release)
-[![GR](http://pkg.julialang.org/badges/GR_nightly.svg)](http://pkg.julialang.org/?pkg=GR&ver=nightly)
+[![GR](http://pkg.julialang.org/badges/GR_0.3.svg)](http://pkg.julialang.org/?pkg=GR&ver=0.3)
+[![GR](http://pkg.julialang.org/badges/GR_0.4.svg)](http://pkg.julialang.org/?pkg=GR&ver=0.4)
+
+[![Join the chat at https://gitter.im/jheinen/GR.jl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jheinen/GR.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This module provides a Julia interface to
 [GR](http://gr-framework.org/), a framework for
