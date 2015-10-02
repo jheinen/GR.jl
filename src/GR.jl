@@ -197,8 +197,12 @@ function deactivatews(workstation_id::Int)
 end
 
 function clearws()
-  if isinline() && have_clear_output
-    IJulia.clear_output(true)
+  try
+    if isinline() && have_clear_output
+      IJulia.clear_output(true)
+    end
+  catch
+    have_clear_output = false
   end
   ccall( (:gr_clearws, libGR),
         Void,
@@ -1119,10 +1123,10 @@ function show()
     GR.emergencyclosegks()
     if mime_type == "svg"
         content = SVG(_readfile("gks.svg"))
-        display(content)
+        return content
     elseif mime_type == "png"
         content = PNG(_readfile("gks.png"))
-        display(content)
+        return content
     elseif mime_type == "mov"
         content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64(open(readbytes,"gks.mov")),""""></video>"""))
         return content
