@@ -2,6 +2,10 @@ module jlgr
 
 import GR
 
+if VERSION >= v"0.4-"
+  const None = Union{}
+end
+
 const gr3 = GR.gr3
 
 function plot(x, y;

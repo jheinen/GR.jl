@@ -2,6 +2,14 @@ module GR
 
 import Base.writemime
 
+if VERSION < v"0.4-"
+  typealias AbstractString String
+  typealias UInt8 Uint8
+  typealias UInt32 Uint32
+else
+  const None = Union{}
+end
+
 export
   opengks,
   closegks,
@@ -105,6 +113,7 @@ export
   isinline,
   inline,
   show
+
 
 mime_type = None
 have_clear_output = isinteractive() && isdefined(Main, :IJulia) &&
@@ -778,8 +787,8 @@ function drawpath(points, codes, fill::Int)
   len = length(points)
   ccall( (:gr_drawpath, libGR),
         Void,
-        (Int32, Ptr{Float64}, Ptr{Uint8}, Int32),
-        len, convert(Vector{Float64}, points), convert(Vector{Uint8}, codes), fill)
+        (Int32, Ptr{Float64}, Ptr{UInt8}, Int32),
+        len, convert(Vector{Float64}, points), convert(Vector{UInt8}, codes), fill)
 end
 
 function setarrowstyle(style::Int)
@@ -799,10 +808,10 @@ end
 function readimage(path)
   width = Cint[0]
   height = Cint[0]
-  data = Array(Ptr{Uint32}, 1)
+  data = Array(Ptr{UInt32}, 1)
   ccall( (:gr_readimage, libGR),
         Void,
-        (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{Uint32}}),
+        (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{UInt32}}),
         path, width, height, data)
   data = pointer_to_array(data[1], width[1] * height[1])
   return width[1], height[1], data
@@ -814,8 +823,8 @@ function drawimage(xmin::Real, xmax::Real, ymin::Real, ymax::Real, width::Int, h
   end
   ccall( (:gr_drawimage, libGR),
         Void,
-        (Float64, Float64, Float64, Float64, Int32, Int32, Ptr{Uint32}, Int32),
-        xmin, xmax, ymin, ymax, width, height, convert(Vector{Uint32}, data), model)
+        (Float64, Float64, Float64, Float64, Int32, Int32, Ptr{UInt32}, Int32),
+        xmin, xmax, ymin, ymax, width, height, convert(Vector{UInt32}, data), model)
 end
 
 function importgraphics(path)
@@ -1083,22 +1092,22 @@ function imshow(data; kwargs...)
 end
 
 type SVG
-   s::Array{Uint8}
+   s::Array{UInt8}
 end
 writemime(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
 
 type PNG
-   s::Array{Uint8}
+   s::Array{UInt8}
 end
 writemime(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 
 type HTML
-   s::String
+   s::AbstractString
 end
 writemime(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
 function _readfile(path)
-    data = Array(Uint8, filesize(path))
+    data = Array(UInt8, filesize(path))
     s = open(path, "r")
     bytestring(read!(s, data))
 end

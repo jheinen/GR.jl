@@ -4,6 +4,15 @@ import Base.writemime
 
 import GR
 
+if VERSION < v"0.4-"
+  typealias AbstractString String
+  typealias UInt8 Uint8
+  typealias UInt16 Uint16
+  typealias UInt32 Uint32
+else
+  const None = Union{}
+end
+
 if VERSION >= v"0.4-"
   macro _float32(x)
     :( Float32($x) )
@@ -27,17 +36,17 @@ else
 end
 
 type PNG
-   s::Array{Uint8}
+   s::Array{UInt8}
 end
 writemime(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 
 type HTML
-   s::String
+   s::AbstractString
 end
 writemime(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
 function _readfile(path)
-    data = Array(Uint8, filesize(path))
+    data = Array(UInt8, filesize(path))
     s = open(path, "r")
     bytestring(read!(s, data))
 end
@@ -74,10 +83,10 @@ export terminate
 
 function getimage(width, height, use_alpha=true)
   bpp = use_alpha ? 4 : 3
-  bitmap = zeros(Uint8, width * height * bpp)
+  bitmap = zeros(UInt8, width * height * bpp)
   err = ccall((:gr3_getimage, GR.libGR3),
               Int32,
-              (Int32, Int32, Int32, Ptr{Uint8}),
+              (Int32, Int32, Int32, Ptr{UInt8}),
               width, height, use_alpha, bitmap)
   if err != 0
     perror(err)
@@ -108,7 +117,7 @@ export save
 
 function getrenderpathstring()
   val = ccall((:gr3_getrenderpathstring, GR.libGR3),
-              Ptr{Uint8}, (), )
+              Ptr{UInt8}, (), )
   bytestring(val)
 end
 export getrenderpathstring
@@ -301,7 +310,7 @@ function setbackgroundcolor(red, green, blue, alpha)
 end
 export setbackgroundcolor
 
-function createisosurfacemesh(grid::Array{Uint16,3}, step::@triplet(Float64), offset::@triplet(Float64), isolevel::Int64)
+function createisosurfacemesh(grid::Array{UInt16,3}, step::@triplet(Float64), offset::@triplet(Float64), isolevel::Int64)
   mesh = Cint[0]
   dim_x, dim_y, dim_z = size(grid)
   data = reshape(grid, dim_x * dim_y * dim_z)
@@ -310,8 +319,8 @@ function createisosurfacemesh(grid::Array{Uint16,3}, step::@triplet(Float64), of
   offset_x, offset_y, offset_z = [ float(x) for x in offset ]
   err = ccall((:gr3_createisosurfacemesh, GR.libGR3),
               Int32,
-              (Ptr{Cint}, Ptr{Uint16}, Uint16, Int32, Int32, Int32, Int32, Int32, Int32, Float64, Float64, Float64, Float64, Float64, Float64),
-              mesh, convert(Vector{Uint16}, data), @_uint16(isolevel), dim_x, dim_y, dim_z, stride_x, stride_y, stride_z, step_x, step_y, step_z, offset_x, offset_y, offset_z)
+              (Ptr{Cint}, Ptr{UInt16}, UInt16, Int32, Int32, Int32, Int32, Int32, Int32, Float64, Float64, Float64, Float64, Float64, Float64),
+              mesh, convert(Vector{UInt16}, data), @_uint16(isolevel), dim_x, dim_y, dim_z, stride_x, stride_y, stride_z, step_x, step_y, step_z, offset_x, offset_y, offset_z)
   if err != 0
     perror(err)
   end
