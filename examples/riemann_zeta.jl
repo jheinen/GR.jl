@@ -2,6 +2,10 @@
 
 # A view of the Riemann Zeta function using the domain coloring method
 
+if VERSION < v"0.4-"
+  typealias UInt32 Uint32
+end
+
 import GR
 
 
@@ -55,7 +59,7 @@ function plot_domain(color_func, f; re=[-1, 1], im=[-1, 1], N=100, n=15)
     v = round(domc[:,3])
     alpha = 255
     width, height = size(w)
-    c = Array(Uint32, width * height)
+    c = Array(UInt32, width * height)
     c[:] = h + 256 * (s + 256 * (v + 256 * alpha))
     c = rotr90(reshape(c, width, height))
 

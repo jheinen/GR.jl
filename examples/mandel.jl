@@ -1,8 +1,4 @@
 #!/usr/bin/env julia
-# -*- no-plot -*-
-"""
-Calculate Mandelbrot set in Julia
-"""
 
 import GR
 

@@ -1,7 +1,7 @@
 import GR
 
 macro codes(n)
-  return :( [GR.PATH_MOVETO, repmat([GR.PATH_CURVE4], 3 * $n)] )
+  return :( [GR.PATH_MOVETO; repmat([GR.PATH_CURVE4], 3 * $n)] )
 end
 
 j = [ 0.1186, 0.2254,
@@ -145,7 +145,7 @@ GR.setwindow(0, 1, 0, 1)
 GR.setfillintstyle(GR.INTSTYLE_SOLID)
 GR.updatews()
 
-for s = linspace(0.1, 0.5, 500)
+for s in linspace(0.1, 0.5)
   GR.clearws()
   GR.setviewport(0.5 - s, 0.5 + s, 0.5 - s, 0.5 + s)
 

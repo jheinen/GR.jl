@@ -1,3 +1,7 @@
+if VERSION < v"0.4-"
+  typealias UInt16 Uint16
+end
+
 import GLFW
 
 import GR
@@ -38,7 +42,7 @@ function cursor(motion, x, y)
 end
  
 f = open("brain.bin", "r")
-data = reshape(read(f, Uint16, 5120000), 200, 160, 160)
+data = reshape(read(f, UInt16, 5120000), 200, 160, 160)
 close(f)
 
 width = height = 500
