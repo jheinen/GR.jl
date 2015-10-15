@@ -79,7 +79,7 @@ function plot(x, y;
 end
 
 function _guessdimension(len)
-    x = Int(sqrt(len))
+    x = round(sqrt(len))
     d = Array((Int, Int), 0)
     while x >= 1
         y = div(len, x)
@@ -104,7 +104,7 @@ function plot3d(z;
                 accelerate=false,
                 clear=true,
                 update=true)
-    if clearws
+    if clear
         GR.clearws()
     end
     xmin, ymin = (1, 1)
@@ -118,8 +118,8 @@ function plot3d(z;
     zmax = maximum(z)
     xtick = GR.tick(xmin, xmax) / 5
     ytick = GR.tick(ymin, ymax) / 5
-    x = linspace(1, xmax, Int(xmax))
-    y = linspace(1, ymax, Int(ymax))
+    x = linspace(1, xmax, round(xmax))
+    y = linspace(1, ymax, round(ymax))
     zmin, zmax = GR.adjustrange(zmin, zmax)
     ztick = GR.tick(zmin, zmax) / 5
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
@@ -160,7 +160,7 @@ end
 function imshow(data; cmap=GR.COLORMAP_GRAYSCALE)
     height, width = size(data)
     d = float(reshape(data, width * height))
-    ca = Int(8 + 72 * (d - minimum(d)) / (maximum(d) - minimum(d)))
+    ca = round(8 + 72 * (d - minimum(d)) / (maximum(d) - minimum(d)))
     GR.clearws()
     if width < height
         ratio = float(width) / height

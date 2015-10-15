@@ -329,6 +329,10 @@ end
 export createisosurfacemesh
 
 function surface(px, py, pz, option::Int)
+  _px = [ @_float32(x) for x in px ]
+  _py = [ @_float32(y) for y in py ]
+  _pz = [ @_float32(z) for z in pz ]
+
   nx = length(px)
   ny = length(py)
   nz = length(pz)
@@ -343,7 +347,7 @@ function surface(px, py, pz, option::Int)
     ccall((:gr3_surface, GR.libGR3),
           Void,
           (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32),
-          nx, ny, convert(Vector{Float32}, px), convert(Vector{Float32}, py), convert(Vector{Float32}, pz), option)
+          nx, ny, convert(Vector{Float32}, _px), convert(Vector{Float32}, _py), convert(Vector{Float32}, _pz), option)
   else
     println("Arrays have incorrect length or dimension.")
   end
