@@ -1114,7 +1114,7 @@ end
 
 function isinline()
     global mime_type
-    return mime_type != None && mime_type != "mov"
+    return !(mime_type in (None, "", "mov"))
 end
 
 function inline(mime="svg")
