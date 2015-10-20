@@ -1,3 +1,7 @@
+if VERSION >= v"0.4-"
+  __precompile__()
+end
+
 module GR
 
 import Base.writemime
