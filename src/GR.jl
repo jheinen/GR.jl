@@ -69,6 +69,7 @@ export
   inqtextext,
   axes,
   grid,
+  grid3d,
   verrorbars,
   herrorbars,
   polyline3d,
@@ -89,6 +90,7 @@ export
   endprint,
   ndctowc,
   wctondc,
+  wc3towc,
   drawrect,
   fillrect,
   drawarc,
@@ -568,6 +570,13 @@ function grid(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int
         x_tick, y_tick, x_org, y_org, major_x, major_y)
 end
 
+function grid3d(x_tick::Real, y_tick::Real, z_tick::Real, x_org::Real, y_org::Real, z_org::Real, major_x::Int, major_y::Int, major_z::Int)
+  ccall( (:gr_grid3d, libGR),
+        Void,
+        (Float64, Float64, Float64, Float64, Float64, Float64, Int32, Int32, Int32),
+        x_tick, y_tick, z_tick, x_org, y_org, z_org, major_x, major_y, major_z)
+end
+
 function verrorbars(px, py, e1, e2)
   assert(length(px) == length(py) == length(e1) == length(e2))
   n = length(px)
@@ -757,6 +766,17 @@ function wctondc(x::Real, y::Real)
         (Ptr{Float64}, Ptr{Float64}),
         _x, _y)
   return _x[1], _y[1]
+end
+
+function wc3towc(x::Real, y::Real, z::Real)
+  _x = Cdouble[x]
+  _y = Cdouble[y]
+  _z = Cdouble[z]
+  ccall( (:gr_wc3towc, libGR),
+        Void,
+        (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
+        _x, _y, _z)
+  return _x[1], _y[1], _z[1]
 end
 
 function drawrect(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
