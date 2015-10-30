@@ -84,6 +84,7 @@ export
   hsvtorgb,
   tick,
   validaterange,
+  adjustlimits,
   adjustrange,
   beginprint,
   beginprintext,
@@ -717,6 +718,16 @@ function validaterange(amin::Real, amax::Real)
                amin, amax)
 end
 
+function adjustlimits(amin::Real, amax::Real)
+  _amin = Cdouble[amin]
+  _amax = Cdouble[amax]
+  ccall( (:gr_adjustlimits, libGR),
+        Void,
+        (Ptr{Float64}, Ptr{Float64}),
+        _amin, _amax)
+  return _amin[1], _amax[1]
+end
+
 function adjustrange(amin::Real, amax::Real)
   _amin = Cdouble[amin]
   _amax = Cdouble[amax]
@@ -1182,5 +1193,25 @@ function inqregenflags()
   return flags
 end
 
+function savestate()
+  ccall( (:gr_savestate, libGR),
+        Void,
+        ()
+        )
+end
+
+function restorestate()
+  ccall( (:gr_restorestate, libGR),
+        Void,
+        ()
+        )
+end
+
+function uselinespec(linespec)
+  return ccall( (:gr_uselinespec, libGR),
+               Int32,
+               (Ptr{Cchar}, ),
+               linespec)
+end
 
 end # module
