@@ -69,7 +69,7 @@ end
 function plot(args::PlotArg...; kv...)
     args = Any[args...]
 
-    kv = merge(kvs, Dict(zip(kv...)...))
+    kv = merge(kvs, Dict(kv))
 
     parsed_args = Any[]
 
