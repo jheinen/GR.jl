@@ -113,6 +113,10 @@ export
   # Convenience functions
   jlgr,
   plot,
+  title,
+  xlabel,
+  ylabel,
+  plot2d,
   plot3d,
   imshow,
   libGR3,
@@ -1114,17 +1118,13 @@ const gr3 = GR.GR3
 # Convenience functions
 include("jlgr.jl")
 
-function plot(x, y; kwargs...)
-  jlgr.plot(x, y; kwargs...)
-end
-
-function plot3d(z; kwargs...)
-  jlgr.plot3d(z; kwargs...)
-end
-
-function imshow(data; kwargs...)
-  jlgr.imshow(data; kwargs...)
-end
+plot(args...; kwargs...) = jlgr.plot(args...; kwargs...)
+title(s) = jlgr.title(s)
+xlabel(s) = jlgr.xlabel(s)
+ylabel(s) = jlgr.ylabel(s)
+plot2d(x, y; kwargs...) = jlgr.plot2d(x, y; kwargs...)
+plot3d(z; kwargs...) = jlgr.plot3d(z; kwargs...)
+imshow(data; kwargs...) = jlgr.imshow(data; kwargs...)
 
 type SVG
    s::Array{UInt8}
