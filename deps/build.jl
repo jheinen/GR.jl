@@ -1,6 +1,6 @@
 have_env = "GRDIR" in keys(ENV)
 if !have_env && !isdir("/usr/local/gr") && !isdir(joinpath(homedir(),"gr"))
-  const version = v"0.17.1"
+  const version = v"0.17.3"
   const gr = "gr-$version"
   const os = OS_NAME
   const arch = Sys.ARCH
