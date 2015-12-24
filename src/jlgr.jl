@@ -171,8 +171,11 @@ function plot(args::PlotArg...; kv...)
         GR.text(0, 0.4, kv[:ylabel])
         GR.restorestate()
     end
+    GR.updatews()
 
-    return GR.show()
+    if GR.isinline()
+        return GR.show()
+    end
 end
 
 function title(s)
