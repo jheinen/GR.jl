@@ -21,14 +21,17 @@ isvector(x::AbstractMatrix) = size(x, 1) == 1
 function plot_data(x, y, spec;
                    bgcolor=0,
                    window=(-1, 1, -1, 1),
-                   viewport=(0.1, 0.95, 0.1, 0.7),
+                   viewport=(0.15, 0.95, 0.1, 0.7),
                    scale=0,
                    clear=true,
                    update=true)
-    GR.setwsviewport(0, 0.14, 0, 0.105)
-    GR.setwswindow(0, 1, 0, 0.75)
     if clear
         GR.clearws()
+    end
+    GR.setwsviewport(0, 0.14, 0, 0.105)
+    GR.setwswindow(0, 1, 0, 0.75)
+
+    if clear
         xmin, xmax, ymin, ymax = window
 
         if scale & GR.OPTION_X_LOG == 0
@@ -53,7 +56,7 @@ function plot_data(x, y, spec;
         end
         charheight = 0.03 * (viewport[4] - viewport[3])
         GR.setcharheight(charheight)
-        GR.grid(xtick, ytick, xmax, ymax, majorx, majory)
+        GR.grid(xtick, ytick, 0, 0, majorx, majory)
         ticksize = 0.0125 * (viewport[2] - viewport[1])
         GR.axes(xtick, ytick, xmin, ymin, majorx, majory, ticksize)
         GR.axes(xtick, ytick, xmax, ymax, -majorx, -majory, -ticksize)
