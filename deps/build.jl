@@ -9,6 +9,6 @@ if !have_env && !isdir("/usr/local/gr") && !isdir(joinpath(homedir(),"gr"))
     info("Downloading pre-compiled GR $version binary")
     mkpath("downloads")
     download("http://gr-framework.org/downloads/$tarball", "downloads/$tarball")
-    run(`tar xzf downloads/$tarball`)
+    run(pipeline(`7z x -so downloads/$tarball`,`7z x -aoa -si -ttar -o"."`))
   end
 end
