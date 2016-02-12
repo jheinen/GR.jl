@@ -5,74 +5,171 @@ import GR
 
 if VERSION >= v"0.4-"
   const None = Union{}
+  macro _tuple(t)
+    :( Tuple{$t} )
+  end
+else
+  macro _tuple(t)
+    :( () )
+  end
 end
 
 @compat typealias PlotArg Union{AbstractString, AbstractVector, AbstractMatrix}
 
 const gr3 = GR.gr3
 
-kvs = Dict()
+type PlotObject
+    args
+    kvs
+end
+
+function Figure(width=600, height=450)
+    args = @_tuple(Any)
+    kvs = Dict()
+    kvs[:size] = (width, height)
+    PlotObject(args, kvs)
+end
+
+plt = Figure()
 
 isrowvec(x::AbstractArray) = ndims(x) == 2 && size(x, 1) == 1 && size(x, 2) > 1
 
 isvector(x::AbstractVector) = true
 isvector(x::AbstractMatrix) = size(x, 1) == 1
 
-function plot_data(x, y, spec;
-                   bgcolor=0,
-                   window=(-1, 1, -1, 1),
-                   viewport=(0.15, 0.95, 0.1, 0.7),
-                   scale=0,
-                   clear=true,
-                   update=true)
-    if clear
-        GR.clearws()
-    end
-    GR.setwsviewport(0, 0.14, 0, 0.105)
-    GR.setwswindow(0, 1, 0, 0.75)
+function plot_data(; kv...)
+    merge!(plt.kvs, Dict(kv))
 
-    if clear
-        xmin, xmax, ymin, ymax = window
-
-        if scale & GR.OPTION_X_LOG == 0
-            majorx = 5
-            xtick = GR.tick(xmin, xmax) / majorx
-        else
-            xtick = majorx = 1
-        end
-        if scale & GR.OPTION_Y_LOG == 0
-        majory = 5
-            ytick = GR.tick(ymin, ymax) / majory
-        else
-            ytick = majory = 1
-        end
-        GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
-        GR.setwindow(xmin, xmax, ymin, ymax)
-        GR.setscale(scale)
-        if bgcolor != 0
-            GR.setfillintstyle(1)
-            GR.setfillcolorind(bgcolor)
-            GR.fillrect(xmin, xmax, ymin, ymax)
-        end
-        charheight = 0.03 * (viewport[4] - viewport[3])
-        GR.setcharheight(charheight)
-        GR.grid(xtick, ytick, 0, 0, majorx, majory)
-        ticksize = 0.0125 * (viewport[2] - viewport[1])
-        GR.axes(xtick, ytick, xmin, ymin, majorx, majory, ticksize)
-        GR.axes(xtick, ytick, xmax, ymax, -majorx, -majory, -ticksize)
+    subplot = [0, 1, 0, 1]
+    mwidth, mheight, width, height = GR.inqdspsize()
+    w, h = plt.kvs[:size]
+    viewport = zeros(4)
+    if w > h
+        ratio = float(h) / w
+        msize = mwidth * w / width
+        GR.setwsviewport(0, msize, 0, msize * ratio)
+        GR.setwswindow(0, 1, 0, ratio)
+        viewport[1] = subplot[1] + 0.1  * (subplot[2] - subplot[1])
+        viewport[2] = subplot[1] + 0.95 * (subplot[2] - subplot[1])
+        viewport[3] = ratio * (subplot[3] + 0.1  * (subplot[4] - subplot[3]))
+        viewport[4] = ratio * (subplot[3] + 0.95 * (subplot[4] - subplot[3]))
+    else
+        ratio = float(w) / h
+        msize = mheight * h / height
+        GR.setwsviewport(0, msize * ratio, 0, msize)
+        GR.setwswindow(0, ratio, 0, 1)
+        viewport[1] = ratio * (subplot[1] + 0.1  * (subplot[2] - subplot[1]))
+        viewport[2] = ratio * (subplot[1] + 0.95 * (subplot[2] - subplot[1]))
+        viewport[3] = subplot[3] + 0.1  * (subplot[4] - subplot[3])
+        viewport[4] = subplot[3] + 0.95 * (subplot[4] - subplot[3])
     end
-    mask = GR.uselinespec(spec)
-    mask in (0, 1, 3, 4, 5) && GR.polyline(x, y)
-    mask & 0x02 != 0 && GR.polymarker(x, y)
-    if update
-        GR.updatews()
+
+    xmin, xmax = plt.kvs[:xrange]
+    ymin, ymax = plt.kvs[:yrange]
+    if haskey(plt.kvs, :scale)
+        scale = plt.kvs[:scale]
+    else
+        scale = 0
+    end
+    if scale & GR.OPTION_X_LOG == 0
+        majorx = 5
+        xtick = GR.tick(xmin, xmax) / majorx
+    else
+        xtick = majorx = 1
+    end
+    if scale & GR.OPTION_Y_LOG == 0
+    majory = 5
+        ytick = GR.tick(ymin, ymax) / majory
+    else
+        ytick = majory = 1
+    end
+    GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
+    GR.setwindow(xmin, xmax, ymin, ymax)
+    GR.setscale(scale)
+    if haskey(plt.kvs, :backgroundcolor)
+        GR.setfillintstyle(1)
+        GR.setfillcolorind(plt.kvs[:backgroundcolor])
+        GR.fillrect(xmin, xmax, ymin, ymax)
+    end
+    GR.setlinecolorind(1)
+    charheight = 0.03 * (viewport[4] - viewport[3])
+    GR.setcharheight(charheight)
+    GR.grid(xtick, ytick, 0, 0, majorx, majory)
+    ticksize = 0.0125 * (viewport[2] - viewport[1])
+    GR.axes(xtick, ytick, xmin, ymin, majorx, majory, ticksize)
+    GR.axes(xtick, ytick, xmax, ymax, -majorx, -majory, -ticksize)
+
+    GR.uselinespec(" ")
+    for (x, y, spec) in plt.args
+        GR.savestate()
+        mask = GR.uselinespec(spec)
+        mask in (0, 1, 3, 4, 5) && GR.polyline(x, y)
+        mask & 0x02 != 0 && GR.polymarker(x, y)
+        GR.restorestate()
+    end
+
+    if haskey(plt.kvs, :title)
+        GR.savestate()
+        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
+        GR.text(0.5, 0.75, plt.kvs[:title])
+        GR.restorestate()
+    end
+    if haskey(plt.kvs, :xlabel)
+        GR.savestate()
+        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_BOTTOM)
+        GR.text(0.5, 0, plt.kvs[:xlabel])
+        GR.restorestate()
+    end
+    if haskey(plt.kvs, :ylabel)
+        GR.savestate()
+        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
+        GR.setcharup(-1, 0)
+        GR.text(0, 0.4, plt.kvs[:ylabel])
+        GR.restorestate()
+    end
+    if haskey(plt.kvs, :labels)
+        num_labels = length(plt.kvs[:labels])
+        GR.savestate()
+        GR.selntran(0)
+        GR.setscale(0)
+        w = 0
+        for label in plt.kvs[:labels]
+          tbx, tby = GR.inqtext(0, 0, label)
+          w = max(w, tbx[3])
+        end
+        px = viewport[2] - 0.05 - w
+        py = viewport[4] - 0.06
+        GR.setfillintstyle(GR.INTSTYLE_SOLID)
+        GR.setfillcolorind(0)
+        GR.fillrect(px - 0.08, px + w + 0.02, py + 0.03, py - 0.03 * num_labels)
+        GR.setlinetype(1)
+        GR.setlinecolorind(1)
+        GR.setlinewidth(1)
+        GR.drawrect(px - 0.08, px + w + 0.02, py + 0.03, py - 0.03 * num_labels)
+        i = 0
+        GR.uselinespec(" ")
+        for (x, y, spec) in plt.args
+            GR.savestate()
+            mask = GR.uselinespec(spec)
+            mask in (0, 1, 3, 4, 5) && GR.polyline([px - 0.07, px - 0.01], [py, py])
+            mask & 0x02 != 0 && GR.polymarker([px - 0.06, px - 0.02], [py, py])
+            GR.restorestate()
+            GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
+            if i < num_labels
+                i += 1
+                GR.text(px, py, plt.kvs[:labels][i])
+            end
+            py -= 0.03
+        end
+        GR.selntran(1)
+        GR.restorestate()
     end
 end
 
 function plot(args::PlotArg...; kv...)
     args = Any[args...]
 
-    kv = merge(kvs, Dict(kv))
+    merge!(plt.kvs, Dict(kv))
 
     parsed_args = Any[]
 
@@ -105,7 +202,7 @@ function plot(args::PlotArg...; kv...)
         push!(parsed_args, (x, y, spec))
     end
 
-    items = Any[]
+    plt.args = Any[]
 
     for (a, b, spec) in parsed_args
         x, y = a, b
@@ -130,13 +227,13 @@ function plot(args::PlotArg...; kv...)
         end
 
         for (x, y) in xys
-            push!(items, (x, y, spec))
+            push!(plt.args, (x, y, spec))
         end
     end
 
     xmin = ymin = typemax(Float64)
     xmax = ymax = typemin(Float64)
-    for (x, y, spec) in items
+    for (x, y, spec) in plt.args
         xmin = min(minimum(x), xmin)
         xmax = max(maximum(x), xmax)
         ymin = min(minimum(y), ymin)
@@ -147,65 +244,68 @@ function plot(args::PlotArg...; kv...)
     ymin, ymax = GR.adjustlimits(ymin, ymax)
     GR.setwindow(xmin, xmax, ymin, ymax)
 
-    clear = true
-    for (x, y, spec) in items
-        GR.savestate()
-        plot_data(x, y, spec, window=(xmin, xmax, ymin, ymax), clear=clear)
-        GR.restorestate()
-        clear = false
-    end
+    plt.kvs[:xrange] = xmin, xmax
+    plt.kvs[:yrange] = ymin, ymax
 
-    if haskey(kv, :title)
-        GR.savestate()
-        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        GR.text(0.5, 0.75, kv[:title])
-        GR.restorestate()
-    end
-    if haskey(kv, :xlabel)
-        GR.savestate()
-        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_BOTTOM)
-        GR.text(0.5, 0, kv[:xlabel])
-        GR.restorestate()
-    end
-    if haskey(kv, :ylabel)
-        GR.savestate()
-        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        GR.setcharup(-1, 0)
-        GR.text(0, 0.4, kv[:ylabel])
-        GR.restorestate()
-    end
+    GR.clearws()
+
+    plot_data()
+
     GR.updatews()
-
     if GR.isinline()
         return GR.show()
     end
 end
 
 function title(s)
-    kvs[:title] = s
+    plot_data(title=s)
 end
 
 function xlabel(s)
-    kvs[:xlabel] = s
+    plot_data(xlabel=s)
 end
 
 function ylabel(s)
-    kvs[:ylabel] = s
+    plot_data(ylabel=s)
+end
+
+function legend(args::AbstractString...; kv...)
+    plot_data(labels=args)
 end
 
 function plot2d(x, y;
                 bgcolor=0,
-                viewport=(0.1, 0.95, 0.1, 0.95),
+                viewport=(0.15, 0.95, 0.1, 0.7),
                 window=(-1, 1, -1, 1),
-                scale=0,                       # ignored
-                grid=true,                     # ignored
+                scale=0,
+                grid=true,
                 linetype=GR.LINETYPE_SOLID,    # ignored
                 markertype=GR.MARKERTYPE_DOT,  # ignored
                 clear=true,
                 update=true)
+
     println("plot2d: This function is deprecated; use plot() instead")
-    plot_data(x, y, "", bgcolor=bgcolor, window=window, viewport=viewport,
-              scale=scale, clear=clear, update=update)
+
+    kv = Dict()
+    kv[:backgroundcolor] = bgcolor
+    kv[:viewport] = viewport
+    kv[:xrange] = (window[1], window[2])
+    kv[:yrange] = (window[3], window[4])
+    kv[:scale] = scale
+    kv[:grid] = grid
+
+    if clear
+        GR.clearws()
+    end
+
+    plt.args = [(x, y, "")]
+    plt.kvs = kv
+
+    plot_data()
+
+    if update
+        GR.updatews()
+    end
 end
 
 function _guessdimension(len)

@@ -116,6 +116,7 @@ export
   title,
   xlabel,
   ylabel,
+  legend,
   plot2d,
   plot3d,
   imshow,
@@ -1122,6 +1123,7 @@ plot(args...; kwargs...) = jlgr.plot(args...; kwargs...)
 title(s) = jlgr.title(s)
 xlabel(s) = jlgr.xlabel(s)
 ylabel(s) = jlgr.ylabel(s)
+legend(args...; kwargs...) = jlgr.legend(args...; kwargs...)
 plot2d(x, y; kwargs...) = jlgr.plot2d(x, y; kwargs...)
 plot3d(z; kwargs...) = jlgr.plot3d(z; kwargs...)
 imshow(data; kwargs...) = jlgr.imshow(data; kwargs...)
@@ -1149,12 +1151,12 @@ end
 
 function isinline()
     global mime_type
-    return !(mime_type in (None, "", "mov"))
+    return !(mime_type in (None, "mov"))
 end
 
 function inline(mime="svg")
     global mime_type
-    if mime_type == None
+    if mime_type != mime
         ENV["GKS_WSTYPE"] = mime
         GR.emergencyclosegks()
         mime_type = mime
