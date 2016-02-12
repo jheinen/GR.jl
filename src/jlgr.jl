@@ -18,6 +18,8 @@ end
 
 const gr3 = GR.gr3
 
+const plot_kind = [:line, :scatter, :hist]
+
 type PlotObject
     args
     kvs
@@ -39,6 +41,8 @@ isvector(x::AbstractMatrix) = size(x, 1) == 1
 
 function plot_data(; kv...)
     merge!(plt.kvs, Dict(kv))
+
+    kind = get(plt.kvs, :kind, :line)
 
     subplot = [0, 1, 0, 1]
     mwidth, mheight, width, height = GR.inqdspsize()
@@ -63,55 +67,65 @@ function plot_data(; kv...)
         viewport[3] = subplot[3] + 0.1  * (subplot[4] - subplot[3])
         viewport[4] = subplot[3] + 0.95 * (subplot[4] - subplot[3])
     end
+    GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
+
+    scale = 0
+    get(plt.kvs, :xlog, false) && (scale |= GR.OPTION_X_LOG)
+    get(plt.kvs, :ylog, false) && (scale |= GR.OPTION_Y_LOG)
+    get(plt.kvs, :xflip, false) && (scale |= GR.OPTION_FLIP_X)
+    get(plt.kvs, :yflip, false) && (scale |= GR.OPTION_FLIP_Y)
 
     xmin, xmax = plt.kvs[:xrange]
     ymin, ymax = plt.kvs[:yrange]
-    if haskey(plt.kvs, :scale)
-        scale = plt.kvs[:scale]
-    else
-        scale = 0
-    end
     if scale & GR.OPTION_X_LOG == 0
+        xmin, xmax = GR.adjustlimits(xmin, xmax)
         majorx = 5
         xtick = GR.tick(xmin, xmax) / majorx
     else
         xtick = majorx = 1
     end
     if scale & GR.OPTION_Y_LOG == 0
-    majory = 5
+        ymin, ymax = GR.adjustlimits(ymin, ymax)
+        majory = 5
         ytick = GR.tick(ymin, ymax) / majory
     else
         ytick = majory = 1
     end
-    GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
+    if scale & GR.OPTION_FLIP_X == 0
+        xorg = (xmin, xmax)
+    else
+        xorg = (xmax, xmin)
+    end
+    if scale & GR.OPTION_FLIP_Y == 0
+        yorg = (ymin, ymax)
+    else
+        yorg = (ymax, ymin)
+    end
+
     GR.setwindow(xmin, xmax, ymin, ymax)
-    GR.setscale(scale)
     if haskey(plt.kvs, :backgroundcolor)
-        GR.setfillintstyle(1)
+        GR.savestate()
+        GR.setfillintstyle(GR.INTSTYLE_SOLID)
         GR.setfillcolorind(plt.kvs[:backgroundcolor])
         GR.fillrect(xmin, xmax, ymin, ymax)
-    end
-    GR.setlinecolorind(1)
-    charheight = 0.03 * (viewport[4] - viewport[3])
-    GR.setcharheight(charheight)
-    GR.grid(xtick, ytick, 0, 0, majorx, majory)
-    ticksize = 0.0125 * (viewport[2] - viewport[1])
-    GR.axes(xtick, ytick, xmin, ymin, majorx, majory, ticksize)
-    GR.axes(xtick, ytick, xmax, ymax, -majorx, -majory, -ticksize)
-
-    GR.uselinespec(" ")
-    for (x, y, spec) in plt.args
-        GR.savestate()
-        mask = GR.uselinespec(spec)
-        mask in (0, 1, 3, 4, 5) && GR.polyline(x, y)
-        mask & 0x02 != 0 && GR.polymarker(x, y)
         GR.restorestate()
     end
+    GR.setscale(scale)
+
+    GR.setlinecolorind(1)
+    diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
+    GR.setlinewidth(1)
+    charheight = max(0.018 * diag, 0.01)
+    GR.setcharheight(charheight)
+    ticksize = 0.0075 * diag
+    GR.grid(xtick, ytick, 0, 0, majorx, majory)
+    GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
+    GR.axes(xtick, ytick, xorg[2], yorg[2], -majorx, -majory, -ticksize)
 
     if haskey(plt.kvs, :title)
         GR.savestate()
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        GR.text(0.5, 0.75, plt.kvs[:title])
+        GR.text(0.5, min(ratio, 1), plt.kvs[:title])
         GR.restorestate()
     end
     if haskey(plt.kvs, :xlabel)
@@ -124,9 +138,31 @@ function plot_data(; kv...)
         GR.savestate()
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
         GR.setcharup(-1, 0)
-        GR.text(0, 0.4, plt.kvs[:ylabel])
+        GR.text(0, 0.5 * (viewport[3] + viewport[4]), plt.kvs[:ylabel])
         GR.restorestate()
     end
+
+    GR.uselinespec(" ")
+    for (x, y, spec) in plt.args
+        GR.savestate()
+        if kind == :line
+            mask = GR.uselinespec(spec)
+            mask in (0, 1, 3, 4, 5) && GR.polyline(x, y)
+            mask & 0x02 != 0 && GR.polymarker(x, y)
+        elseif kind == :hist
+            x, y, spec = plt.args[1]
+            for i = 2:length(y)
+                GR.setfillcolorind(989)
+                GR.setfillintstyle(GR.INTSTYLE_SOLID)
+                GR.fillrect(x[i-1], x[i], ymin, y[i])
+                GR.setfillcolorind(1)
+                GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
+                GR.fillrect(x[i-1], x[i], ymin, y[i])
+                end
+        end
+        GR.restorestate()
+    end
+
     if haskey(plt.kvs, :labels)
         num_labels = length(plt.kvs[:labels])
         GR.savestate()
@@ -166,11 +202,8 @@ function plot_data(; kv...)
     end
 end
 
-function plot(args::PlotArg...; kv...)
+function plot_args(args)
     args = Any[args...]
-
-    merge!(plt.kvs, Dict(kv))
-
     parsed_args = Any[]
 
     while length(args) > 0
@@ -202,7 +235,7 @@ function plot(args::PlotArg...; kv...)
         push!(parsed_args, (x, y, spec))
     end
 
-    plt.args = Any[]
+    pltargs = Any[]
 
     for (a, b, spec) in parsed_args
         x, y = a, b
@@ -227,10 +260,14 @@ function plot(args::PlotArg...; kv...)
         end
 
         for (x, y) in xys
-            push!(plt.args, (x, y, spec))
+            push!(pltargs, (x, y, spec))
         end
     end
 
+    pltargs
+end
+
+function minmax()
     xmin = ymin = typemax(Float64)
     xmax = ymax = typemin(Float64)
     for (x, y, spec) in plt.args
@@ -239,17 +276,37 @@ function plot(args::PlotArg...; kv...)
         ymin = min(minimum(y), ymin)
         ymax = max(maximum(y), ymax)
     end
-
-    xmin, xmax = GR.adjustlimits(xmin, xmax)
-    ymin, ymax = GR.adjustlimits(ymin, ymax)
-    GR.setwindow(xmin, xmax, ymin, ymax)
-
     plt.kvs[:xrange] = xmin, xmax
     plt.kvs[:yrange] = ymin, ymax
+end
+
+function plot(args::PlotArg...; kv...)
+    merge!(plt.kvs, Dict(kv))
+
+    plt.args = plot_args(args)
+    minmax()
 
     GR.clearws()
 
     plot_data()
+
+    GR.updatews()
+    if GR.isinline()
+        return GR.show()
+    end
+end
+
+function histogram(X; kv...)
+    merge!(plt.kvs, Dict(kv))
+
+    h = Base.hist(X)
+    x, y = float(collect(h[1])), float(h[2])
+    plt.args = [(x, y, "")]
+    minmax()
+
+    GR.clearws()
+
+    plot_data(kind=:hist)
 
     GR.updatews()
     if GR.isinline()
@@ -273,12 +330,18 @@ function legend(args::AbstractString...; kv...)
     plot_data(labels=args)
 end
 
+function savefig(filename)
+    GR.beginprint(filename)
+    plot_data()
+    GR.endprint()
+end
+
 function plot2d(x, y;
                 bgcolor=0,
                 viewport=(0.15, 0.95, 0.1, 0.7),
                 window=(-1, 1, -1, 1),
-                scale=0,
-                grid=true,
+                scale=0,                       # ignored
+                grid=true,                     # ignored
                 linetype=GR.LINETYPE_SOLID,    # ignored
                 markertype=GR.MARKERTYPE_DOT,  # ignored
                 clear=true,
@@ -291,8 +354,6 @@ function plot2d(x, y;
     kv[:viewport] = viewport
     kv[:xrange] = (window[1], window[2])
     kv[:yrange] = (window[3], window[4])
-    kv[:scale] = scale
-    kv[:grid] = grid
 
     if clear
         GR.clearws()

@@ -113,10 +113,12 @@ export
   # Convenience functions
   jlgr,
   plot,
+  histogram,
   title,
   xlabel,
   ylabel,
   legend,
+  savefig,
   plot2d,
   plot3d,
   imshow,
@@ -1120,10 +1122,12 @@ const gr3 = GR.GR3
 include("jlgr.jl")
 
 plot(args...; kwargs...) = jlgr.plot(args...; kwargs...)
+histogram(X; kwargs...) = jlgr.histogram(X; kwargs...)
 title(s) = jlgr.title(s)
 xlabel(s) = jlgr.xlabel(s)
 ylabel(s) = jlgr.ylabel(s)
-legend(args...; kwargs...) = jlgr.legend(args...; kwargs...)
+savefig(filename) = jlgr.savefig(filename)
+
 plot2d(x, y; kwargs...) = jlgr.plot2d(x, y; kwargs...)
 plot3d(z; kwargs...) = jlgr.plot3d(z; kwargs...)
 imshow(data; kwargs...) = jlgr.imshow(data; kwargs...)
