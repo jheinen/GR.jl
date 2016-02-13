@@ -53,21 +53,37 @@ function plot_data(; kv...)
         msize = mwidth * w / width
         GR.setwsviewport(0, msize, 0, msize * ratio)
         GR.setwswindow(0, 1, 0, ratio)
-        viewport[1] = subplot[1] + 0.1  * (subplot[2] - subplot[1])
-        viewport[2] = subplot[1] + 0.95 * (subplot[2] - subplot[1])
-        viewport[3] = ratio * (subplot[3] + 0.1  * (subplot[4] - subplot[3]))
-        viewport[4] = ratio * (subplot[3] + 0.95 * (subplot[4] - subplot[3]))
+        viewport[1] = subplot[1] + 0.125 * (subplot[2] - subplot[1])
+        viewport[2] = subplot[1] + 0.95  * (subplot[2] - subplot[1])
+        viewport[3] = ratio * (subplot[3] + 0.125 * (subplot[4] - subplot[3]))
+        viewport[4] = ratio * (subplot[3] + 0.95  * (subplot[4] - subplot[3]))
     else
         ratio = float(w) / h
         msize = mheight * h / height
         GR.setwsviewport(0, msize * ratio, 0, msize)
         GR.setwswindow(0, ratio, 0, 1)
-        viewport[1] = ratio * (subplot[1] + 0.1  * (subplot[2] - subplot[1]))
-        viewport[2] = ratio * (subplot[1] + 0.95 * (subplot[2] - subplot[1]))
-        viewport[3] = subplot[3] + 0.1  * (subplot[4] - subplot[3])
-        viewport[4] = subplot[3] + 0.95 * (subplot[4] - subplot[3])
+        viewport[1] = ratio * (subplot[1] + 0.125 * (subplot[2] - subplot[1]))
+        viewport[2] = ratio * (subplot[1] + 0.95  * (subplot[2] - subplot[1]))
+        viewport[3] = subplot[3] + 0.125 * (subplot[4] - subplot[3])
+        viewport[4] = subplot[3] + 0.95  * (subplot[4] - subplot[3])
     end
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
+
+    if haskey(plt.kvs, :backgroundcolor)
+        GR.savestate()
+        GR.selntran(0)
+        GR.setfillintstyle(GR.INTSTYLE_SOLID)
+        GR.setfillcolorind(plt.kvs[:backgroundcolor])
+        if w > h
+          GR.fillrect(subplot[1], subplot[2],
+                      ratio * subplot[3], ratio * subplot[4])
+        else
+          GR.fillrect(ratio * subplot[1], ratio * subplot[2],
+                      subplot[3], subplot[4])
+        end
+        GR.selntran(1)
+        GR.restorestate()
+    end
 
     scale = 0
     get(plt.kvs, :xlog, false) && (scale |= GR.OPTION_X_LOG)
@@ -103,13 +119,6 @@ function plot_data(; kv...)
     end
 
     GR.setwindow(xmin, xmax, ymin, ymax)
-    if haskey(plt.kvs, :backgroundcolor)
-        GR.savestate()
-        GR.setfillintstyle(GR.INTSTYLE_SOLID)
-        GR.setfillcolorind(plt.kvs[:backgroundcolor])
-        GR.fillrect(xmin, xmax, ymin, ymax)
-        GR.restorestate()
-    end
     GR.setscale(scale)
 
     GR.setlinecolorind(1)
@@ -125,13 +134,13 @@ function plot_data(; kv...)
     if haskey(plt.kvs, :title)
         GR.savestate()
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        GR.text(0.5, min(ratio, 1), plt.kvs[:title])
+        GR.text(0.5 * (viewport[1] + viewport[2]), min(ratio, 1), plt.kvs[:title])
         GR.restorestate()
     end
     if haskey(plt.kvs, :xlabel)
         GR.savestate()
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_BOTTOM)
-        GR.text(0.5, 0, plt.kvs[:xlabel])
+        GR.text(0.5 * (viewport[1] + viewport[2]), 0, plt.kvs[:xlabel])
         GR.restorestate()
     end
     if haskey(plt.kvs, :ylabel)
