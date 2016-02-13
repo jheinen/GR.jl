@@ -118,6 +118,8 @@ export
   xlabel,
   ylabel,
   legend,
+  xlim,
+  ylim,
   savefig,
   plot2d,
   plot3d,
@@ -1127,6 +1129,8 @@ title(s) = jlgr.title(s)
 xlabel(s) = jlgr.xlabel(s)
 ylabel(s) = jlgr.ylabel(s)
 legend(args...; kwargs...) = jlgr.legend(args...; kwargs...)
+xlim(a) = jlgr.xlim(a)
+ylim(a) = jlgr.ylim(a)
 savefig(filename) = jlgr.savefig(filename)
 
 plot2d(x, y; kwargs...) = jlgr.plot2d(x, y; kwargs...)

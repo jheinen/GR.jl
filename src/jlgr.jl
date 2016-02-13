@@ -42,6 +42,9 @@ isvector(x::AbstractMatrix) = size(x, 1) == 1
 function plot_data(; kv...)
     merge!(plt.kvs, Dict(kv))
 
+    if plt.args == @_tuple(Any)
+        return
+    end
     kind = get(plt.kvs, :kind, :line)
 
     subplot = [0, 1, 0, 1]
@@ -285,8 +288,16 @@ function minmax()
         ymin = min(minimum(y), ymin)
         ymax = max(maximum(y), ymax)
     end
-    plt.kvs[:xrange] = xmin, xmax
-    plt.kvs[:yrange] = ymin, ymax
+    if haskey(plt.kvs, :xlim)
+      plt.kvs[:xrange] = plt.kvs[:xlim]
+    else
+      plt.kvs[:xrange] = xmin, xmax
+    end
+    if haskey(plt.kvs, :ylim)
+      plt.kvs[:yrange] = plt.kvs[:ylim]
+    else
+      plt.kvs[:yrange] = ymin, ymax
+    end
 end
 
 function plot(args::PlotArg...; kv...)
@@ -337,6 +348,14 @@ end
 
 function legend(args::AbstractString...; kv...)
     plot_data(labels=args)
+end
+
+function xlim(a)
+    plot_data(xlim=a)
+end
+
+function ylim(a)
+    plot_data(ylim=a)
 end
 
 function savefig(filename)
