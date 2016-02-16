@@ -252,6 +252,8 @@ function plot_args(args)
     for (a, b, spec) in parsed_args
         x, y = a, b
 
+        isa(x, UnitRange) && (x = collect(x))
+        isa(y, UnitRange) && (y = collect(y))
         isvector(x) && (x = vec(x))
         isvector(y) && (y = vec(y))
 
