@@ -1,7 +1,12 @@
 have_env = "GRDIR" in keys(ENV)
 if !have_env && !isdir("/usr/local/gr") && !isdir(joinpath(homedir(),"gr"))
-  const version = v"0.17.3"
-  const gr = "gr-$version"
+  version = v"0.17.3"
+  try
+    v = Pkg.installed("GR")
+    if string(v)[end:end] == "+"
+      version = "latest"
+    end
+  end
   const os = OS_NAME
   const arch = Sys.ARCH
   tarball = "gr-$version-$os-$arch.tar.gz"
