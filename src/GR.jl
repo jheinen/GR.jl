@@ -112,6 +112,8 @@ export
   mathtex,
   # Convenience functions
   jlgr,
+  figure,
+  subplot,
   plot,
   histogram,
   contourf,
@@ -1128,6 +1130,8 @@ const gr3 = GR.GR3
 # Convenience functions
 include("jlgr.jl")
 
+figure(; kwargs...) = jlgr.figure(; kwargs...)
+subplot(m, n, p) = jlgr.subplot(m, n, p)
 plot(args...; kwargs...) = jlgr.plot(args...; kwargs...)
 histogram(x; kwargs...) = jlgr.histogram(x; kwargs...)
 contour(x, y, z; kwargs...) = jlgr.contour(x, y, z; kwargs...)

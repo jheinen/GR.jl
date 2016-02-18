@@ -29,6 +29,9 @@ function Figure(width=600, height=450)
     args = @_tuple(Any)
     kvs = Dict()
     kvs[:size] = (width, height)
+    kvs[:subplot] = [0, 1, 0, 1]
+    kvs[:clear] = true
+    kvs[:update] = true
     PlotObject(args, kvs)
 end
 
@@ -293,6 +296,27 @@ function colorbar(off=0)
     GR.axes(0, ztick, 1, zmin, 0, 1, 0.005)
 end
 
+function figure(; kv...)
+    global plt
+    plt = Figure()
+    plt
+end
+
+function subplot(nr, nc, p)
+    xmin, xmax, ymin, ymax = 1, 0, 1, 0
+    for i in collect(p)
+        r = div(i-1, nc) + 1
+        c = (i-1) % nc + 1
+        xmin = min(xmin, (c-1)/nc)
+        xmax = max(xmax, c/nc)
+        ymin = min(ymin, (r-1)/nr)
+        ymax = max(ymax, r/nr)
+    end
+    plt.kvs[:subplot] = [xmin, xmax, ymin, ymax]
+    plt.kvs[:clear] = collect(p)[1] == 1
+    plt.kvs[:update] = collect(p)[end] == nr * nc
+end
+
 function plot_data(; kv...)
     merge!(plt.kvs, Dict(kv))
 
@@ -301,9 +325,9 @@ function plot_data(; kv...)
     end
     kind = get(plt.kvs, :kind, :line)
 
-    GR.clearws()
+    plt.kvs[:clear] && GR.clearws()
 
-    set_viewport(kind, [0, 1, 0, 1])
+    set_viewport(kind, plt.kvs[:subplot])
     set_window(kind)
     draw_axes(kind)
 
@@ -358,9 +382,11 @@ function plot_data(; kv...)
         draw_legend()
     end
 
-    GR.updatews()
-    if GR.isinline()
-        return GR.show()
+    if plt.kvs[:update]
+        GR.updatews()
+        if GR.isinline()
+            return GR.show()
+        end
     end
 end
 
