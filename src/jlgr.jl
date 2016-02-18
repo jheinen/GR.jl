@@ -305,7 +305,7 @@ end
 function subplot(nr, nc, p)
     xmin, xmax, ymin, ymax = 1, 0, 1, 0
     for i in collect(p)
-        r = div(i-1, nc) + 1
+        r = nr - div(i-1, nc)
         c = (i-1) % nc + 1
         xmin = min(xmin, (c-1)/nc)
         xmax = max(xmax, c/nc)
