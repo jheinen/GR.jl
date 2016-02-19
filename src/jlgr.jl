@@ -134,10 +134,16 @@ function set_window(kind)
 
     minmax()
 
+    if kind in (:wireframe, :surface)
+        major_count = 2
+    else
+        major_count = 5
+    end
+
     xmin, xmax = plt.kvs[:xrange]
     if scale & GR.OPTION_X_LOG == 0
         xmin, xmax = GR.adjustlimits(xmin, xmax)
-        majorx = 5
+        majorx = major_count
         xtick = GR.tick(xmin, xmax) / majorx
     else
         xtick = majorx = 1
@@ -152,7 +158,7 @@ function set_window(kind)
     ymin, ymax = plt.kvs[:yrange]
     if scale & GR.OPTION_Y_LOG == 0
         ymin, ymax = GR.adjustlimits(ymin, ymax)
-        majory = 5
+        majory = major_count
         ytick = GR.tick(ymin, ymax) / majory
     else
         ytick = majory = 1
@@ -168,7 +174,7 @@ function set_window(kind)
         zmin, zmax = plt.kvs[:zrange]
         if scale & GR.OPTION_Y_LOG == 0
             zmin, zmax = GR.adjustlimits(zmin, zmax)
-            majorz = 5
+            majorz = major_count
             ztick = GR.tick(zmin, zmax) / majorz
         else
             ztick = majorz = 1
@@ -280,15 +286,15 @@ function draw_legend()
     GR.restorestate()
 end
 
-function colorbar(off=0)
+function colorbar(off=0, colors=256)
     viewport = plt.kvs[:viewport]
     zmin, zmax = plt.kvs[:zrange]
     GR.setwindow(0, 1, zmin, zmax)
     GR.setviewport(viewport[2] + 0.02 + off, viewport[2] + 0.05 + off,
                    viewport[3], viewport[4])
-    l = zeros(Int32, 1, 256)
-    l[1,:] = 1000:1255
-    GR.cellarray(0, 1, zmax, zmin, 1, 256, l)
+    l = zeros(Int32, 1, colors)
+    l[1,:] = round(Int32, linspace(1000, 1255, colors))
+    GR.cellarray(0, 1, zmax, zmin, 1, colors, l)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     charheight = max(0.016 * diag, 0.01)
     GR.setcharheight(charheight)
@@ -358,20 +364,33 @@ function plot_data(; kv...)
             zmin, zmax = plt.kvs[:zrange]
             GR.setspace(zmin, zmax, 0, 90)
             h = linspace(zmin, zmax, 20)
+            if length(x) == length(y) == length(z)
+                x, y, z = GR.gridit(x, y, z, 200, 200)
+            end
             GR.contour(x, y, h, z, 1000)
-            colorbar()
+            colorbar(0, 20)
         elseif kind == :contourf
             xmin, xmax = plt.kvs[:xrange]
             ymin, ymax = plt.kvs[:yrange]
+            if length(x) == length(y) == length(z)
+                x, y, z = GR.gridit(x, y, z, 200, 200)
+                z = reshape(z, 200, 200)
+            end
             width, height = size(z)
-            data = (z - minimum(z)) / maximum(z)
+            data = (z - minimum(z)) / (maximum(z) - minimum(z))
             data = round(Int32, 1000 + data * 255)
             GR.cellarray(xmin, xmax, ymin, ymax, width, height, data)
             colorbar()
         elseif kind == :wireframe
+            if length(x) == length(y) == length(z)
+                x, y, z = GR.gridit(x, y, z, 100, 100)
+            end
             GR.setfillcolorind(0)
             GR.surface(x, y, z, GR.OPTION_FILLED_MESH)
         elseif kind == :surface
+            if length(x) == length(y) == length(z)
+                x, y, z = GR.gridit(x, y, z, 200, 200)
+            end
             GR.gr3.surface(x, y, z, GR.OPTION_COLORED_MESH)
             colorbar(0.05)
         end
