@@ -195,7 +195,7 @@ function set_window(kind)
     GR.setscale(scale)
 end
 
-function draw_axes(kind)
+function draw_axes(kind, pass=1)
     viewport = plt.kvs[:viewport]
     ratio = plt.kvs[:ratio]
     xtick, xorg, majorx = plt.kvs[:xaxis]
@@ -209,10 +209,13 @@ function draw_axes(kind)
     ticksize = 0.0075 * diag
     if kind in (:wireframe, :surface)
         ztick, zorg, majorz = plt.kvs[:zaxis]
-        GR.grid3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], 2, 0, 2)
-        GR.grid3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, 2, 0)
-        GR.axes3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], majorx, 0, majorz, -ticksize)
-        GR.axes3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, majory, 0, ticksize)
+        if pass == 1
+            GR.grid3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], 2, 0, 2)
+            GR.grid3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, 2, 0)
+        else
+           GR.axes3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], majorx, 0, majorz, -ticksize)
+            GR.axes3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, majory, 0, ticksize)
+        end
     else
         GR.grid(xtick, ytick, 0, 0, majorx, majory)
         GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
@@ -387,11 +390,13 @@ function plot_data(; kv...)
             end
             GR.setfillcolorind(0)
             GR.surface(x, y, z, GR.OPTION_FILLED_MESH)
+            draw_axes(kind, 2)
         elseif kind == :surface
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
             end
             GR.gr3.surface(x, y, z, GR.OPTION_COLORED_MESH)
+            draw_axes(kind, 2)
             colorbar(0.05)
         end
         GR.restorestate()
