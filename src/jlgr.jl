@@ -386,7 +386,7 @@ function plot_data(; kv...)
             colorbar()
         elseif kind == :wireframe
             if length(x) == length(y) == length(z)
-                x, y, z = GR.gridit(x, y, z, 100, 100)
+                x, y, z = GR.gridit(x, y, z, 50, 50)
             end
             GR.setfillcolorind(0)
             GR.surface(x, y, z, GR.OPTION_FILLED_MESH)
