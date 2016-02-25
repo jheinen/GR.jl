@@ -20,6 +20,8 @@ const gr3 = GR.gr3
 
 const plot_kind = [:line, :scatter, :hist, :contour, :contourf, :wireframe, :surface]
 
+const arg_fmt = [:xys, :xyzs]
+
 type PlotObject
     args
     kvs
@@ -414,7 +416,7 @@ function plot_data(; kv...)
     end
 end
 
-function plot_args(args)
+function plot_args(args; fmt=:xys)
     args = Any[args...]
     parsed_args = Any[]
 
@@ -428,23 +430,34 @@ function plot_args(args)
                 y = imag(a)
                 z = Void
             elseif elt <: Real
-                if length(args) >= 2 &&
-                    isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real &&
-                   (isa(args[2], AbstractVecOrMat) && eltype(args[2]) <: Real ||
-                    typeof(args[2]) == Function)
-                    x = a
-                    y = shift!(args);
-                    z = shift!(args);
-                elseif length(args) >= 1 &&
-                    isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real
-                    x = a
-                    y = shift!(args);
-                    z = Void
+                if fmt == :xys
+                    if length(args) >= 1 &&
+                        isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real
+                        x = a
+                        y = shift!(args);
+                        z = Void
+                    else
+                        y = a
+                        n = isrowvec(y) ? size(y, 2) : size(y, 1)
+                        x = linspace(1, n, n)
+                        z = Void
+                    end
                 else
-                    y = a
-                    n = isrowvec(y) ? size(y, 2) : size(y, 1)
-                    x = linspace(1, n, n)
-                    z = Void
+                    if length(args) >= 2 &&
+                        isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real &&
+                       (isa(args[2], AbstractVecOrMat) && eltype(args[2]) <: Real ||
+                        typeof(args[2]) == Function)
+                        x = a
+                        y = shift!(args);
+                        z = shift!(args);
+                    elseif length(args) == 0
+                        z = a
+                        nx, ny = size(z)
+                        x = linspace(1, nx, nx)
+                        y = linspace(1, ny, ny)
+                    else
+                        error("expected String")
+                    end
                 end
             else
                 error("expected Real or Complex")
@@ -495,7 +508,8 @@ function plot_args(args)
                 xyz = [ (sub(x,:,j), sub(y,:,j), Void) for j = 1:size(y, 2) ]
             end
         elseif isa(x, AbstractVector) && isa(y, AbstractVector) &&
-               (isa(z, AbstractVector) || typeof(z) == Array{Any,2})
+               (isa(z, AbstractVector) || typeof(z) == Array{Float64,2} ||
+                typeof(z) == Array{Any,2})
             xyz = [ (x, y, z) ]
         end
         for (x, y, z) in xyz
@@ -524,34 +538,34 @@ function histogram(x; kv...)
     plot_data(kind=:hist)
 end
 
-function contour(x, y, z; kv...)
+function contour(args...; kv...)
     merge!(plt.kvs, Dict(kv))
 
-    plt.args = plot_args((x, y, z))
+    plt.args = plot_args(args, fmt=:xyzs)
 
     plot_data(kind=:contour)
 end
 
-function contourf(x, y, z; kv...)
+function contourf(args...; kv...)
     merge!(plt.kvs, Dict(kv))
 
-    plt.args = plot_args((x, y, z))
+    plt.args = plot_args(args, fmt=:xyzs)
 
     plot_data(kind=:contourf)
 end
 
-function wireframe(x, y, z; kv...)
+function wireframe(args...; kv...)
     merge!(plt.kvs, Dict(kv))
 
-    plt.args = plot_args((x, y, z))
+    plt.args = plot_args(args, fmt=:xyzs)
 
     plot_data(kind=:wireframe)
 end
 
-function surface(x, y, z; kv...)
+function surface(args...; kv...)
     merge!(plt.kvs, Dict(kv))
 
-    plt.args = plot_args((x, y, z))
+    plt.args = plot_args(args, fmt=:xyzs)
 
     plot_data(kind=:surface)
 end
@@ -584,6 +598,20 @@ function savefig(filename)
     GR.beginprint(filename)
     plot_data()
     GR.endprint()
+end
+
+function meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T})
+    m, n = length(vy), length(vx)
+    vx = reshape(vx, 1, n)
+    vy = reshape(vy, m, 1)
+    (repmat(vx, m, 1), repmat(vy, 1, n))
+end
+
+function peaks(n=49)
+    x = linspace(-2.5, 2.5, n)
+    y = x
+    x, y = meshgrid(x, y)
+    3*(1-x).^2.*exp(-(x.^2) - (y+1).^2) - 10*(x/5 - x.^3 - y.^5).*exp(-x.^2-y.^2) - 1/3*exp(-(x+1).^2 - y.^2)
 end
 
 end # module

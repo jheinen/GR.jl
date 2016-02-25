@@ -125,6 +125,7 @@ export
   xlim,
   ylim,
   savefig,
+  peaks,
   libGR3,
   gr3,
   isinline,
@@ -1134,10 +1135,10 @@ figure(; kwargs...) = jlgr.figure(; kwargs...)
 subplot(m, n, p) = jlgr.subplot(m, n, p)
 plot(args...; kwargs...) = jlgr.plot(args...; kwargs...)
 histogram(x; kwargs...) = jlgr.histogram(x; kwargs...)
-contour(x, y, z; kwargs...) = jlgr.contour(x, y, z; kwargs...)
-contourf(x, y, z; kwargs...) = jlgr.contourf(x, y, z; kwargs...)
-wireframe(x, y, z; kwargs...) = jlgr.wireframe(x, y, z; kwargs...)
-surface(x, y, z; kwargs...) = jlgr.surface(x, y, z; kwargs...)
+contour(args...; kwargs...) = jlgr.contour(args...; kwargs...)
+contourf(args...; kwargs...) = jlgr.contourf(args...; kwargs...)
+wireframe(args...; kwargs...) = jlgr.wireframe(args...; kwargs...)
+surface(args...; kwargs...) = jlgr.surface(args...; kwargs...)
 title(s) = jlgr.title(s)
 xlabel(s) = jlgr.xlabel(s)
 ylabel(s) = jlgr.ylabel(s)
@@ -1145,6 +1146,7 @@ legend(args...; kwargs...) = jlgr.legend(args...; kwargs...)
 xlim(a) = jlgr.xlim(a)
 ylim(a) = jlgr.ylim(a)
 savefig(filename) = jlgr.savefig(filename)
+peaks(n...) = jlgr.peaks(n...)
 
 type SVG
    s::Array{UInt8}
