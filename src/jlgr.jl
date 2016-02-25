@@ -192,7 +192,9 @@ function set_window(kind)
     plt.kvs[:window] = xmin, xmax, ymin, ymax
     GR.setwindow(xmin, xmax, ymin, ymax)
     if kind in (:wireframe, :surface)
-        GR.setspace(zmin, zmax, 40, 70)
+        rotation = get(plt.kvs, :rotation, 40)
+        tilt = get(plt.kvs, :tilt, 70)
+        GR.setspace(zmin, zmax, rotation, tilt)
     end
     GR.setscale(scale)
 end
@@ -432,7 +434,8 @@ function plot_args(args; fmt=:xys)
             elseif elt <: Real
                 if fmt == :xys
                     if length(args) >= 1 &&
-                        isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real
+                       (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real ||
+                        typeof(args[1]) == Function)
                         x = a
                         y = shift!(args);
                         z = Void
@@ -482,7 +485,11 @@ function plot_args(args; fmt=:xys)
         isa(z, UnitRange) && (z = collect(z))
 
         isvector(x) && (x = vec(x))
-        isvector(y) && (y = vec(y))
+        if typeof(y) == Function
+            y = [y(a) for a in x]
+        else
+            isvector(y) && (y = vec(y))
+        end
         if z != Void
             if typeof(z) == Function
                 z = [z(a,b) for a in x, b in y]
