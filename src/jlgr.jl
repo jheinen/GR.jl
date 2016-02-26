@@ -46,7 +46,12 @@ isvector(x::AbstractMatrix) = size(x, 1) == 1
 
 function set_viewport(kind, subplot)
     mwidth, mheight, width, height = GR.inqdspsize()
-    w, h = plt.kvs[:size]
+    if haskey(plt.kvs, :figsize)
+        w = 0.0254 *  width * plt.kvs[:figsize][1] / mwidth
+        h = 0.0254 * height * plt.kvs[:figsize][2] / mheight
+    else
+        w, h = plt.kvs[:size]
+    end
     viewport = zeros(4)
     if w > h
         ratio = float(h) / w
@@ -312,6 +317,7 @@ end
 function figure(; kv...)
     global plt
     plt = Figure()
+    merge!(plt.kvs, Dict(kv))
     plt
 end
 
