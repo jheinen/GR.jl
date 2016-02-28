@@ -234,7 +234,7 @@ function draw_axes(kind, pass=1)
     if haskey(plt.kvs, :title)
         GR.savestate()
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        GR.text(0.5 * (viewport[1] + viewport[2]), min(ratio, 1), plt.kvs[:title])
+        GR.textext(0.5 * (viewport[1] + viewport[2]), min(ratio, 1), plt.kvs[:title])
         GR.restorestate()
     end
     if kind in (:wireframe, :surface)
@@ -246,14 +246,14 @@ function draw_axes(kind, pass=1)
         if haskey(plt.kvs, :xlabel)
             GR.savestate()
             GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_BOTTOM)
-            GR.text(0.5 * (viewport[1] + viewport[2]), 0, plt.kvs[:xlabel])
+            GR.textext(0.5 * (viewport[1] + viewport[2]), 0, plt.kvs[:xlabel])
             GR.restorestate()
         end
         if haskey(plt.kvs, :ylabel)
             GR.savestate()
             GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
             GR.setcharup(-1, 0)
-            GR.text(0, 0.5 * (viewport[3] + viewport[4]), plt.kvs[:ylabel])
+            GR.textext(0, 0.5 * (viewport[3] + viewport[4]), plt.kvs[:ylabel])
             GR.restorestate()
         end
     end
@@ -267,7 +267,7 @@ function draw_legend()
     GR.setscale(0)
     w = 0
     for label in plt.kvs[:labels]
-        tbx, tby = GR.inqtext(0, 0, label)
+        tbx, tby = GR.inqtextext(0, 0, label)
         w = max(w, tbx[3])
     end
     px = viewport[2] - 0.05 - w
@@ -290,7 +290,7 @@ function draw_legend()
         GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
         if i < num_labels
             i += 1
-            GR.text(px, py, plt.kvs[:labels][i])
+            GR.textext(px, py, plt.kvs[:labels][i])
         end
         py -= 0.03
     end
