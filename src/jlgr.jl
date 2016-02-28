@@ -201,6 +201,8 @@ function set_window(kind)
         tilt = get(plt.kvs, :tilt, 70)
         GR.setspace(zmin, zmax, rotation, tilt)
     end
+
+    plt.kvs[:scale] = scale
     GR.setscale(scale)
 end
 
@@ -299,6 +301,7 @@ function draw_legend()
 end
 
 function colorbar(off=0, colors=256)
+    GR.savestate()
     viewport = plt.kvs[:viewport]
     zmin, zmax = plt.kvs[:zrange]
     GR.setwindow(0, 1, zmin, zmax)
@@ -310,8 +313,14 @@ function colorbar(off=0, colors=256)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     charheight = max(0.016 * diag, 0.01)
     GR.setcharheight(charheight)
-    ztick = 0.5 * GR.tick(zmin, zmax)
-    GR.axes(0, ztick, 1, zmin, 0, 1, 0.005)
+    if plt.kvs[:scale] & GR.OPTION_Z_LOG == 0
+        ztick = 0.5 * GR.tick(zmin, zmax)
+        GR.axes(0, ztick, 1, zmin, 0, 1, 0.005)
+    else
+        GR.setscale(GR.OPTION_Y_LOG)
+        GR.axes(0, 2, 1, zmin, 0, 1, 0.005)
+    end
+    GR.restorestate()
 end
 
 function figure(; kv...)
@@ -388,6 +397,9 @@ function plot_data(; kv...)
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
                 z = reshape(z, 200, 200)
+            end
+            if plt.kvs[:scale] & GR.OPTION_Z_LOG != 0
+                z = log(z)
             end
             width, height = size(z)
             data = (z - minimum(z)) / (maximum(z) - minimum(z))
@@ -522,7 +534,7 @@ function plot_args(args; fmt=:xys)
             end
         elseif isa(x, AbstractVector) && isa(y, AbstractVector) &&
                (isa(z, AbstractVector) || typeof(z) == Array{Float64,2} ||
-                typeof(z) == Array{Any,2})
+                typeof(z) == Array{Int32,2} || typeof(z) == Array{Any,2})
             xyz = [ (x, y, z) ]
         end
         for (x, y, z) in xyz
