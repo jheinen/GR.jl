@@ -113,6 +113,7 @@ export
   # Convenience functions
   jlgr,
   figure,
+  hold,
   subplot,
   plot,
   histogram,
@@ -1151,6 +1152,7 @@ const gr3 = GR.GR3
 include("jlgr.jl")
 
 figure(; kwargs...) = jlgr.figure(; kwargs...)
+hold(flag) = jlgr.hold(flag)
 subplot(m, n, p) = jlgr.subplot(m, n, p)
 plot(args...; kwargs...) = jlgr.plot(args...; kwargs...)
 histogram(x; kwargs...) = jlgr.histogram(x; kwargs...)

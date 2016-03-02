@@ -31,6 +31,7 @@ function Figure(width=600, height=450)
     args = @_tuple(Any)
     kvs = Dict()
     kvs[:size] = (width, height)
+    kvs[:ax] = false
     kvs[:subplot] = [0, 1, 0, 1]
     kvs[:clear] = true
     kvs[:update] = true
@@ -330,6 +331,11 @@ function figure(; kv...)
     plt
 end
 
+function hold(flag)
+    plt.kvs[:ax] = flag
+    plt.kvs[:clear] = !flag
+end
+
 function subplot(nr, nc, p)
     xmin, xmax, ymin, ymax = 1, 0, 1, 0
     for i in collect(p)
@@ -355,9 +361,11 @@ function plot_data(; kv...)
 
     plt.kvs[:clear] && GR.clearws()
 
-    set_viewport(kind, plt.kvs[:subplot])
-    set_window(kind)
-    draw_axes(kind)
+    if !plt.kvs[:ax]
+        set_viewport(kind, plt.kvs[:subplot])
+        set_window(kind)
+        draw_axes(kind)
+    end
 
     if haskey(plt.kvs, :colormap)
         GR.setcolormap(plt.kvs[:colormap])
@@ -548,7 +556,11 @@ end
 function plot(args::PlotArg...; kv...)
     merge!(plt.kvs, Dict(kv))
 
-    plt.args = plot_args(args)
+    if plt.kvs[:ax]
+        plt.args = append!(plt.args, plot_args(args))
+    else
+        plt.args = plot_args(args)
+    end
 
     plot_data()
 end
