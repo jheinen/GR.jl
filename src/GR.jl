@@ -262,11 +262,30 @@ function polymarker(x, y)
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y))
 end
 
+function latin1(string)
+  b = convert(Array{UInt8}, string)
+  s = zeros(UInt8, length(string))
+  len = 0
+  mask = 0
+  for c in b
+    if c != 0xc2 && c != 0xc3
+      len += 1
+      s[len] = c | mask
+    end
+    if c == 0xc3
+      mask = 0x40
+    else
+      mask = 0
+    end
+  end
+  return s
+end
+
 function text(x::Real, y::Real, string)
   ccall( (:gr_text, libGR),
         Void,
-        (Float64, Float64, Ptr{Cchar}),
-        x, y, string)
+        (Float64, Float64, Ptr{UInt8}),
+        x, y, latin1(string))
 end
 
 function inqtext(x, y, string)
@@ -274,8 +293,8 @@ function inqtext(x, y, string)
   tby = Cdouble[0, 0, 0, 0]
   ccall( (:gr_inqtext, libGR),
         Void,
-        (Float64, Float64, Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}),
-        x, y, string, tbx, tby)
+        (Float64, Float64, Ptr{UInt8}, Ptr{Cdouble}, Ptr{Cdouble}),
+        x, y, latin1(string), tbx, tby)
   return tbx, tby
 end
 
@@ -554,8 +573,8 @@ end
 function textext(x::Real, y::Real, string)
   ccall( (:gr_textext, libGR),
         Void,
-        (Float64, Float64, Ptr{Cchar}),
-        x, y, string)
+        (Float64, Float64, Ptr{UInt8}),
+        x, y, latin1(string))
 end
 
 function inqtextext(x::Real, y::Real, string)
@@ -563,8 +582,8 @@ function inqtextext(x::Real, y::Real, string)
   tby = Cdouble[0, 0, 0, 0]
   ccall( (:gr_inqtextext, libGR),
         Void,
-        (Float64, Float64, Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}),
-        x, y, string, tbx, tby)
+        (Float64, Float64, Ptr{UInt8}, Ptr{Cdouble}, Ptr{Cdouble}),
+        x, y, latin1(string), tbx, tby)
   return tbx, tby
 end
 
@@ -626,8 +645,8 @@ end
 function titles3d(x_title, y_title, z_title)
   ccall( (:gr_titles3d, libGR),
         Void,
-        (Ptr{Cchar}, Ptr{Cchar}, Ptr{Cchar}),
-        x_title, y_title, z_title)
+        (Ptr{UInt8}, Ptr{UInt8}, Ptr{UInt8}),
+        latin1(x_title), latin1(y_title), latin1(z_title))
 end
 
 function surface(px, py, pz, option::Int)
