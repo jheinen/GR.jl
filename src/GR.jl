@@ -120,6 +120,7 @@ export
   histogram,
   contourf,
   wireframe,
+  plot3,
   title,
   xlabel,
   ylabel,
@@ -1162,6 +1163,7 @@ contour(args...; kwargs...) = jlgr.contour(args...; kwargs...)
 contourf(args...; kwargs...) = jlgr.contourf(args...; kwargs...)
 wireframe(args...; kwargs...) = jlgr.wireframe(args...; kwargs...)
 surface(args...; kwargs...) = jlgr.surface(args...; kwargs...)
+plot3(args...; kwargs...) = jlgr.plot3(args...; kwargs...)
 title(s) = jlgr.title(s)
 xlabel(s) = jlgr.xlabel(s)
 ylabel(s) = jlgr.ylabel(s)

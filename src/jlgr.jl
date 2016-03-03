@@ -18,7 +18,7 @@ end
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :scatter, :hist, :contour, :contourf, :wireframe, :surface]
+const plot_kind = [:line, :scatter, :hist, :contour, :contourf, :wireframe, :surface, :plot3]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -73,7 +73,7 @@ function set_viewport(kind, subplot)
         viewport[3] = subplot[3] + 0.125 * (subplot[4] - subplot[3])
         viewport[4] = subplot[3] + 0.95  * (subplot[4] - subplot[3])
     end
-    if kind in (:wireframe, :surface)
+    if kind in (:wireframe, :surface, :plot3)
         viewport[2] -= 0.0525
     end
     if kind in (:contour, :contourf, :surface)
@@ -142,7 +142,7 @@ function set_window(kind)
 
     minmax()
 
-    if kind in (:wireframe, :surface)
+    if kind in (:wireframe, :surface, plot3)
         major_count = 2
     else
         major_count = 5
@@ -178,7 +178,7 @@ function set_window(kind)
     end
     plt.kvs[:yaxis] = ytick, yorg, majory
 
-    if kind in (:wireframe, :surface)
+    if kind in (:wireframe, :surface, :plot3)
         zmin, zmax = plt.kvs[:zrange]
         if scale & GR.OPTION_Y_LOG == 0
             zmin, zmax = GR.adjustlimits(zmin, zmax)
@@ -197,7 +197,7 @@ function set_window(kind)
 
     plt.kvs[:window] = xmin, xmax, ymin, ymax
     GR.setwindow(xmin, xmax, ymin, ymax)
-    if kind in (:wireframe, :surface)
+    if kind in (:wireframe, :surface, :plot3)
         rotation = get(plt.kvs, :rotation, 40)
         tilt = get(plt.kvs, :tilt, 70)
         GR.setspace(zmin, zmax, rotation, tilt)
@@ -219,13 +219,13 @@ function draw_axes(kind, pass=1)
     charheight = max(0.018 * diag, 0.01)
     GR.setcharheight(charheight)
     ticksize = 0.0075 * diag
-    if kind in (:wireframe, :surface)
+    if kind in (:wireframe, :surface, :plot3)
         ztick, zorg, majorz = plt.kvs[:zaxis]
         if pass == 1
             GR.grid3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], 2, 0, 2)
             GR.grid3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, 2, 0)
         else
-           GR.axes3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], majorx, 0, majorz, -ticksize)
+            GR.axes3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], majorx, 0, majorz, -ticksize)
             GR.axes3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, majory, 0, ticksize)
         end
     else
@@ -240,7 +240,7 @@ function draw_axes(kind, pass=1)
         GR.textext(0.5 * (viewport[1] + viewport[2]), min(ratio, 1), plt.kvs[:title])
         GR.restorestate()
     end
-    if kind in (:wireframe, :surface)
+    if kind in (:wireframe, :surface, :plot3)
         xlabel = get(plt.kvs, :xlabel, "")
         ylabel = get(plt.kvs, :ylabel, "")
         zlabel = get(plt.kvs, :zlabel, "")
@@ -446,6 +446,9 @@ function plot_data(; kv...)
             GR.gr3.surface(x, y, z, GR.OPTION_COLORED_MESH)
             draw_axes(kind, 2)
             colorbar(0.05)
+        elseif kind == :plot3
+            GR.polyline3d(x, y, z)
+            draw_axes(kind, 2)
         end
         GR.restorestate()
     end
@@ -650,6 +653,14 @@ function surface(args...; kv...)
     plt.args = plot_args(args, fmt=:xyzc)
 
     plot_data(kind=:surface)
+end
+
+function plot3(args...; kv...)
+    merge!(plt.kvs, Dict(kv))
+
+    plt.args = plot_args(args, fmt=:xyzc)
+
+    plot_data(kind=:plot3)
 end
 
 function title(s)
