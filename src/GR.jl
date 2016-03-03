@@ -116,6 +116,7 @@ export
   hold,
   subplot,
   plot,
+  scatter,
   histogram,
   contourf,
   wireframe,
@@ -1155,6 +1156,7 @@ figure(; kwargs...) = jlgr.figure(; kwargs...)
 hold(flag) = jlgr.hold(flag)
 subplot(m, n, p) = jlgr.subplot(m, n, p)
 plot(args...; kwargs...) = jlgr.plot(args...; kwargs...)
+scatter(args...; kwargs...) = jlgr.scatter(args...; kwargs...)
 histogram(x; kwargs...) = jlgr.histogram(x; kwargs...)
 contour(args...; kwargs...) = jlgr.contour(args...; kwargs...)
 contourf(args...; kwargs...) = jlgr.contourf(args...; kwargs...)
