@@ -16,12 +16,14 @@ if !have_env && !isdir("/usr/local/gr") && !isdir(joinpath(homedir(),"gr"))
     download("http://gr-framework.org/downloads/$tarball", "downloads/$tarball")
     @windows_only begin
       success(`$JULIA_HOME/7z x downloads/$tarball -y`)
+      rm("downloads/$tarball")
       tarball = tarball[1:end-3]
       success(`$JULIA_HOME/7z x $tarball -y -ttar`)
+      rm("$tarball")
     end
     @unix_only begin
       run(`tar xzf downloads/$tarball`)
+      rm("downloads/$tarball")
     end
-    rm("downloads/$tarball")
   end
 end
