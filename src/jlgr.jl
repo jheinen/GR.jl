@@ -612,6 +612,13 @@ function plot(args::PlotArg...; kv...)
     plot_data()
 end
 
+function oplot(args::PlotArg...; kv...)
+    hold(true)
+    p = plot(args...; kv...)
+    hold(false)
+    p
+end
+
 function scatter(args...; kv...)
     merge!(plt.kvs, Dict(kv))
 
