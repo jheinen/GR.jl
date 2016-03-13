@@ -54,24 +54,29 @@ function set_viewport(kind, subplot)
         w, h = plt.kvs[:size]
     end
     viewport = zeros(4)
+    vp = float(subplot)
     if w > h
         ratio = float(h) / w
         msize = mwidth * w / width
         GR.setwsviewport(0, msize, 0, msize * ratio)
         GR.setwswindow(0, 1, 0, ratio)
-        viewport[1] = subplot[1] + 0.125 * (subplot[2] - subplot[1])
-        viewport[2] = subplot[1] + 0.95  * (subplot[2] - subplot[1])
-        viewport[3] = ratio * (subplot[3] + 0.125 * (subplot[4] - subplot[3]))
-        viewport[4] = ratio * (subplot[3] + 0.95  * (subplot[4] - subplot[3]))
+        vp[3] *= ratio
+        vp[4] *= ratio
     else
         ratio = float(w) / h
         msize = mheight * h / height
         GR.setwsviewport(0, msize * ratio, 0, msize)
         GR.setwswindow(0, ratio, 0, 1)
-        viewport[1] = ratio * (subplot[1] + 0.125 * (subplot[2] - subplot[1]))
-        viewport[2] = ratio * (subplot[1] + 0.95  * (subplot[2] - subplot[1]))
-        viewport[3] = subplot[3] + 0.125 * (subplot[4] - subplot[3])
-        viewport[4] = subplot[3] + 0.95  * (subplot[4] - subplot[3])
+        vp[1] *= ratio
+        vp[2] *= ratio
+    end
+    viewport[1] = vp[1] + 0.125 * (vp[2] - vp[1])
+    viewport[2] = vp[1] + 0.95  * (vp[2] - vp[1])
+    viewport[3] = vp[3] + 0.125 * (vp[4] - vp[3])
+    viewport[4] = vp[3] + 0.95  * (vp[4] - vp[3])
+
+    if w > h
+        viewport[3] += (1 - (subplot[4] - subplot[3])^2) * 0.02
     end
     if kind in (:wireframe, :surface, :plot3)
         viewport[2] -= 0.0525
@@ -82,6 +87,7 @@ function set_viewport(kind, subplot)
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
 
     plt.kvs[:viewport] = viewport
+    plt.kvs[:vp] = vp
     plt.kvs[:ratio] = ratio
 
     if haskey(plt.kvs, :backgroundcolor)
@@ -209,6 +215,7 @@ end
 
 function draw_axes(kind, pass=1)
     viewport = plt.kvs[:viewport]
+    vp = plt.kvs[:vp]
     ratio = plt.kvs[:ratio]
     xtick, xorg, majorx = plt.kvs[:xaxis]
     ytick, yorg, majory = plt.kvs[:yaxis]
@@ -216,7 +223,7 @@ function draw_axes(kind, pass=1)
     GR.setlinecolorind(1)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     GR.setlinewidth(1)
-    charheight = max(0.018 * diag, 0.01)
+    charheight = max(0.018 * diag, 0.012)
     GR.setcharheight(charheight)
     ticksize = 0.0075 * diag
     if kind in (:wireframe, :surface, :plot3)
@@ -237,7 +244,7 @@ function draw_axes(kind, pass=1)
     if haskey(plt.kvs, :title)
         GR.savestate()
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        GR.textext(0.5 * (viewport[1] + viewport[2]), min(ratio, 1), plt.kvs[:title])
+        GR.textext(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
         GR.restorestate()
     end
     if kind in (:wireframe, :surface, :plot3)
@@ -249,14 +256,14 @@ function draw_axes(kind, pass=1)
         if haskey(plt.kvs, :xlabel)
             GR.savestate()
             GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_BOTTOM)
-            GR.textext(0.5 * (viewport[1] + viewport[2]), 0, plt.kvs[:xlabel])
+            GR.textext(0.5 * (viewport[1] + viewport[2]), vp[3], plt.kvs[:xlabel])
             GR.restorestate()
         end
         if haskey(plt.kvs, :ylabel)
             GR.savestate()
             GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
             GR.setcharup(-1, 0)
-            GR.textext(0, 0.5 * (viewport[3] + viewport[4]), plt.kvs[:ylabel])
+            GR.textext(vp[1], 0.5 * (viewport[3] + viewport[4]), plt.kvs[:ylabel])
             GR.restorestate()
         end
     end
@@ -312,7 +319,7 @@ function colorbar(off=0, colors=256)
     l[1,:] = round(Int32, linspace(1000, 1255, colors))
     GR.cellarray(0, 1, zmax, zmin, 1, colors, l)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
-    charheight = max(0.016 * diag, 0.01)
+    charheight = max(0.016 * diag, 0.012)
     GR.setcharheight(charheight)
     if plt.kvs[:scale] & GR.OPTION_Z_LOG == 0
         ztick = 0.5 * GR.tick(zmin, zmax)
