@@ -71,9 +71,9 @@ function set_viewport(kind, subplot)
         vp[2] *= ratio
     end
     viewport[1] = vp[1] + 0.125 * (vp[2] - vp[1])
-    viewport[2] = vp[1] + 0.95  * (vp[2] - vp[1])
+    viewport[2] = vp[1] + 0.925 * (vp[2] - vp[1])
     viewport[3] = vp[3] + 0.125 * (vp[4] - vp[3])
-    viewport[4] = vp[3] + 0.95  * (vp[4] - vp[3])
+    viewport[4] = vp[3] + 0.925 * (vp[4] - vp[3])
 
     if w > h
         viewport[3] += (1 - (subplot[4] - subplot[3])^2) * 0.02
@@ -256,14 +256,14 @@ function draw_axes(kind, pass=1)
         if haskey(plt.kvs, :xlabel)
             GR.savestate()
             GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_BOTTOM)
-            GR.textext(0.5 * (viewport[1] + viewport[2]), vp[3], plt.kvs[:xlabel])
+            GR.textext(0.5 * (viewport[1] + viewport[2]), vp[3] + 0.5 * charheight, plt.kvs[:xlabel])
             GR.restorestate()
         end
         if haskey(plt.kvs, :ylabel)
             GR.savestate()
             GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
             GR.setcharup(-1, 0)
-            GR.textext(vp[1], 0.5 * (viewport[3] + viewport[4]), plt.kvs[:ylabel])
+            GR.textext(vp[1] + 0.5 * charheight, 0.5 * (viewport[3] + viewport[4]), plt.kvs[:ylabel])
             GR.restorestate()
         end
     end
