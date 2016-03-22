@@ -613,10 +613,11 @@ function plot(args::PlotArg...; kv...)
 end
 
 function oplot(args::PlotArg...; kv...)
-    hold(true)
-    p = plot(args...; kv...)
-    hold(false)
-    p
+    merge!(plt.kvs, Dict(kv))
+
+    plt.args = append!(plt.args, plot_args(args))
+
+    plot_data()
 end
 
 function scatter(args...; kv...)
