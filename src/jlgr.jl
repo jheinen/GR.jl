@@ -733,21 +733,29 @@ function imshow(I; kv...)
         data = round(Int32, 1000 + data * 255)
     end
 
-    if width < height
+    plt.kvs[:clear] && GR.clearws()
+
+    if !plt.kvs[:ax]
+        set_viewport(:line, plt.kvs[:subplot])
+    end
+    viewport = plt.kvs[:viewport]
+    vp = plt.kvs[:vp]
+
+    if width  * (viewport[4] - viewport[3]) <
+       height * (viewport[2] - viewport[1])
         ratio = float(width) / height
-        xmin = max(0.5 * (1 - ratio), 0)
-        xmax = min(xmin + ratio, 1)
-        ymin = 0
-        ymax = 1
+        xmin = max(0.5 * (viewport[2] - ratio), viewport[1])
+        xmax = min(xmin + ratio, viewport[2])
+        ymin = viewport[3]
+        ymax = viewport[4]
     else
         ratio = float(height) / width
-        xmin = 0
-        xmax = 1
-        ymin = max(0.5 * (1 - ratio), 0)
-        ymax = min(ymin + ratio, 1)
+        xmin = viewport[1]
+        xmax = viewport[2]
+        ymin = max(0.5 * (viewport[4] - ratio), viewport[3])
+        ymax = min(ymin + ratio, viewport[4])
     end
 
-    plt.kvs[:clear] && GR.clearws()
     if haskey(plt.kvs, :cmap)
         GR.setcolormap(plt.kvs[:cmap])
     else
@@ -759,6 +767,13 @@ function imshow(I; kv...)
         GR.drawimage(xmin, xmax, ymin, ymax, width, height, data)
     else
         GR.cellarray(xmin, xmax, ymin, ymax, width, height, data)
+    end
+
+    if haskey(plt.kvs, :title)
+        GR.savestate()
+        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
+        GR.textext(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
+        GR.restorestate()
     end
 
     if plt.kvs[:update]
