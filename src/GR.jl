@@ -130,6 +130,7 @@ export
   ylim,
   savefig,
   peaks,
+  imshow,
   libGR3,
   gr3,
   isinline,
@@ -897,8 +898,12 @@ function readimage(path)
         Void,
         (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{UInt32}}),
         path, width, height, data)
-  data = pointer_to_array(data[1], width[1] * height[1])
-  return width[1], height[1], data
+  if width[1] > 0 && height[1] > 0
+    img = pointer_to_array(data[1], (width[1], height[1]))
+    return Int(width[1]), Int(height[1]), img
+  else
+    return 0, 0, zeros(UInt32, 0)
+  end
 end
 
 function drawimage(xmin::Real, xmax::Real, ymin::Real, ymax::Real, width::Int, height::Int, data, model::Int = 0)
@@ -1194,6 +1199,7 @@ xlim(a) = jlgr.xlim(a)
 ylim(a) = jlgr.ylim(a)
 savefig(filename) = jlgr.savefig(filename)
 peaks(n...) = jlgr.peaks(n...)
+imshow(I; kwargs...) = jlgr.imshow(I; kwargs...)
 
 type SVG
    s::Array{UInt8}

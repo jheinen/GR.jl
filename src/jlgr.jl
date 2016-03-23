@@ -722,4 +722,51 @@ function peaks(n=49)
     3*(1-x).^2.*exp(-(x.^2) - (y+1).^2) - 10*(x/5 - x.^3 - y.^5).*exp(-x.^2-y.^2) - 1/3*exp(-(x+1).^2 - y.^2)
 end
 
+function imshow(I; kv...)
+    merge!(plt.kvs, Dict(kv))
+
+    if isa(I, AbstractString)
+        width, height, data = GR.readimage(I)
+    else
+        width, height = size(I)
+        data = (float(I) - minimum(I)) / (maximum(I) - minimum(I))
+        data = round(Int32, 1000 + data * 255)
+    end
+
+    if width < height
+        ratio = float(width) / height
+        xmin = max(0.5 * (1 - ratio), 0)
+        xmax = min(xmin + ratio, 1)
+        ymin = 0
+        ymax = 1
+    else
+        ratio = float(height) / width
+        xmin = 0
+        xmax = 1
+        ymin = max(0.5 * (1 - ratio), 0)
+        ymax = min(ymin + ratio, 1)
+    end
+
+    plt.kvs[:clear] && GR.clearws()
+    if haskey(plt.kvs, :cmap)
+        GR.setcolormap(plt.kvs[:cmap])
+    else
+        GR.setcolormap(1)
+    end
+
+    GR.selntran(0)
+    if isa(I, AbstractString)
+        GR.drawimage(xmin, xmax, ymin, ymax, width, height, data)
+    else
+        GR.cellarray(xmin, xmax, ymin, ymax, width, height, data)
+    end
+
+    if plt.kvs[:update]
+        GR.updatews()
+        if GR.isinline()
+            return GR.show()
+        end
+    end
+end
+
 end # module
