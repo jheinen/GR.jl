@@ -775,6 +775,7 @@ function imshow(I; kv...)
         GR.textext(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
         GR.restorestate()
     end
+    GR.selntran(1)
 
     if plt.kvs[:update]
         GR.updatews()
