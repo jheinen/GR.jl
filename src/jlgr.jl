@@ -170,6 +170,9 @@ function set_window(kind)
     plt.kvs[:xaxis] = xtick, xorg, majorx
 
     ymin, ymax = plt.kvs[:yrange]
+    if kind == :hist && !haskey(plt.kvs, :ylim)
+        ymin = 0
+    end
     if scale & GR.OPTION_Y_LOG == 0
         ymin, ymax = GR.adjustlimits(ymin, ymax)
         majory = major_count
@@ -609,7 +612,7 @@ function plot(args::PlotArg...; kv...)
         plt.args = plot_args(args)
     end
 
-    plot_data()
+    plot_data(kind=:line)
 end
 
 function oplot(args::PlotArg...; kv...)
@@ -617,7 +620,7 @@ function oplot(args::PlotArg...; kv...)
 
     plt.args = append!(plt.args, plot_args(args))
 
-    plot_data()
+    plot_data(kind=:line)
 end
 
 function scatter(args...; kv...)
