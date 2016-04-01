@@ -1254,7 +1254,7 @@ function startserver()
     end
 
     if !isfile("gr.js")
-        symlink(joinpath(dirname(@__FILE__), "gr.js"), "gr.js") 
+        symlink(joinpath(dirname(@__FILE__), "gr.js"), "gr.js")
     end
 
     return HTML("""\

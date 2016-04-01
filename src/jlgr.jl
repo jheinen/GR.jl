@@ -440,7 +440,7 @@ function plot_data(; kv...)
             width, height = size(z)
             data = (z - minimum(z)) / (maximum(z) - minimum(z))
             data = round(Int32, 1000 + data * 255)
-            GR.cellarray(xmin, xmax, ymin, ymax, width, height, data)
+            GR.cellarray(xmin, xmax, ymax, ymin, width, height, data)
             colorbar()
         elseif kind == :wireframe
             if length(x) == length(y) == length(z)
@@ -453,7 +453,11 @@ function plot_data(; kv...)
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
             end
-            GR.gr3.surface(x, y, z, GR.OPTION_COLORED_MESH)
+            if get(plt.kvs, :accelerate, true)
+                GR.gr3.surface(x, y, z, GR.OPTION_COLORED_MESH)
+            else
+                GR.surface(x, y, z, GR.OPTION_COLORED_MESH)
+            end
             draw_axes(kind, 2)
             colorbar(0.05)
         elseif kind == :plot3
