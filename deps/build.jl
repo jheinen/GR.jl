@@ -1,6 +1,6 @@
 have_env = "GRDIR" in keys(ENV)
 if !have_env && !isdir("/usr/local/gr") && !isdir(joinpath(homedir(),"gr"))
-  version = v"0.17.3"
+  version = v"0.18.0"
   try
     v = Pkg.installed("GR")
     if string(v)[end:end] == "+"
