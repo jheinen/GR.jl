@@ -1306,7 +1306,7 @@ function show()
         content = PNG(_readfile("gks.png"))
         return content
     elseif mime_type == "mov"
-        content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64(open(readbytes,"gks.mov")),""""></video>"""))
+        content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64encode(open(readbytes,"gks.mov")),""""></video>"""))
         return content
     elseif mime_type == "js"
         if msgs != None
