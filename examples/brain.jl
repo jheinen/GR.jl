@@ -36,7 +36,7 @@ function cursor(motion, x, y)
     center = spherical_to_cartesian(-2, pi * y / height + pi/2, pi * x / width)
     up = spherical_to_cartesian(1, pi * y / height + pi, pi * x / width)
   elseif GLFW.GetMouseButton(window, 1) == GLFW.PRESS
-    isolevel = int(255 * y / height)
+    isolevel = round(Int, 255 * y / height)
   end
   display()
 end
