@@ -8,13 +8,14 @@
 
 import PyPlot
 
-x = [0:0.01:2*pi]
+x = collect(0:0.01:2*pi)
 
 tic()
 line, = PyPlot.plot(x, sin(x))
 for i = 1:200
     line[:set_ydata](sin(x + i / 10.0))
     PyPlot.draw()
+    PyPlot.pause(0.0001)
 end
 
 fps_mpl = round(200 / toq())
@@ -25,6 +26,7 @@ import GR
 tic()
 for i = 1:200
     GR.plot(x, sin(x + i / 10.0))
+    sleep(0.0001) # unnecessary
 end
 
 fps_gr = round(200 / toq())
