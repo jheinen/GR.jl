@@ -18,7 +18,7 @@ end
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :scatter, :hist, :contour, :contourf, :wireframe, :surface, :plot3]
+const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :wireframe, :surface, :plot3]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -170,7 +170,7 @@ function set_window(kind)
     plt.kvs[:xaxis] = xtick, xorg, majorx
 
     ymin, ymax = plt.kvs[:yrange]
-    if kind == :hist && !haskey(plt.kvs, :ylim)
+    if kind in (:stem, :hist) && !haskey(plt.kvs, :ylim)
         ymin = 0
     end
     if scale & GR.OPTION_Y_LOG == 0
@@ -408,6 +408,15 @@ function plot_data(; kv...)
             else
                 GR.polymarker(x, y)
             end
+        elseif kind == :stem
+            GR.setlinecolorind(1)
+            GR.polyline([plt.kvs[:window][1]; plt.kvs[:window][2]], [0; 0])
+            GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
+            GR.uselinespec(spec)
+            for i = 1:length(y)
+                GR.polyline([x[i]; x[i]], [0; y[i]])
+                GR.polymarker([x[i]], [y[i]])
+            end
         elseif kind == :hist
             ymin = plt.kvs[:window][3]
             for i = 2:length(y)
@@ -467,7 +476,7 @@ function plot_data(; kv...)
         GR.restorestate()
     end
 
-    if kind in (:line, :scatter) && haskey(plt.kvs, :labels)
+    if kind in (:line, :scatter, :stem) && haskey(plt.kvs, :labels)
         draw_legend()
     end
 
@@ -633,6 +642,14 @@ function scatter(args...; kv...)
     plt.args = plot_args(args, fmt=:xyac)
 
     plot_data(kind=:scatter)
+end
+
+function stem(args...; kv...)
+    merge!(plt.kvs, Dict(kv))
+
+    plt.args = plot_args(args)
+
+    plot_data(kind=:stem)
 end
 
 function histogram(x; kv...)

@@ -118,6 +118,7 @@ export
   plot,
   oplot,
   scatter,
+  stem,
   histogram,
   contourf,
   wireframe,
@@ -1185,6 +1186,7 @@ subplot(m, n, p) = jlgr.subplot(m, n, p)
 plot(args...; kwargs...) = jlgr.plot(args...; kwargs...)
 oplot(args...; kwargs...) = jlgr.oplot(args...; kwargs...)
 scatter(args...; kwargs...) = jlgr.scatter(args...; kwargs...)
+stem(args...; kwargs...) = jlgr.stem(args...; kwargs...)
 histogram(x; kwargs...) = jlgr.histogram(x; kwargs...)
 contour(args...; kwargs...) = jlgr.contour(args...; kwargs...)
 contourf(args...; kwargs...) = jlgr.contourf(args...; kwargs...)
