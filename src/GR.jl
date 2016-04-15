@@ -132,6 +132,7 @@ export
   savefig,
   peaks,
   imshow,
+  isosurface,
   libGR3,
   gr3,
   isinline,
@@ -1202,6 +1203,7 @@ ylim(a) = jlgr.ylim(a)
 savefig(filename) = jlgr.savefig(filename)
 peaks(n...) = jlgr.peaks(n...)
 imshow(I; kwargs...) = jlgr.imshow(I; kwargs...)
+isosurface(V; kwargs...) = jlgr.isosurface(V; kwargs...)
 
 type SVG
    s::Array{UInt8}

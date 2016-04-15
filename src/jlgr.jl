@@ -809,4 +809,31 @@ function imshow(I; kv...)
     end
 end
 
+function isosurface(V; kv...)
+    merge!(plt.kvs, Dict(kv))
+
+    plt.kvs[:clear] && GR.clearws()
+
+    GR.selntran(0)
+    values = round(UInt16, (V-minimum(V)) / (maximum(V)-minimum(V)) * (2^16-1))
+    nx, ny, nz = size(V)
+    isovalue = get(plt.kvs, :isovalue, 0.5)
+    rotation = get(plt.kvs, :rotation, 40) * pi / 180.0
+    mesh = gr3.createisosurfacemesh(values, (2/(nx-1), 2/(ny-1), 2/(nz-1)),
+                                    (-1., -1., -1.),
+                                    round(Int64, isovalue * (2^16-1)))
+    gr3.drawmesh(mesh, 1, (0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 0.5, 0.8), (1, 1, 1))
+    gr3.cameralookat(2*sin(rotation), 1, 2*cos(rotation), 0, 0, 0, 0, 1, 0)
+    gr3.drawimage(0, 1, 0, 1, 500, 500, gr3.DRAWABLE_GKS)
+    gr3.deletemesh(mesh)
+    GR.selntran(1)
+
+    if plt.kvs[:update]
+        GR.updatews()
+        if GR.isinline()
+            return GR.show()
+        end
+    end
+end
+
 end # module
