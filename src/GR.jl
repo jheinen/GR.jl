@@ -133,6 +133,8 @@ export
   peaks,
   imshow,
   isosurface,
+  cart2sph,
+  sph2cart,
   libGR3,
   gr3,
   isinline,
@@ -1204,6 +1206,8 @@ savefig(filename) = jlgr.savefig(filename)
 peaks(n...) = jlgr.peaks(n...)
 imshow(I; kwargs...) = jlgr.imshow(I; kwargs...)
 isosurface(V; kwargs...) = jlgr.isosurface(V; kwargs...)
+cart2sph(x, y, z) = jlgr.cart2sph(x, y, z)
+sph2cart(θ, ϕ, r) = jlgr.sph2cart(θ, ϕ, r)
 
 type SVG
    s::Array{UInt8}
