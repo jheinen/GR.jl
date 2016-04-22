@@ -73,6 +73,7 @@ export
   verrorbars,
   herrorbars,
   polyline3d,
+  polymarker3d,
   axes3d,
   titles3d,
   surface,
@@ -123,6 +124,7 @@ export
   contourf,
   wireframe,
   plot3,
+  scatter3,
   title,
   xlabel,
   ylabel,
@@ -648,6 +650,15 @@ function polyline3d(px, py, pz)
   assert(length(px) == length(py) == length(pz))
   n = length(px)
   ccall( (:gr_polyline3d, libGR),
+        Void,
+        (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
+        n, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz))
+end
+
+function polymarker3d(px, py, pz)
+  assert(length(px) == length(py) == length(pz))
+  n = length(px)
+  ccall( (:gr_polymarker3d, libGR),
         Void,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz))
@@ -1196,6 +1207,7 @@ contourf(args...; kwargs...) = jlgr.contourf(args...; kwargs...)
 wireframe(args...; kwargs...) = jlgr.wireframe(args...; kwargs...)
 surface(args...; kwargs...) = jlgr.surface(args...; kwargs...)
 plot3(args...; kwargs...) = jlgr.plot3(args...; kwargs...)
+scatter3(args...; kwargs...) = jlgr.scatter3(args...; kwargs...)
 title(s) = jlgr.title(s)
 xlabel(s) = jlgr.xlabel(s)
 ylabel(s) = jlgr.ylabel(s)
