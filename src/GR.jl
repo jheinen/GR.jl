@@ -132,6 +132,7 @@ export
   xlim,
   ylim,
   savefig,
+  meshgrid,
   peaks,
   imshow,
   isosurface,
@@ -1215,6 +1216,8 @@ legend(args...; kwargs...) = jlgr.legend(args...; kwargs...)
 xlim(a) = jlgr.xlim(a)
 ylim(a) = jlgr.ylim(a)
 savefig(filename) = jlgr.savefig(filename)
+meshgrid(vx, vy) = jlgr.meshgrid(vx, vy)
+meshgrid(vx, vy, vz) = jlgr.meshgrid(vx, vy, vz)
 peaks(n...) = jlgr.peaks(n...)
 imshow(I; kwargs...) = jlgr.imshow(I; kwargs...)
 isosurface(V; kwargs...) = jlgr.isosurface(V; kwargs...)

@@ -4,6 +4,7 @@
 #
 
 using GSL    # GSL holds the special functions
+using GR
 
 a0 = 5.291772109217e-11
 
@@ -43,17 +44,12 @@ function CarttoSph(x::Array,y::Array,z::Array)
 end
 
 function calculate_electronic_density(n,l,m)
-    r = 1e-9
     N = 50
-    range = linspace(-r,r,N)
-    x = collect(range)
-    y = collect(range)
-    z = collect(range)
-    xa = repeat(x,outer=[1,N,N])
-    ya = repeat(transpose(y),outer=[N,1,N])
-    za = repeat(reshape(z,1,1,N),outer=[N,N,1])
+    r = 1e-9
+    s = linspace(-r,r,N)
+    x,y,z = meshgrid(s,s,s)
     
-    r,θ,ϕ = CarttoSph(xa,ya,za)
+    r,θ,ϕ = CarttoSph(x,y,z)
     Ψ = Orbital(n,l,m)
 
     Ψv = zeros(Float32,N,N,N)
@@ -69,8 +65,6 @@ function calculate_electronic_density(n,l,m)
 end
 
 Ψv = calculate_electronic_density(3,2,0)
-
-using GR
 
 for alpha in 0:360
     isosurface(Ψv,isovalue=0.45,rotation=alpha)

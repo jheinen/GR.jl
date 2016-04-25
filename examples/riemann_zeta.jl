@@ -26,14 +26,6 @@ function domain_colors(w, n)
 end
 
 
-function meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T})
-    m, n = length(vy), length(vx)
-    vx = reshape(vx, 1, n)
-    vy = reshape(vy, m, 1)
-    (repmat(vx, m, 1), repmat(vy, 1, n))
-end
-
-
 function func_vals(f, re, im,  N)
     # evaluates the complex function at the nodes of the grid
     # re and im are tuples defining the rectangular region
@@ -44,7 +36,7 @@ function func_vals(f, re, im,  N)
     resH = N * h  # vertical resolution
     x = linspace(re[1], re[2], resL)
     y = linspace(im[1], im[2], resH)
-    x, y = meshgrid(x, y)
+    x, y = GR.meshgrid(x, y)
     z = complex(x, y)
     w = f(z)
     return w
