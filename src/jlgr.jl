@@ -18,7 +18,7 @@ end
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :wireframe, :surface, :plot3, :scatter3]
+const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -361,6 +361,89 @@ function subplot(nr, nc, p)
     plt.kvs[:update] = collect(p)[end] == nr * nc
 end
 
+function plot_img(I)
+    viewport = plt.kvs[:viewport]
+    vp = plt.kvs[:vp]
+
+    if isa(I, AbstractString)
+        width, height, data = GR.readimage(I)
+    else
+        width, height = size(I)
+        data = (float(I) - minimum(I)) / (maximum(I) - minimum(I))
+        data = round(Int32, 1000 + data * 255)
+    end
+
+    if width  * (viewport[4] - viewport[3]) <
+       height * (viewport[2] - viewport[1])
+        w = float(width) / height * (viewport[4] - viewport[3])
+        xmin = max(0.5 * (viewport[1] + viewport[2] - w), viewport[1])
+        xmax = min(0.5 * (viewport[1] + viewport[2] + w), viewport[2])
+        ymin = viewport[3]
+        ymax = viewport[4]
+    else
+        h = float(height) / width * (viewport[2] - viewport[1])
+        xmin = viewport[1]
+        xmax = viewport[2]
+        ymin = max(0.5 * (viewport[4] + viewport[3] - h), viewport[3])
+        ymax = min(0.5 * (viewport[4] + viewport[3] + h), viewport[4])
+    end
+
+    GR.selntran(0)
+    if isa(I, AbstractString)
+        GR.drawimage(xmin, xmax, ymin, ymax, width, height, data)
+    else
+        GR.cellarray(xmin, xmax, ymin, ymax, width, height, data)
+    end
+
+    if haskey(plt.kvs, :title)
+        GR.savestate()
+        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
+        GR.textext(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
+        GR.restorestate()
+    end
+    GR.selntran(1)
+end
+
+function plot_iso(V)
+    viewport = plt.kvs[:viewport]
+
+    if viewport[4] - viewport[3] < viewport[2] - viewport[1]
+        width = viewport[4] - viewport[3]
+        centerx = 0.5 * (viewport[1] + viewport[2])
+        xmin = max(centerx - 0.5 * width, viewport[1])
+        xmax = min(centerx + 0.5 * width, viewport[2])
+        ymin = viewport[3]
+        ymax = viewport[4]
+    else
+        height = viewport[2] - viewport[1]
+        centery = 0.5 * (viewport[3] + viewport[4])
+        xmin = viewport[1]
+        xmax = viewport[2]
+        ymin = max(centery - 0.5 * height, viewport[3])
+        ymax = min(centery + 0.5 * height, viewport[4])
+    end
+
+    GR.selntran(0)
+    values = round(UInt16, (V-minimum(V)) / (maximum(V)-minimum(V)) * (2^16-1))
+    nx, ny, nz = size(V)
+    isovalue = get(plt.kvs, :isovalue, 0.5)
+    rotation = get(plt.kvs, :rotation, 40) * pi / 180.0
+    mesh = gr3.createisosurfacemesh(values, (2/(nx-1), 2/(ny-1), 2/(nz-1)),
+                                    (-1., -1., -1.),
+                                    round(Int64, isovalue * (2^16-1)))
+    if haskey(plt.kvs, :color)
+        color = plt.kvs[:color]
+    else
+        color = (0.0, 0.5, 0.8)
+    end
+    gr3.setbackgroundcolor(1, 1, 1, 0)
+    gr3.drawmesh(mesh, 1, (0, 0, 0), (0, 0, 1), (0, 1, 0), color, (1, 1, 1))
+    gr3.cameralookat(sin(rotation), 1, cos(rotation), 0, 0, 0, 0, 1, 0)
+    gr3.drawimage(xmin, xmax, ymin, ymax, 500, 500, gr3.DRAWABLE_GKS)
+    gr3.deletemesh(mesh)
+    GR.selntran(1)
+end
+
 function plot_data(; kv...)
     merge!(plt.kvs, Dict(kv))
 
@@ -371,7 +454,9 @@ function plot_data(; kv...)
 
     plt.kvs[:clear] && GR.clearws()
 
-    if !plt.kvs[:ax]
+    if kind in (:imshow, :isosurface)
+        set_viewport(kind, plt.kvs[:subplot])
+    elseif !plt.kvs[:ax]
         set_viewport(kind, plt.kvs[:subplot])
         set_window(kind)
         draw_axes(kind)
@@ -475,6 +560,10 @@ function plot_data(; kv...)
         elseif kind == :scatter3
             GR.polymarker3d(x, y, z)
             draw_axes(kind, 2)
+        elseif kind == :imshow
+            plot_img(z)
+        elseif kind == :isosurface
+            plot_iso(z)
         end
         GR.restorestate()
     end
@@ -772,118 +861,17 @@ end
 function imshow(I; kv...)
     merge!(plt.kvs, Dict(kv))
 
-    if isa(I, AbstractString)
-        width, height, data = GR.readimage(I)
-    else
-        width, height = size(I)
-        data = (float(I) - minimum(I)) / (maximum(I) - minimum(I))
-        data = round(Int32, 1000 + data * 255)
-    end
+    plt.args = [(Void, Void, I, Void, "")]
 
-    plt.kvs[:clear] && GR.clearws()
-
-    if !plt.kvs[:ax]
-        set_viewport(:line, plt.kvs[:subplot])
-    end
-    viewport = plt.kvs[:viewport]
-    vp = plt.kvs[:vp]
-
-    if width  * (viewport[4] - viewport[3]) <
-       height * (viewport[2] - viewport[1])
-        ratio = float(width) / height
-        xmin = max(0.5 * (viewport[2] - ratio), viewport[1])
-        xmax = min(xmin + ratio, viewport[2])
-        ymin = viewport[3]
-        ymax = viewport[4]
-    else
-        ratio = float(height) / width
-        xmin = viewport[1]
-        xmax = viewport[2]
-        ymin = max(0.5 * (viewport[4] - ratio), viewport[3])
-        ymax = min(ymin + ratio, viewport[4])
-    end
-
-    if haskey(plt.kvs, :cmap)
-        GR.setcolormap(plt.kvs[:cmap])
-    else
-        GR.setcolormap(1)
-    end
-
-    GR.selntran(0)
-    if isa(I, AbstractString)
-        GR.drawimage(xmin, xmax, ymin, ymax, width, height, data)
-    else
-        GR.cellarray(xmin, xmax, ymin, ymax, width, height, data)
-    end
-
-    if haskey(plt.kvs, :title)
-        GR.savestate()
-        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        GR.textext(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
-        GR.restorestate()
-    end
-    GR.selntran(1)
-
-    if plt.kvs[:update]
-        GR.updatews()
-        if GR.isinline()
-            return GR.show()
-        end
-    end
+    plot_data(kind=:imshow)
 end
 
 function isosurface(V; kv...)
     merge!(plt.kvs, Dict(kv))
 
-    plt.kvs[:clear] && GR.clearws()
+    plt.args = [(Void, Void, V, Void, "")]
 
-    if !plt.kvs[:ax]
-        set_viewport(:line, plt.kvs[:subplot])
-    end
-    viewport = plt.kvs[:viewport]
-
-    if viewport[4] - viewport[3] < viewport[2] - viewport[1]
-        width = viewport[4] - viewport[3]
-        centerx = 0.5 * (viewport[1] + viewport[2])
-        xmin = max(centerx - 0.5 * width, viewport[1])
-        xmax = min(centerx + 0.5 * width, viewport[2])
-        ymin = viewport[3]
-        ymax = viewport[4]
-    else
-        height = viewport[2] - viewport[1]
-        centery = 0.5 * (viewport[3] + viewport[4])
-        xmin = viewport[1]
-        xmax = viewport[2]
-        ymin = max(centery - 0.5 * height, viewport[3])
-        ymax = min(centery + 0.5 * height, viewport[4])
-    end
-
-    GR.selntran(0)
-    values = round(UInt16, (V-minimum(V)) / (maximum(V)-minimum(V)) * (2^16-1))
-    nx, ny, nz = size(V)
-    isovalue = get(plt.kvs, :isovalue, 0.5)
-    rotation = get(plt.kvs, :rotation, 40) * pi / 180.0
-    mesh = gr3.createisosurfacemesh(values, (2/(nx-1), 2/(ny-1), 2/(nz-1)),
-                                    (-1., -1., -1.),
-                                    round(Int64, isovalue * (2^16-1)))
-    if haskey(plt.kvs, :color)
-        color = plt.kvs[:color]
-    else
-        color = (0.0, 0.5, 0.8)
-    end
-    gr3.setbackgroundcolor(1, 1, 1, 0)
-    gr3.drawmesh(mesh, 1, (0, 0, 0), (0, 0, 1), (0, 1, 0), color, (1, 1, 1))
-    gr3.cameralookat(sin(rotation), 1, cos(rotation), 0, 0, 0, 0, 1, 0)
-    gr3.drawimage(xmin, xmax, ymin, ymax, 500, 500, gr3.DRAWABLE_GKS)
-    gr3.deletemesh(mesh)
-    GR.selntran(1)
-
-    if plt.kvs[:update]
-        GR.updatews()
-        if GR.isinline()
-            return GR.show()
-        end
-    end
+    plot_data(kind=:isosurface)
 end
 
 function cart2sph(x, y, z)
