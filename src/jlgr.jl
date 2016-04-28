@@ -18,7 +18,7 @@ end
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface]
+const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -427,7 +427,7 @@ function plot_iso(V)
     values = round(UInt16, (V-minimum(V)) / (maximum(V)-minimum(V)) * (2^16-1))
     nx, ny, nz = size(V)
     isovalue = get(plt.kvs, :isovalue, 0.5)
-    rotation = get(plt.kvs, :rotation, 40) * pi / 180.0
+    rotation = get(plt.kvs, :rotation, 40) * π / 180.0
     mesh = gr3.createisosurfacemesh(values, (2/(nx-1), 2/(ny-1), 2/(nz-1)),
                                     (-1., -1., -1.),
                                     round(Int64, isovalue * (2^16-1)))
@@ -444,6 +444,66 @@ function plot_iso(V)
     GR.selntran(1)
 end
 
+function draw_polar_axes(rmin, rmax)
+    viewport = plt.kvs[:viewport]
+    diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
+    charheight = max(0.018 * diag, 0.012)
+
+    GR.savestate()
+    GR.setcharheight(charheight)
+
+    tick = 0.5 * GR.tick(rmin, rmax)
+    n = round(Int, (rmax - rmin) / tick + 0.5)
+    for i in 0:n
+        r = float(i) / n
+        if i % 2 == 0
+            GR.setlinecolorind(88)
+            if i > 0
+                GR.drawarc(-r, r, -r, r, 0, 359)
+            end
+            GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
+            x, y = GR.wctondc(0.05, r)
+            GR.text(x, y, @sprintf("%g", rmin + i * tick))
+        else
+            GR.setlinecolorind(90)
+            GR.drawarc(-r, r, -r, r, 0, 359)
+        end
+    end
+    for alpha in 0:45:315
+        a = alpha + 90
+        sinf = sin(a * π / 180)
+        cosf = cos(a * π / 180)
+        GR.polyline([sinf, 0], [cosf, 0])
+        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_HALF)
+        x, y = GR.wctondc(1.1 * sinf, 1.1 * cosf)
+        GR.textext(x, y, string(alpha, "^o"))
+    end
+    GR.restorestate()
+end
+
+function plot_polar(θ, ρ)
+    xmin, xmax, ymin, ymax = plt.kvs[:viewport]
+
+    ymax -= 0.05 * (xmax - xmin)
+    xcenter = 0.5 * (xmin + xmax)
+    ycenter = 0.5 * (ymin + ymax)
+    r = 0.5 * min(xmax - xmin, ymax - ymin)
+    GR.setviewport(xcenter - r, xcenter + r, ycenter - r, ycenter + r)
+    GR.setwindow(-1, 1, -1, 1)
+
+    rmin, rmax = GR.adjustrange(minimum(ρ), maximum(ρ))
+    draw_polar_axes(rmin, rmax)
+
+    ρ = (ρ - rmin) / (rmax - rmin)
+    n = length(ρ)
+    x, y = zeros(n), zeros(n)
+    for i in 1:n
+        x[i] = ρ[i] * cos(θ[i])
+        y[i] = ρ[i] * sin(θ[i])
+    end
+    GR.polyline(x, y)
+end
+
 function plot_data(; kv...)
     merge!(plt.kvs, Dict(kv))
 
@@ -454,7 +514,7 @@ function plot_data(; kv...)
 
     plt.kvs[:clear] && GR.clearws()
 
-    if kind in (:imshow, :isosurface)
+    if kind in (:imshow, :isosurface, :polar)
         set_viewport(kind, plt.kvs[:subplot])
     elseif !plt.kvs[:ax]
         set_viewport(kind, plt.kvs[:subplot])
@@ -564,6 +624,9 @@ function plot_data(; kv...)
             plot_img(z)
         elseif kind == :isosurface
             plot_iso(z)
+        elseif kind == :polar
+            GR.uselinespec(spec)
+            plot_polar(x, y)
         end
         GR.restorestate()
     end
@@ -886,6 +949,14 @@ function sph2cart(azimuth, elevation, r)
     y = r .* cos(elevation) .* sin(azimuth)
     z = r .* sin(elevation)
     x, y, z
+end
+
+function polar(args...; kv...)
+    merge!(plt.kvs, Dict(kv))
+
+    plt.args = plot_args(args)
+
+    plot_data(kind=:polar)
 end
 
 end # module

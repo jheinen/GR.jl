@@ -138,6 +138,7 @@ export
   isosurface,
   cart2sph,
   sph2cart,
+  polar,
   libGR3,
   gr3,
   isinline,
@@ -1223,6 +1224,7 @@ imshow(I; kwargs...) = jlgr.imshow(I; kwargs...)
 isosurface(V; kwargs...) = jlgr.isosurface(V; kwargs...)
 cart2sph(x, y, z) = jlgr.cart2sph(x, y, z)
 sph2cart(θ, ϕ, r) = jlgr.sph2cart(θ, ϕ, r)
+polar(args...; kwargs...) = jlgr.polar(args...; kwargs...)
 
 type SVG
    s::Array{UInt8}
