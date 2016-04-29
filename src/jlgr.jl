@@ -105,6 +105,14 @@ function set_viewport(kind, subplot)
         GR.selntran(1)
         GR.restorestate()
     end
+
+    if kind == :polar
+        xmin, xmax, ymin, ymax = viewport
+        xcenter = 0.5 * (xmin + xmax)
+        ycenter = 0.5 * (ymin + ymax)
+        r = 0.5 * min(xmax - xmin, ymax - ymin)
+        GR.setviewport(xcenter - r, xcenter + r, ycenter - r, ycenter + r)
+    end
 end
 
 function minmax()
@@ -139,16 +147,18 @@ end
 
 function set_window(kind)
     scale = 0
-    get(plt.kvs, :xlog, false) && (scale |= GR.OPTION_X_LOG)
-    get(plt.kvs, :ylog, false) && (scale |= GR.OPTION_Y_LOG)
-    get(plt.kvs, :zlog, false) && (scale |= GR.OPTION_Z_LOG)
-    get(plt.kvs, :xflip, false) && (scale |= GR.OPTION_FLIP_X)
-    get(plt.kvs, :yflip, false) && (scale |= GR.OPTION_FLIP_Y)
-    get(plt.kvs, :zflip, false) && (scale |= GR.OPTION_FLIP_Z)
+    if kind != :polar
+        get(plt.kvs, :xlog, false) && (scale |= GR.OPTION_X_LOG)
+        get(plt.kvs, :ylog, false) && (scale |= GR.OPTION_Y_LOG)
+        get(plt.kvs, :zlog, false) && (scale |= GR.OPTION_Z_LOG)
+        get(plt.kvs, :xflip, false) && (scale |= GR.OPTION_FLIP_X)
+        get(plt.kvs, :yflip, false) && (scale |= GR.OPTION_FLIP_Y)
+        get(plt.kvs, :zflip, false) && (scale |= GR.OPTION_FLIP_Z)
+    end
 
     minmax()
 
-    if kind in (:wireframe, :surface, :plot3, :scatter3)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar)
         major_count = 2
     else
         major_count = 5
@@ -205,7 +215,11 @@ function set_window(kind)
     end
 
     plt.kvs[:window] = xmin, xmax, ymin, ymax
-    GR.setwindow(xmin, xmax, ymin, ymax)
+    if kind != :polar
+        GR.setwindow(xmin, xmax, ymin, ymax)
+    else
+        GR.setwindow(-1, 1, -1, 1)
+    end
     if kind in (:wireframe, :surface, :plot3, :scatter3)
         rotation = get(plt.kvs, :rotation, 40)
         tilt = get(plt.kvs, :tilt, 70)
@@ -270,6 +284,47 @@ function draw_axes(kind, pass=1)
             GR.restorestate()
         end
     end
+end
+
+function draw_polar_axes()
+    viewport = plt.kvs[:viewport]
+    diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
+    charheight = max(0.018 * diag, 0.012)
+
+    window = plt.kvs[:window]
+    rmin, rmax = window[3], window[4]
+
+    GR.savestate()
+    GR.setcharheight(charheight)
+    GR.setlinetype(GR.LINETYPE_SOLID)
+
+    tick = 0.5 * GR.tick(rmin, rmax)
+    n = round(Int, (rmax - rmin) / tick + 0.5)
+    for i in 0:n
+        r = float(i) / n
+        if i % 2 == 0
+            GR.setlinecolorind(88)
+            if i > 0
+                GR.drawarc(-r, r, -r, r, 0, 359)
+            end
+            GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
+            x, y = GR.wctondc(0.05, r)
+            GR.text(x, y, string(signif(rmin + i * tick, 12)))
+        else
+            GR.setlinecolorind(90)
+            GR.drawarc(-r, r, -r, r, 0, 359)
+        end
+    end
+    for alpha in 0:45:315
+        a = alpha + 90
+        sinf = sin(a * π / 180)
+        cosf = cos(a * π / 180)
+        GR.polyline([sinf, 0], [cosf, 0])
+        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_HALF)
+        x, y = GR.wctondc(1.1 * sinf, 1.1 * cosf)
+        GR.textext(x, y, string(alpha, "^o"))
+    end
+    GR.restorestate()
 end
 
 function draw_legend()
@@ -444,57 +499,9 @@ function plot_iso(V)
     GR.selntran(1)
 end
 
-function draw_polar_axes(rmin, rmax)
-    viewport = plt.kvs[:viewport]
-    diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
-    charheight = max(0.018 * diag, 0.012)
-
-    GR.savestate()
-    GR.setcharheight(charheight)
-    GR.setlinetype(GR.LINETYPE_SOLID)
-
-    tick = 0.5 * GR.tick(rmin, rmax)
-    n = round(Int, (rmax - rmin) / tick + 0.5)
-    for i in 0:n
-        r = float(i) / n
-        if i % 2 == 0
-            GR.setlinecolorind(88)
-            if i > 0
-                GR.drawarc(-r, r, -r, r, 0, 359)
-            end
-            GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
-            x, y = GR.wctondc(0.05, r)
-            GR.text(x, y, string(signif(rmin + i * tick, 12)))
-        else
-            GR.setlinecolorind(90)
-            GR.drawarc(-r, r, -r, r, 0, 359)
-        end
-    end
-    for alpha in 0:45:315
-        a = alpha + 90
-        sinf = sin(a * π / 180)
-        cosf = cos(a * π / 180)
-        GR.polyline([sinf, 0], [cosf, 0])
-        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_HALF)
-        x, y = GR.wctondc(1.1 * sinf, 1.1 * cosf)
-        GR.textext(x, y, string(alpha, "^o"))
-    end
-    GR.restorestate()
-end
-
 function plot_polar(θ, ρ)
-    xmin, xmax, ymin, ymax = plt.kvs[:viewport]
-
-    ymax -= 0.05 * (xmax - xmin)
-    xcenter = 0.5 * (xmin + xmax)
-    ycenter = 0.5 * (ymin + ymax)
-    r = 0.5 * min(xmax - xmin, ymax - ymin)
-    GR.setviewport(xcenter - r, xcenter + r, ycenter - r, ycenter + r)
-    GR.setwindow(-1, 1, -1, 1)
-
-    rmin, rmax = GR.adjustrange(minimum(ρ), maximum(ρ))
-    draw_polar_axes(rmin, rmax)
-
+    window = plt.kvs[:window]
+    rmin, rmax = window[3], window[4]
     ρ = (ρ - rmin) / (rmax - rmin)
     n = length(ρ)
     x, y = zeros(n), zeros(n)
@@ -515,12 +522,16 @@ function plot_data(; kv...)
 
     plt.kvs[:clear] && GR.clearws()
 
-    if kind in (:imshow, :isosurface, :polar)
+    if kind in (:imshow, :isosurface)
         set_viewport(kind, plt.kvs[:subplot])
     elseif !plt.kvs[:ax]
         set_viewport(kind, plt.kvs[:subplot])
         set_window(kind)
-        draw_axes(kind)
+        if kind == :polar
+            draw_polar_axes()
+        else
+            draw_axes(kind)
+        end
     end
 
     if haskey(plt.kvs, :colormap)
