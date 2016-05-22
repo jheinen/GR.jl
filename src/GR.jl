@@ -6,6 +6,16 @@ module GR
 
 import Base.writemime
 
+if VERSION > v"0.5-"
+  if Sys.KERNEL == :NT
+    const os = :Windows
+  else
+    const os = Sys.KERNEL
+  end
+else
+  const os = OS_NAME
+end
+
 if VERSION < v"0.4-"
   typealias AbstractString String
   typealias UInt8 Uint8
@@ -171,7 +181,7 @@ function __init__()
     if contains(grdir, "site-packages")
         const libGR = joinpath(grdir, "libGR.so")
         ENV["GKS_FONTPATH"] = grdir
-    elseif OS_NAME != :Windows
+    elseif os != :Windows
         const libGR = joinpath(grdir, "lib", "libGR.so")
     else
         const libGR = joinpath(grdir, "libGR.dll")

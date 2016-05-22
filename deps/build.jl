@@ -7,21 +7,29 @@ if !have_env && !isdir("/usr/local/gr") && !isdir(joinpath(homedir(),"gr"))
       version = "latest"
     end
   end
-  const os = OS_NAME
+  if VERSION > v"0.5-"
+    if Sys.KERNEL == :NT
+      const os = :Windows
+    else
+      const os = Sys.KERNEL
+    end
+  else
+    const os = OS_NAME
+  end
   const arch = Sys.ARCH
   tarball = "gr-$version-$os-$arch.tar.gz"
   if !isfile("downloads/$tarball")
     info("Downloading pre-compiled GR $version binary")
     mkpath("downloads")
     download("http://gr-framework.org/downloads/$tarball", "downloads/$tarball")
-    @windows_only begin
+    if os == :Windows
       success(`$JULIA_HOME/7z x downloads/$tarball -y`)
       rm("downloads/$tarball")
       tarball = tarball[1:end-3]
       success(`$JULIA_HOME/7z x $tarball -y -ttar`)
       rm("$tarball")
     end
-    @unix_only begin
+    if os in (:Darwin, :Linux)
       run(`tar xzf downloads/$tarball`)
       rm("downloads/$tarball")
     end
