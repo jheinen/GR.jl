@@ -18,7 +18,7 @@ end
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar]
+const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -78,10 +78,10 @@ function set_viewport(kind, subplot)
     if w > h
         viewport[3] += (1 - (subplot[4] - subplot[3])^2) * 0.02
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
         viewport[2] -= 0.0525
     end
-    if kind in (:contour, :contourf, :surface)
+    if kind in (:contour, :contourf, :surface, :trisurf)
         viewport[2] -= 0.1
     end
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
@@ -158,7 +158,7 @@ function set_window(kind)
 
     minmax()
 
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :trisurf)
         major_count = 2
     else
         major_count = 5
@@ -197,7 +197,7 @@ function set_window(kind)
     end
     plt.kvs[:yaxis] = ytick, yorg, majory
 
-    if kind in (:wireframe, :surface, :plot3, :scatter3)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
         zmin, zmax = plt.kvs[:zrange]
         if scale & GR.OPTION_Y_LOG == 0
             zmin, zmax = GR.adjustlimits(zmin, zmax)
@@ -220,7 +220,7 @@ function set_window(kind)
     else
         GR.setwindow(-1, 1, -1, 1)
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
         rotation = get(plt.kvs, :rotation, 40)
         tilt = get(plt.kvs, :tilt, 70)
         GR.setspace(zmin, zmax, rotation, tilt)
@@ -243,7 +243,7 @@ function draw_axes(kind, pass=1)
     charheight = max(0.018 * diag, 0.012)
     GR.setcharheight(charheight)
     ticksize = 0.0075 * diag
-    if kind in (:wireframe, :surface, :plot3, :scatter3)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
         ztick, zorg, majorz = plt.kvs[:zaxis]
         if pass == 1
             GR.grid3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], 2, 0, 2)
@@ -264,7 +264,7 @@ function draw_axes(kind, pass=1)
         GR.textext(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
         GR.restorestate()
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
         xlabel = get(plt.kvs, :xlabel, "")
         ylabel = get(plt.kvs, :ylabel, "")
         zlabel = get(plt.kvs, :zlabel, "")
@@ -639,6 +639,10 @@ function plot_data(; kv...)
         elseif kind == :polar
             GR.uselinespec(spec)
             plot_polar(x, y)
+        elseif kind == :trisurf
+            GR.trisurface(x, y, z)
+            draw_axes(kind, 2)
+            colorbar(0.05)
         end
         GR.restorestate()
     end
@@ -774,6 +778,8 @@ function plot_args(args; fmt=:xys)
                (isa(z, AbstractVector) || typeof(z) == Array{Float64,2} ||
                 typeof(z) == Array{Int32,2} || typeof(z) == Array{Any,2})
             xyzc = [ (x, y, z, c) ]
+        else
+            xyzc = [ (vec(float(x)), vec(float(y)), vec(float(z)), c) ]
         end
         for (x, y, z, c) in xyzc
             push!(pltargs, (x, y, z, c, spec))
@@ -969,6 +975,14 @@ function polar(args...; kv...)
     plt.args = plot_args(args)
 
     plot_data(kind=:polar)
+end
+
+function trisurf(args...; kv...)
+    merge!(plt.kvs, Dict(kv))
+
+    plt.args = plot_args(args, fmt=:xyzc)
+
+    plot_data(kind=:trisurf)
 end
 
 end # module
