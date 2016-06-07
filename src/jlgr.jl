@@ -199,7 +199,7 @@ function set_window(kind)
 
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
         zmin, zmax = plt.kvs[:zrange]
-        if scale & GR.OPTION_Y_LOG == 0
+        if scale & GR.OPTION_Z_LOG == 0
             zmin, zmax = GR.adjustlimits(zmin, zmax)
             majorz = major_count
             ztick = GR.tick(zmin, zmax) / majorz
