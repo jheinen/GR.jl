@@ -66,7 +66,7 @@ function calc_fractal(q, min_x, max_x, min_y, max_y, width, height, iters)
 
     k = cl.Kernel(prg, "mandelbrot")
     cl.call(queue, k, length(q), nothing, q_opencl, output_opencl,
-            min_x, max_x, min_y, max_y, uint16(width), uint16(height), uint16(iters))
+            min_x, max_x, min_y, max_y, UInt16(width), UInt16(height), UInt16(iters))
     cl.copy!(queue, output, output_opencl)
 
     return output
