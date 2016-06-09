@@ -483,6 +483,8 @@ function plot_iso(V)
     nx, ny, nz = size(V)
     isovalue = get(plt.kvs, :isovalue, 0.5)
     rotation = get(plt.kvs, :rotation, 40) * π / 180.0
+    tilt = get(plt.kvs, :tilt, 70) * π / 180.0
+    r = 2.5
     mesh = gr3.createisosurfacemesh(values, (2/(nx-1), 2/(ny-1), 2/(nz-1)),
                                     (-1., -1., -1.),
                                     round(Int64, isovalue * (2^16-1)))
@@ -493,7 +495,7 @@ function plot_iso(V)
     end
     gr3.setbackgroundcolor(1, 1, 1, 0)
     gr3.drawmesh(mesh, 1, (0, 0, 0), (0, 0, 1), (0, 1, 0), color, (1, 1, 1))
-    gr3.cameralookat(sin(rotation), 1, cos(rotation), 0, 0, 0, 0, 1, 0)
+    gr3.cameralookat(r*sin(tilt)*sin(rotation), r*cos(tilt), r*sin(tilt)*cos(rotation), 0, 0, 0, 0, 1, 0)
     gr3.drawimage(xmin, xmax, ymin, ymax, 500, 500, gr3.DRAWABLE_GKS)
     gr3.deletemesh(mesh)
     GR.selntran(1)
