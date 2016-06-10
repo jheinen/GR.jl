@@ -596,8 +596,8 @@ function plot_data(; kv...)
             GR.contour(x, y, h, z, 1000)
             colorbar(0, 20)
         elseif kind == :contourf
-            xmin, xmax = plt.kvs[:xrange]
-            ymin, ymax = plt.kvs[:yrange]
+            zmin, zmax = plt.kvs[:zrange]
+            GR.setspace(zmin, zmax, 0, 90)
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
                 z = reshape(z, 200, 200)
@@ -605,10 +605,7 @@ function plot_data(; kv...)
             if plt.kvs[:scale] & GR.OPTION_Z_LOG != 0
                 z = log(z)
             end
-            width, height = size(z)
-            data = (z - minimum(z)) / (maximum(z) - minimum(z))
-            data = round(Int32, 1000 + data * 255)
-            GR.cellarray(xmin, xmax, ymax, ymin, width, height, data)
+            GR.surface(x, y, z, GR.OPTION_CELL_ARRAY)
             colorbar()
         elseif kind == :wireframe
             if length(x) == length(y) == length(z)
