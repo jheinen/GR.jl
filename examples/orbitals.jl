@@ -56,7 +56,7 @@ function calculate_electronic_density(n,l,m)
     for i in 1:N
         for j in 1:N
             for k in 1:N
-                Ψv[i,j,k] = abs(Ψ(ρ(r[i,j,k],2),θ[i,j,k],ϕ[i,j,k]))
+                Ψv[i,j,k] = abs(Ψ(ρ(r[i,j,k],n),θ[i,j,k],ϕ[i,j,k]))
             end
         end
     end
@@ -67,5 +67,5 @@ end
 Ψv = calculate_electronic_density(3,2,0)
 
 for alpha in 0:360
-    isosurface(Ψv,isovalue=0.45,rotation=alpha)
+    isosurface(Ψv,isovalue=0.25,rotation=alpha)
 end
