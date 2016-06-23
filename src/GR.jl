@@ -1321,10 +1321,12 @@ end
 function inline(mime="svg")
     global mime_type, msgs
     if mime_type != mime
-        if mime != "js"
-            ENV["GKS_WSTYPE"] = mime
-        else
+        if mime == "iterm"
+            ENV["GKS_WSTYPE"] = "pdf"
+        elseif mime == "js"
             ENV["GKS_WSTYPE"] = "nul"
+        else
+            ENV["GKS_WSTYPE"] = mime
         end
         emergencyclosegks()
         mime_type = mime
@@ -1347,6 +1349,10 @@ function show()
     elseif mime_type == "mov"
         content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64encode(open(readbytes,"gks.mov")),""""></video>"""))
         return content
+    elseif mime_type == "iterm"
+        content = string("\033]1337;File=inline=1;preserveAspectRatio=0:", base64encode(open(readbytes,"gks.pdf")), "\a")
+        println(content)
+        return nothing
     elseif mime_type == "js"
         if msgs != None
             endgraphics()
