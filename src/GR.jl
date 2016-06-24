@@ -159,6 +159,7 @@ export
 
 
 mime_type = None
+figure_count = None
 msgs = None
 have_clear_output = isinteractive() && isdefined(Main, :IJulia) &&
                     isdefined(Main.IJulia, :clear_output)
@@ -1318,8 +1319,8 @@ function startserver()
 );</script>""")
 end
 
-function inline(mime="svg")
-    global mime_type, msgs
+function inline(mime="svg", scroll=true)
+    global mime_type, figure_count, msgs
     if mime_type != mime
         if mime == "iterm"
             ENV["GKS_WSTYPE"] = "pdf"
@@ -1330,6 +1331,7 @@ function inline(mime="svg")
         end
         emergencyclosegks()
         mime_type = mime
+        figure_count = scroll ? None : 0
         if mime == "js"
             startserver()
         end
@@ -1337,7 +1339,7 @@ function inline(mime="svg")
 end
 
 function show()
-    global mime_type, msgs
+    global mime_type, figure_count, msgs
 
     emergencyclosegks()
     if mime_type == "svg"
@@ -1351,6 +1353,10 @@ function show()
         return content
     elseif mime_type == "iterm"
         content = string("\033]1337;File=inline=1;preserveAspectRatio=0:", base64encode(open(readbytes,"gks.pdf")), "\a")
+        if figure_count != None
+            figure_count += 1
+            (figure_count > 1) && print("\e[24A")
+        end
         println(content)
         return nothing
     elseif mime_type == "js"
