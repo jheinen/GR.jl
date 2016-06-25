@@ -1331,11 +1331,12 @@ function inline(mime="svg", scroll=true)
         end
         emergencyclosegks()
         mime_type = mime
-        figure_count = scroll ? None : 0
         if mime == "js"
             startserver()
         end
     end
+    figure_count = scroll ? None : 0
+    mime_type
 end
 
 function show()
