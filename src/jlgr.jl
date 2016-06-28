@@ -261,7 +261,7 @@ function draw_axes(kind, pass=1)
     if haskey(plt.kvs, :title)
         GR.savestate()
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        GR.textext(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
+        text(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
         GR.restorestate()
     end
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
@@ -273,14 +273,14 @@ function draw_axes(kind, pass=1)
         if haskey(plt.kvs, :xlabel)
             GR.savestate()
             GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_BOTTOM)
-            GR.textext(0.5 * (viewport[1] + viewport[2]), vp[3] + 0.5 * charheight, plt.kvs[:xlabel])
+            text(0.5 * (viewport[1] + viewport[2]), vp[3] + 0.5 * charheight, plt.kvs[:xlabel])
             GR.restorestate()
         end
         if haskey(plt.kvs, :ylabel)
             GR.savestate()
             GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
             GR.setcharup(-1, 0)
-            GR.textext(vp[1] + 0.5 * charheight, 0.5 * (viewport[3] + viewport[4]), plt.kvs[:ylabel])
+            text(vp[1] + 0.5 * charheight, 0.5 * (viewport[3] + viewport[4]), plt.kvs[:ylabel])
             GR.restorestate()
         end
     end
@@ -327,6 +327,26 @@ function draw_polar_axes()
     GR.restorestate()
 end
 
+function inqtext(x, y, s)
+    if length(s) >= 2 && s[1] == '$' && s[end] == '$'
+        GR.inqtextext(x, y, s[2:end-1])
+    elseif search(s, '\\') != 0 || search(s, '_') != 0 || search(s, '^') != 0
+        GR.inqtextext(x, y, s)
+    else
+        GR.inqtext(x, y, s)
+    end
+end
+
+function text(x, y, s)
+    if length(s) >= 2 && s[1] == '$' && s[end] == '$'
+        GR.mathtex(x, y, s[2:end-1])
+    elseif search(s, '\\') != 0 || search(s, '_') != 0 || search(s, '^') != 0
+        GR.textext(x, y, s)
+    else
+        GR.text(x, y, s)
+    end
+end
+
 function draw_legend()
     viewport = plt.kvs[:viewport]
     num_labels = length(plt.kvs[:labels])
@@ -358,7 +378,7 @@ function draw_legend()
         GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
         if i < num_labels
             i += 1
-            GR.textext(px, py, plt.kvs[:labels][i])
+            text(px, py, plt.kvs[:labels][i])
         end
         py -= 0.03
     end
@@ -453,7 +473,7 @@ function plot_img(I)
     if haskey(plt.kvs, :title)
         GR.savestate()
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        GR.textext(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
+        text(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
         GR.restorestate()
     end
     GR.selntran(1)
