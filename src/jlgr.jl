@@ -166,7 +166,9 @@ function set_window(kind)
 
     xmin, xmax = plt.kvs[:xrange]
     if scale & GR.OPTION_X_LOG == 0
-        xmin, xmax = GR.adjustlimits(xmin, xmax)
+        if !haskey(plt.kvs, :xlim)
+            xmin, xmax = GR.adjustlimits(xmin, xmax)
+        end
         majorx = major_count
         xtick = GR.tick(xmin, xmax) / majorx
     else
@@ -184,7 +186,9 @@ function set_window(kind)
         ymin = 0
     end
     if scale & GR.OPTION_Y_LOG == 0
-        ymin, ymax = GR.adjustlimits(ymin, ymax)
+        if !haskey(plt.kvs, :ylim)
+            ymin, ymax = GR.adjustlimits(ymin, ymax)
+        end
         majory = major_count
         ytick = GR.tick(ymin, ymax) / majory
     else
@@ -200,7 +204,9 @@ function set_window(kind)
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
         zmin, zmax = plt.kvs[:zrange]
         if scale & GR.OPTION_Z_LOG == 0
-            zmin, zmax = GR.adjustlimits(zmin, zmax)
+            if !haskey(plt.kvs, :zlim)
+                zmin, zmax = GR.adjustlimits(zmin, zmax)
+            end
             majorz = major_count
             ztick = GR.tick(zmin, zmax) / majorz
         else
