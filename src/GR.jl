@@ -1357,7 +1357,7 @@ function show()
         content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64encode(open(readbytes,"gks.mov")),""""></video>"""))
         return content
     elseif mime_type == "iterm"
-        content = string("\033]1337;File=inline=1;preserveAspectRatio=0:", base64encode(open(readbytes,"gks.pdf")), "\a")
+        content = string("\033]1337;File=inline=1;height=24;preserveAspectRatio=0:", base64encode(open(readbytes,"gks.pdf")), "\a")
         if figure_count != None
             figure_count += 1
             (figure_count > 1) && print("\e[24A")
