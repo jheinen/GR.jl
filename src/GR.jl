@@ -4,7 +4,7 @@ end
 
 module GR
 
-import Base.writemime
+using Compat
 
 if VERSION > v"0.5-"
   if Sys.KERNEL == :NT
@@ -1248,17 +1248,17 @@ trisurf(args...; kwargs...) = jlgr.trisurf(args...; kwargs...)
 type SVG
    s::Array{UInt8}
 end
-writemime(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
+@compat Base.show(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
 
 type PNG
    s::Array{UInt8}
 end
-writemime(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
+@compat Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 
 type HTML
    s::AbstractString
 end
-writemime(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
+@compat Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
 function _readfile(path)
     data = Array(UInt8, filesize(path))

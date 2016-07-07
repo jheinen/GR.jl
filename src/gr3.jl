@@ -1,6 +1,6 @@
 module GR3
 
-import Base.writemime
+using Compat
 
 import GR
 
@@ -38,12 +38,12 @@ end
 type PNG
    s::Array{UInt8}
 end
-writemime(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
+@compat Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 
 type HTML
    s::AbstractString
 end
-writemime(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
+@compat Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
 function _readfile(path)
     data = Array(UInt8, filesize(path))
