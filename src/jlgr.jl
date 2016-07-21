@@ -51,7 +51,12 @@ function set_viewport(kind, subplot)
         w = 0.0254 *  width * plt.kvs[:figsize][1] / mwidth
         h = 0.0254 * height * plt.kvs[:figsize][2] / mheight
     else
-        w, h = plt.kvs[:size]
+        dpi = width / mwidth * 0.0254
+        if dpi > 200
+            w, h = [x * dpi / 100 for x in plt.kvs[:size]]
+        else
+            w, h = plt.kvs[:size]
+        end
     end
     viewport = zeros(4)
     vp = float(subplot)
