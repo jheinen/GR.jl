@@ -168,19 +168,22 @@ function __init__()
     global libGR, libGR3
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
-    else
+    elseif isdir(joinpath(homedir(), "gr"), "fonts")
         grdir = joinpath(homedir(), "gr")
-        if !isdir(grdir)
-            grdir = "/usr/local/gr"
-            if !isdir(grdir)
-                grdir = joinpath(Pkg.dir(), "GR", "deps", "gr")
-                if isdir(grdir)
-                    ENV["GRDIR"] = grdir
-                    ENV["GKS_FONTPATH"] = grdir
-                end
+    else
+        grdir = None
+        for d in ("/opt", "/usr/local", "/usr")
+            if isdir(joinpath(d, "gr", "fonts"))
+                grdir = joinpath(d, "gr")
+                break
             end
         end
     end
+    if grdir == None
+        grdir = joinpath(Pkg.dir(), "GR", "deps", "gr")
+    end
+    ENV["GRDIR"] = grdir
+    ENV["GKS_FONTPATH"] = grdir
     if contains(grdir, "site-packages")
         const libGR = joinpath(grdir, "libGR.so")
         ENV["GKS_FONTPATH"] = grdir

@@ -1,5 +1,17 @@
-have_env = "GRDIR" in keys(ENV)
-if !have_env && !isdir("/usr/local/gr") && !isdir(joinpath(homedir(),"gr"))
+if "GRDIR" in keys(ENV)
+    have_dir = true
+elseif isdir(joinpath(homedir(), "gr"), "fonts")
+    have_dir = true
+else
+    have_dir = false
+    for d in ("/opt", "/usr/local", "/usr")
+        if isdir(joinpath(d, "gr", "fonts"))
+            have_dir = true
+            break
+        end
+    end
+end
+if !have_dir
   version = v"0.18.0"
   try
     v = Pkg.installed("GR")
