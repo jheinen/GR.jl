@@ -109,6 +109,7 @@ export
   fillarc,
   drawpath,
   setarrowstyle,
+  setarrowsize,
   drawarrow,
   readimage,
   drawimage,
@@ -914,6 +915,13 @@ function setarrowstyle(style::Int)
         Void,
         (Int32, ),
         style)
+end
+
+function setarrowsize(size::Real)
+  ccall( (:gr_setarrowsize, libGR),
+        Void,
+        (Float64, ),
+        size)
 end
 
 function drawarrow(x1::Real, y1::Real, x2::Real, y2::Real)
