@@ -49,7 +49,7 @@ Gtk.draw(paint, canvas)
 Gtk.showall(win)
 
 signal_connect(win, :destroy) do widget
-    Gtk.gtk_quit()
+    exit(0)
 end
 
 Gtk.gtk_main()
