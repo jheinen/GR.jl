@@ -1,3 +1,4 @@
+import Compat
 if "GRDIR" in keys(ENV)
     have_dir = true
 elseif isdir(joinpath(homedir(), "gr"), "fonts")
@@ -21,17 +22,25 @@ if !have_dir
   end
   if VERSION > v"0.5-"
     if Sys.KERNEL == :NT
-      const os = :Windows
+      os = :Windows
     else
-      const os = Sys.KERNEL
+      os = Sys.KERNEL
     end
   else
-    const os = OS_NAME
+    os = OS_NAME
   end
   const arch = Sys.ARCH
+  if os == :Linux && arch == :x86_64
+    if isfile("/etc/debian_version")
+      r = readall(Compat.pipeline(`lsb_release -r`, `cut -f2`))
+      if r >= "16.04"
+        os = "Debian"
+      end
+    end
+  end
   tarball = "gr-$version-$os-$arch.tar.gz"
   if !isfile("downloads/$tarball")
-    info("Downloading pre-compiled GR $version binary")
+    info("Downloading pre-compiled GR $version $os binary")
     mkpath("downloads")
     download("http://gr-framework.org/downloads/$tarball", "downloads/$tarball")
     if os == :Windows
