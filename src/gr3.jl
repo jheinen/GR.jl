@@ -51,58 +51,70 @@ function _readfile(path)
     bytestring(read!(s, data))
 end
 
-function perror(error_code)
-  msgs = [ "none", "invalid value", "invalid attribute", "init failed",
-           "OpenGL error", "out of memory", "not initialized",
-           "camera not initialized", "unknown file extension",
-           "cannot open file", "export failed" ]
-  if 0 <= error_code < length(msgs)
-    println("GR3 error: ", msgs[error_code + 1])
-  else
-    println("GR3: unknown error")
+type GR3Exception <: Exception
+    msg::AbstractString
+end
+Base.showerror(io::IO, e::GR3Exception) = print(io, e.msg);
+
+
+const msgs = [ "none", "invalid value", "invalid attribute", "init failed",
+               "OpenGL error", "out of memory", "not initialized",
+               "camera not initialized", "unknown file extension",
+               "cannot open file", "export failed" ]
+
+function _check_error()
+  line = Cint[0]
+  file = Ptr{UInt8}[0]
+  error_code = ccall((:gr3_geterror, GR.libGR3), Int32, (Int32, Ptr{Cint}, Ptr{Ptr{UInt8}}), 1, line, file)
+  if (error_code != 0)
+    line = line[1]
+    file = bytestring(file[1])
+    if 0 <= error_code < length(msgs)
+      msg = msgs[error_code + 1]
+    else
+      msg = "unknown error"
+    end
+    message = string("GR3 error (", file, ", l. ", line, "): ", msg)
+    throw(GR3Exception(message))
   end
 end
 
 function init(attrib_list)
-  err = ccall((:gr3_init, GR.libGR3), Int32, (Ptr{Int}, ), attrib_list)
-  if err != 0
-    perror(err)
-  end
+  ccall((:gr3_init, GR.libGR3), Int32, (Ptr{Int}, ), attrib_list)
+  _check_error()
 end
 export init
 
 function free(pointer)
   ccall((:gr3_free, GR.libGR3), Void, (Ptr{Void}, ), pointer)
+  _check_error()
 end
 export free
 
 function terminate()
   ccall((:gr3_terminate, GR.libGR3), Void, ())
+  _check_error()
 end
 export terminate
 
 function getimage(width, height, use_alpha=true)
   bpp = use_alpha ? 4 : 3
   bitmap = zeros(UInt8, width * height * bpp)
-  err = ccall((:gr3_getimage, GR.libGR3),
-              Int32,
-              (Int32, Int32, Int32, Ptr{UInt8}),
-              width, height, use_alpha, bitmap)
-  if err != 0
-    perror(err)
-  end
+  ccall((:gr3_getimage, GR.libGR3),
+        Int32,
+        (Int32, Int32, Int32, Ptr{UInt8}),
+        width, height, use_alpha, bitmap)
+  _check_error()
   return bitmap
 end
 export getimage
 
 function save(filename, width, height)
-  err = ccall((:gr3_export, GR.libGR3),
-              Int32,
-              (Ptr{Cchar}, Int32, Int32),
-              filename, width, height)
-  if err != 0
-    perror(err)
-  end
+  ccall((:gr3_export, GR.libGR3),
+        Int32,
+        (Ptr{Cchar}, Int32, Int32),
+        filename, width, height)
+  _check_error()
   ext = splitext(filename)[end:end][1]
   if ext == ".png"
     content = PNG(_readfile(filename))
@@ -118,18 +130,17 @@ export save
 function getrenderpathstring()
   val = ccall((:gr3_getrenderpathstring, GR.libGR3),
               Ptr{UInt8}, (), )
+  _check_error()
   bytestring(val)
 end
 export getrenderpathstring
 
 function drawimage(xmin, xmax, ymin, ymax, pixel_width, pixel_height, window)
-  err = ccall((:gr3_drawimage, GR.libGR3),
-              Int32,
-              (Float32, Float32, Float32, Float32, Int32, Int32, Int32),
-              xmin, xmax, ymin, ymax, pixel_width, pixel_height, window)
-  if err != 0
-    perror(err)
-  end
+  ccall((:gr3_drawimage, GR.libGR3),
+        Int32,
+        (Float32, Float32, Float32, Float32, Int32, Int32, Int32),
+        xmin, xmax, ymin, ymax, pixel_width, pixel_height, window)
+  _check_error()
 end
 export drawimage
 
@@ -138,13 +149,11 @@ function createmesh(n, vertices, normals, colors)
   _vertices = [ @_float32(x) for x in vertices ]
   _normals = [ @_float32(x) for x in normals ]
   _colors = [ @_float32(x) for x in colors ]
-  err = ccall((:gr3_createmesh, GR.libGR3),
-              Int32,
-              (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
-              mesh, n, convert(Vector{Float32}, _vertices), convert(Vector{Float32}, _normals), convert(Vector{Float32}, _colors))
-  if err != 0
-    perror(err)
-  end
+  ccall((:gr3_createmesh, GR.libGR3),
+        Int32,
+        (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
+        mesh, n, convert(Vector{Float32}, _vertices), convert(Vector{Float32}, _normals), convert(Vector{Float32}, _colors))
+  _check_error()
   return mesh[1]
 end
 export createmesh
@@ -155,13 +164,11 @@ function createindexedmesh(num_vertices, vertices, normals, colors, num_indices,
   _normals = [ @_float32(x) for x in normals ]
   _colors = [ @_float32(x) for x in colors ]
   _indices = [ @_float32(x) for x in indices ]
-  err = ccall((:gr3_createindexedmesh, GR.libGR3),
-              Int32,
-              (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32, Ptr{Int32}),
-              mesh, num_vertices, convert(Vector{Float32}, _vertices), convert(Vector{Float32}, _normals), convert(Vector{Float32}, _colors), num_indices, convert(Vector{Float32}, _indices))
-  if err != 0
-    perror(err)
-  end
+  ccall((:gr3_createindexedmesh, GR.libGR3),
+        Int32,
+        (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32, Ptr{Int32}),
+        mesh, num_vertices, convert(Vector{Float32}, _vertices), convert(Vector{Float32}, _normals), convert(Vector{Float32}, _colors), num_indices, convert(Vector{Float32}, _indices))
+  _check_error()
   return mesh[1]
 end
 export createindexedmesh
@@ -176,6 +183,7 @@ function drawmesh(mesh::Int32, n, positions::@triplet(Real), directions::@triple
         Void,
         (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         mesh, n, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _directions), convert(Vector{Float32}, _ups), convert(Vector{Float32}, _colors), convert(Vector{Float32}, _scales))
+  _check_error()
 end
 export drawmesh
 
@@ -188,6 +196,7 @@ function createheightmapmesh(heightmap, num_columns, num_rows)
           Void,
           (Ptr{Float32}, Int32, Int32),
           convert(Vector{Float32}, heightmap), num_columns, num_rows)
+    _check_error()
   else
     println("Array has incorrect length or dimension.")
   end
@@ -205,6 +214,7 @@ function drawheightmap(heightmap, num_columns, num_rows, positions, scales)
           Void,
           (Ptr{Float32}, Int32, Int32, Ptr{Float32}, Ptr{Float32}),
           convert(Vector{Float32}, heightmap), num_columns, num_rows, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _scales))
+    _check_error()
   else
     println("Array has incorrect length or dimension.")
   end
@@ -213,16 +223,19 @@ export drawheightmap
 
 function deletemesh(mesh)
   ccall((:gr3_deletemesh, GR.libGR3), Void, (Int32, ), mesh)
+  _check_error()
 end
 export deletemesh
 
 function setquality(quality)
   ccall((:gr3_setquality, GR.libGR3), Void, (Int32, ), quality)
+  _check_error()
 end
 export setquality
 
 function clear()
   ccall((:gr3_clear, GR.libGR3), Void, ())
+  _check_error()
 end
 export clear
 
@@ -233,6 +246,7 @@ function cameralookat(camera_x, camera_y, camera_z,
         Void,
         (Float32, Float32, Float32, Float32, Float32, Float32, Float32, Float32, Float32),
         camera_x, camera_y, camera_z, center_x, center_y, center_z, up_x, up_y, up_z)
+  _check_error()
 end
 export cameralookat
 
@@ -241,6 +255,7 @@ function setcameraprojectionparameters(vertical_field_of_view, zNear, zFar)
         Void,
         (Float32, Float32, Float32),
         vertical_field_of_view, zNear, zFar)
+  _check_error()
 end
 export setcameraprojectionparameters
 
@@ -249,6 +264,7 @@ function setlightdirection(x, y, z)
         Void,
         (Float32, Float32, Float32),
         x, y, z)
+  _check_error()
 end
 export setlightdirection
 
@@ -262,6 +278,7 @@ function drawcylindermesh(n, positions, directions, colors, radii, lengths)
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _directions), convert(Vector{Float32}, _colors), convert(Vector{Float32}, _radii), convert(Vector{Float32}, _lengths))
+  _check_error()
 end
 export drawcylindermesh
 
@@ -275,6 +292,7 @@ function drawconemesh(n, positions, directions, colors, radii, lengths)
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _directions), convert(Vector{Float32}, _colors), convert(Vector{Float32}, _radii), convert(Vector{Float32}, _lengths))
+  _check_error()
 end
 export drawconemesh
 
@@ -286,6 +304,7 @@ function drawspheremesh(n, positions, colors, radii)
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _colors), convert(Vector{Float32}, _radii))
+  _check_error()
 end
 export drawspheremesh
 
@@ -299,6 +318,7 @@ function drawcubemesh(n, positions, directions, ups, colors, scales)
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _directions), convert(Vector{Float32}, _ups), convert(Vector{Float32}, _colors), convert(Vector{Float32}, _scales))
+  _check_error()
 end
 export drawcubemesh
 
@@ -307,6 +327,7 @@ function setbackgroundcolor(red, green, blue, alpha)
         Void,
         (Float32, Float32, Float32, Float32),
         red, green, blue, alpha)
+  _check_error()
 end
 export setbackgroundcolor
 
@@ -321,9 +342,7 @@ function createisosurfacemesh(grid::Array{UInt16,3}, step::@triplet(Float64), of
               Int32,
               (Ptr{Cint}, Ptr{UInt16}, UInt16, Int32, Int32, Int32, Int32, Int32, Int32, Float64, Float64, Float64, Float64, Float64, Float64),
               mesh, convert(Vector{UInt16}, data), @_uint16(isolevel), dim_x, dim_y, dim_z, stride_x, stride_y, stride_z, step_x, step_y, step_z, offset_x, offset_y, offset_z)
-  if err != 0
-    perror(err)
-  end
+  _check_error()
   return mesh[1]
 end
 export createisosurfacemesh
@@ -347,6 +366,7 @@ function surface(px, py, pz, option::Int)
           Void,
           (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32),
           nx, ny, convert(Vector{Float32}, _px), convert(Vector{Float32}, _py), convert(Vector{Float32}, _pz), option)
+    _check_error()
   else
     println("Arrays have incorrect length or dimension.")
   end
