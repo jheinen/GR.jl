@@ -123,6 +123,8 @@ export
   drawgraphics,
   mathtex,
   trisurface,
+  gradient,
+  quiver,
   # Convenience functions
   jlgr,
   figure,
@@ -1315,7 +1317,7 @@ function startserver()
     end
 
     if !isfile("gr.js")
-        symlink(joinpath(dirname(@__FILE__), "gr.js"), "gr.js") 
+        symlink(joinpath(dirname(@__FILE__), "gr.js"), "gr.js")
     end
 
     return HTML("""\
@@ -1435,6 +1437,70 @@ function trisurface(x, y, z)
         Void,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, z))
+end
+
+function gradient(x, y, z)
+  nx = length(x)
+  ny = length(y)
+  nz = length(z)
+  if ndims(z) == 1
+    out_of_bounds = nz != nx * ny
+  elseif ndims(z) == 2
+    out_of_bounds = size(z)[1] != nx || size(z)[2] != ny
+  else
+    out_of_bounds = true
+  end
+  if !out_of_bounds
+    if ndims(z) == 2
+      z = reshape(z, nx * ny)
+    end
+    u = Cdouble[1 : nx*ny ;]
+    v = Cdouble[1 : nx*ny ;]
+    ccall( (:gr_gradient, libGR),
+          Void,
+          (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Cdouble}, Ptr{Cdouble}),
+          nx, ny, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, z), u, v)
+    return u, v
+  else
+    return [], []
+  end
+end
+
+function quiver(x, y, u, v, color::Bool=false)
+  nx = length(x)
+  ny = length(y)
+  nu = length(u)
+  nv = length(v)
+  if ndims(u) == 1
+    out_of_bounds = nu != nx * ny
+  elseif ndims(u) == 2
+    out_of_bounds = size(u)[1] != nx || size(u)[2] != ny
+  else
+    out_of_bounds = true
+  end
+  if !out_of_bounds
+    if ndims(v) == 1
+      out_of_bounds = nv != nx * ny
+    elseif ndims(v) == 2
+      out_of_bounds = size(v)[1] != nx || size(v)[2] != ny
+    else
+      out_of_bounds = true
+    end
+  end
+  if !out_of_bounds
+    if ndims(u) == 2
+      u = reshape(u, nx * ny)
+    end
+    if ndims(v) == 2
+      v = reshape(v, nx * ny)
+    end
+    ccall( (:gr_quiver, libGR),
+          Void,
+          (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
+          nx, ny, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, u), convert(Vector{Float64}, v), convert(Int32, color))
+  else
+    println("Arrays have incorrect length or dimension.")
+  end
 end
 
 end # module
