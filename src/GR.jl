@@ -705,6 +705,10 @@ end
 function surface(px, py, pz, option::Int)
   nx = length(px)
   ny = length(py)
+  if typeof(pz) == Function
+    f = pz
+    pz = Float64[f(x,y) for y in py, x in px]
+  end
   nz = length(pz)
   if ndims(pz) == 1
     out_of_bounds = nz != nx * ny
@@ -730,6 +734,10 @@ function contour(px, py, h, pz, major_h::Int)
   nx = length(px)
   ny = length(py)
   nh = length(h)
+  if typeof(pz) == Function
+    f = pz
+    pz = Float64[f(x,y) for y in py, x in px]
+  end
   nz = length(pz)
   if ndims(pz) == 1
     out_of_bounds = nz != nx * ny

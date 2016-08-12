@@ -756,6 +756,10 @@ function plot_args(args; fmt=:xys)
         else
             error("expected array or function")
         end
+        if typeof(z) == Function
+            f = z
+            z = Float64[f(a,b) for b in y, a in x]
+        end
         spec = ""
         if fmt == :xys && length(args) > 0 && isa(args[1], AbstractString)
             spec = shift!(args)
