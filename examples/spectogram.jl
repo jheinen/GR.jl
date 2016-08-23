@@ -17,7 +17,7 @@ function play()
     pa.Pa_StartStream(stream)
   else
     data = LibSndFile.load("Monty_Python.wav")
-    stream = PortAudio.PortAudioStream(0, 1, bufsize=1024)
+    stream = PortAudio.PortAudioStream(0, 1, blocksize=1024)
   end
   spectrum = zeros(Int32, 250, 250)
 
