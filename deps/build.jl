@@ -49,8 +49,7 @@ if !have_dir
       tarball = tarball[1:end-3]
       success(`$JULIA_HOME/7z x $tarball -y -ttar`)
       rm("$tarball")
-    end
-    if os in (:Darwin, :Linux)
+    else
       run(`tar xzf downloads/$tarball`)
       rm("downloads/$tarball")
     end
