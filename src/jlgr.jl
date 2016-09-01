@@ -120,6 +120,14 @@ function set_viewport(kind, subplot)
     end
 end
 
+function fix_minmax(a, b)
+    if a == b
+        a -= a != 0 ? 0.1 * a : 0.1
+        b += b != 0 ? 0.1 * b : 0.1
+    end
+    a, b
+end
+
 function minmax()
     xmin = ymin = zmin = typemax(Float64)
     xmax = ymax = zmax = typemin(Float64)
@@ -133,6 +141,9 @@ function minmax()
             zmax = max(maximum(z), zmax)
         end
     end
+    xmin, xmax = fix_minmax(xmin, xmax)
+    ymin, ymax = fix_minmax(ymin, ymax)
+    zmin, zmax = fix_minmax(zmin, zmax)
     if haskey(plt.kvs, :xlim)
         plt.kvs[:xrange] = plt.kvs[:xlim]
     else
