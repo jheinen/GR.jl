@@ -122,6 +122,7 @@ export
   getgraphics,
   drawgraphics,
   mathtex,
+  selectcontext,
   trisurface,
   gradient,
   quiver,
@@ -1427,6 +1428,13 @@ function restorestate()
         Void,
         ()
         )
+end
+
+function selectcontext(context::Int)
+  ccall( (:gr_selectcontext, libGR),
+        Void,
+        (Int32, ),
+        context)
 end
 
 function uselinespec(linespec)
