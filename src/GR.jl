@@ -124,7 +124,6 @@ export
   mathtex,
   selectcontext,
   trisurface,
-  gradient,
   quiver,
   # Convenience functions
   jlgr,
