@@ -124,6 +124,7 @@ export
   mathtex,
   selectcontext,
   trisurface,
+  gradient,
   quiver,
   # Convenience functions
   jlgr,
@@ -1355,6 +1356,8 @@ function inline(mime="svg", scroll=true)
     if mime_type != mime
         if mime == "iterm"
             ENV["GKS_WSTYPE"] = "pdf"
+        elseif mime == "mlterm"
+            ENV["GKS_WSTYPE"] = "six"
         elseif mime == "js"
             ENV["GKS_WSTYPE"] = "nul"
         else
@@ -1390,6 +1393,10 @@ function show()
             (figure_count > 1) && print("\e[24A")
         end
         println(content)
+        return nothing
+    elseif mime_type == "mlterm"
+        content = read("gks.six")
+        write(content)
         return nothing
     elseif mime_type == "js"
         if msgs != None
