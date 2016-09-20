@@ -1358,6 +1358,10 @@ function inline(mime="svg", scroll=true)
             ENV["GKS_WSTYPE"] = "pdf"
         elseif mime == "mlterm"
             ENV["GKS_WSTYPE"] = "six"
+        elseif mime == "atom"
+            ENV["GKS_WSTYPE"] = "svg"
+            @eval using Atom
+            @eval import Atom: Media, PlotPane
         elseif mime == "js"
             ENV["GKS_WSTYPE"] = "nul"
         else
@@ -1397,6 +1401,10 @@ function show()
     elseif mime_type == "mlterm"
         content = read("gks.six")
         write(content)
+        return nothing
+    elseif mime_type == "atom"
+        content = Base.HTML(string("""<div style="display: inline-block; background: #ffffff;">""", readstring("gks.svg"), """</div>"""))
+        Atom.render(Atom.PlotPane(), content)
         return nothing
     elseif mime_type == "js"
         if msgs != None
