@@ -35,9 +35,9 @@ function drawarrowmesh(start, end_, color, radius, cone_angle=20)
   direction /= length
   cone_start = start + cylinder_length * direction
   if cylinder_length > 0
-    GR3.drawcylindermesh(1, start, direction, color, radius, cylinder_length)
+    GR3.drawcylindermesh(1, start, direction, color, [radius], [cylinder_length])
   end
-  GR3.drawconemesh(1, cone_start, direction, color, 2 * radius, cone_length)
+  GR3.drawconemesh(1, cone_start, direction, color, [2 * radius], [cone_length])
 end
 
 t = Task(calcualate_magnetic_moment)
@@ -58,9 +58,9 @@ while !istaskdone(t)
 
   GR.clearws()
   GR3.clear()
-  GR3.drawspheremesh(1, [0, 0, 0], [0, 0.75, 0.75], 1)
+  GR3.drawspheremesh(1, [0, 0, 0], [0, 0.75, 0.75], [1])
   drawarrowmesh([0, 0, 0], point, [1, 0, 0], 0.1)
-  GR3.drawspheremesh(1, point, [0, 1, 0], 0.2)
+  GR3.drawspheremesh(1, point, [0, 1, 0], [0.2])
   GR3.cameralookat(10, 0, 10, 0, 0, 0, 0, 0, 1)
   GR3.drawimage(0, 1, 0, 1, 500, 500, GR3.DRAWABLE_GKS)
   GR.updatews()
