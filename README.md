@@ -2,7 +2,6 @@
 
 [![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
 [![Build Status](https://travis-ci.org/jheinen/GR.jl.svg?branch=master)](https://travis-ci.org/jheinen/GR.jl)
-[![GR](http://pkg.julialang.org/badges/GR_0.3.svg)](http://pkg.julialang.org/?pkg=GR&ver=0.3)
 [![GR](http://pkg.julialang.org/badges/GR_0.4.svg)](http://pkg.julialang.org/?pkg=GR&ver=0.4)
 [![GR](http://pkg.julialang.org/badges/GR_0.5.svg)](http://pkg.julialang.org/?pkg=GR&ver=0.5)
 

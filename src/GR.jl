@@ -1,6 +1,4 @@
-if VERSION >= v"0.4-"
-  __precompile__()
-end
+__precompile__()
 
 module GR
 
@@ -16,13 +14,7 @@ else
   const os = OS_NAME
 end
 
-if VERSION < v"0.4-"
-  typealias AbstractString String
-  typealias UInt8 Uint8
-  typealias UInt32 Uint32
-else
-  const None = Union{}
-end
+const None = Union{}
 
 export
   opengks,

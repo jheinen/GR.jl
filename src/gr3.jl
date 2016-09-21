@@ -4,35 +4,10 @@ using Compat
 
 import GR
 
-if VERSION < v"0.4-"
-  typealias AbstractString String
-  typealias UInt8 Uint8
-  typealias UInt16 Uint16
-  typealias UInt32 Uint32
-else
-  const None = Union{}
-end
+const None = Union{}
 
-if VERSION >= v"0.4-"
-  macro _float32(x)
-    :( Float32($x) )
-  end
-  macro _uint16(x)
-    :( UInt16($x) )
-  end
-  macro triplet(t)
+macro triplet(t)
     :( Tuple{$t, $t, $t} )
-  end
-else
-  macro _float32(x)
-    :( float32($x) )
-  end
-  macro _uint16(x)
-    :( uint16($x) )
-  end
-  macro triplet(t)
-    :( ($t, $t, $t) )
-  end
 end
 
 type PNG
@@ -146,9 +121,9 @@ export drawimage
 
 function createmesh(n, vertices, normals, colors)
   mesh = Cint[0]
-  _vertices = [ @_float32(x) for x in vertices ]
-  _normals = [ @_float32(x) for x in normals ]
-  _colors = [ @_float32(x) for x in colors ]
+  _vertices = [ Float32(x) for x in vertices ]
+  _normals = [ Float32(x) for x in normals ]
+  _colors = [ Float32(x) for x in colors ]
   ccall((:gr3_createmesh, GR.libGR3),
         Int32,
         (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -160,10 +135,10 @@ export createmesh
 
 function createindexedmesh(num_vertices, vertices, normals, colors, num_indices, indices)
   mesh = Cint[0]
-  _vertices = [ @_float32(x) for x in vertices ]
-  _normals = [ @_float32(x) for x in normals ]
-  _colors = [ @_float32(x) for x in colors ]
-  _indices = [ @_float32(x) for x in indices ]
+  _vertices = [ Float32(x) for x in vertices ]
+  _normals = [ Float32(x) for x in normals ]
+  _colors = [ Float32(x) for x in colors ]
+  _indices = [ Float32(x) for x in indices ]
   ccall((:gr3_createindexedmesh, GR.libGR3),
         Int32,
         (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32, Ptr{Int32}),
@@ -174,11 +149,11 @@ end
 export createindexedmesh
 
 function drawmesh(mesh::Int32, n, positions::@triplet(Real), directions::@triplet(Real), ups::@triplet(Real), colors::@triplet(Real), scales::@triplet(Real))
-  _positions = [ @_float32(x) for x in positions ]
-  _directions = [ @_float32(x) for x in directions ]
-  _ups = [ @_float32(x) for x in ups ]
-  _colors = [ @_float32(x) for x in colors ]
-  _scales = [ @_float32(x) for x in scales ]
+  _positions = [ Float32(x) for x in positions ]
+  _directions = [ Float32(x) for x in directions ]
+  _ups = [ Float32(x) for x in ups ]
+  _colors = [ Float32(x) for x in colors ]
+  _scales = [ Float32(x) for x in scales ]
   ccall((:gr3_drawmesh, GR.libGR3),
         Void,
         (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -208,8 +183,8 @@ function drawheightmap(heightmap, num_columns, num_rows, positions, scales)
     if ndims(heightmap) == 2
       heightmap = reshape(heightmap, num_columns * num_rows)
     end
-    _positions = [ @_float32(x) for x in positions ]
-    _scales = [ @_float32(x) for x in scales ]
+    _positions = [ Float32(x) for x in positions ]
+    _scales = [ Float32(x) for x in scales ]
     ccall((:gr3_drawheightmap, GR.libGR3),
           Void,
           (Ptr{Float32}, Int32, Int32, Ptr{Float32}, Ptr{Float32}),
@@ -269,11 +244,11 @@ end
 export setlightdirection
 
 function drawcylindermesh(n, positions, directions, colors, radii, lengths)
-  _positions = [ @_float32(x) for x in positions ]
-  _directions = [ @_float32(x) for x in directions ]
-  _colors = [ @_float32(x) for x in colors ]
-  _radii = [ @_float32(x) for x in radii ]
-  _lengths = [ @_float32(x) for x in lengths ]
+  _positions = [ Float32(x) for x in positions ]
+  _directions = [ Float32(x) for x in directions ]
+  _colors = [ Float32(x) for x in colors ]
+  _radii = [ Float32(x) for x in radii ]
+  _lengths = [ Float32(x) for x in lengths ]
   ccall((:gr3_drawcylindermesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -283,11 +258,11 @@ end
 export drawcylindermesh
 
 function drawconemesh(n, positions, directions, colors, radii, lengths)
-  _positions = [ @_float32(x) for x in positions ]
-  _directions = [ @_float32(x) for x in directions ]
-  _colors = [ @_float32(x) for x in colors ]
-  _radii = [ @_float32(x) for x in radii ]
-  _lengths = [ @_float32(x) for x in lengths ]
+  _positions = [ Float32(x) for x in positions ]
+  _directions = [ Float32(x) for x in directions ]
+  _colors = [ Float32(x) for x in colors ]
+  _radii = [ Float32(x) for x in radii ]
+  _lengths = [ Float32(x) for x in lengths ]
   ccall((:gr3_drawconemesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -297,9 +272,9 @@ end
 export drawconemesh
 
 function drawspheremesh(n, positions, colors, radii)
-  _positions = [ @_float32(x) for x in positions ]
-  _colors = [ @_float32(x) for x in colors ]
-  _radii = [ @_float32(x) for x in radii ]
+  _positions = [ Float32(x) for x in positions ]
+  _colors = [ Float32(x) for x in colors ]
+  _radii = [ Float32(x) for x in radii ]
   ccall((:gr3_drawspheremesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -309,11 +284,11 @@ end
 export drawspheremesh
 
 function drawcubemesh(n, positions, directions, ups, colors, scales)
-  _positions = [ @_float32(x) for x in positions ]
-  _directions = [ @_float32(x) for x in directions ]
-  _ups = [ @_float32(x) for x in ups ]
-  _colors = [ @_float32(x) for x in colors ]
-  _scales = [ @_float32(x) for x in scales ]
+  _positions = [ Float32(x) for x in positions ]
+  _directions = [ Float32(x) for x in directions ]
+  _ups = [ Float32(x) for x in ups ]
+  _colors = [ Float32(x) for x in colors ]
+  _scales = [ Float32(x) for x in scales ]
   ccall((:gr3_drawcubemesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
@@ -341,7 +316,7 @@ function createisosurfacemesh(grid::Array{UInt16,3}, step::@triplet(Float64), of
   err = ccall((:gr3_createisosurfacemesh, GR.libGR3),
               Int32,
               (Ptr{Cint}, Ptr{UInt16}, UInt16, Int32, Int32, Int32, Int32, Int32, Int32, Float64, Float64, Float64, Float64, Float64, Float64),
-              mesh, convert(Vector{UInt16}, data), @_uint16(isolevel), dim_x, dim_y, dim_z, stride_x, stride_y, stride_z, step_x, step_y, step_z, offset_x, offset_y, offset_z)
+              mesh, convert(Vector{UInt16}, data), UInt16(isolevel), dim_x, dim_y, dim_z, stride_x, stride_y, stride_z, step_x, step_y, step_z, offset_x, offset_y, offset_z)
   _check_error()
   return mesh[1]
 end
@@ -359,9 +334,9 @@ function surface(px, py, pz, option::Int)
     out_of_bounds = true
   end
   if !out_of_bounds
-    _px = [ @_float32(x) for x in px ]
-    _py = [ @_float32(y) for y in py ]
-    _pz = [ @_float32(z) for z in pz ]
+    _px = [ Float32(x) for x in px ]
+    _py = [ Float32(y) for y in py ]
+    _pz = [ Float32(z) for z in pz ]
     ccall((:gr3_surface, GR.libGR3),
           Void,
           (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32),

@@ -3,15 +3,10 @@ module jlgr
 using Compat
 import GR
 
-if VERSION >= v"0.4-"
-  const None = Union{}
-  macro _tuple(t)
+const None = Union{}
+
+macro _tuple(t)
     :( Tuple{$t} )
-  end
-else
-  macro _tuple(t)
-    :( () )
-  end
 end
 
 @compat typealias PlotArg Union{AbstractString, AbstractVector, AbstractMatrix, Function}
