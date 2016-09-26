@@ -32,9 +32,9 @@ if !have_dir
   const arch = Sys.ARCH
   if os == :Linux && arch == :x86_64
     if isfile("/etc/debian_version")
-      r = Compat.readstring(Compat.pipeline(`lsb_release -r`, `cut -f2`))
-      if r >= "16.04"
-        os = "Debian"
+      id = Compat.readstring(Compat.pipeline(`lsb_release -i`, `cut -f2`))[1:end-1]
+      if id in ("Debian", "Ubuntu")
+        os = id
       end
     end
   end
