@@ -1,6 +1,6 @@
 import Compat
 if "GRDIR" in keys(ENV)
-    have_dir = true
+    have_dir = length(ENV["GRDIR"]) > 0
 elseif isdir(joinpath(homedir(), "gr"), "fonts")
     have_dir = true
 else
