@@ -334,6 +334,9 @@ function surface(px, py, pz, option::Int)
     out_of_bounds = true
   end
   if !out_of_bounds
+    if ndims(pz) == 2
+      pz = reshape(pz, nx * ny)
+    end
     _px = [ Float32(x) for x in px ]
     _py = [ Float32(y) for y in py ]
     _pz = [ Float32(z) for z in pz ]
