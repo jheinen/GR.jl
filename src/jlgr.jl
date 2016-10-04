@@ -263,8 +263,8 @@ function draw_axes(kind, pass=1)
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
         ztick, zorg, majorz = plt.kvs[:zaxis]
         if pass == 1
-            GR.grid3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], 2, 0, 2)
-            GR.grid3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, 2, 0)
+            GR.grid3d(xtick, 0, ztick, xorg[1], yorg[2], zorg[1], 2, 0, 2)
+            GR.grid3d(0, ytick, 0, xorg[1], yorg[2], zorg[1], 0, 2, 0)
         else
             GR.axes3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], majorx, 0, majorz, -ticksize)
             GR.axes3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, majory, 0, ticksize)
