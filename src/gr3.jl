@@ -72,6 +72,18 @@ function terminate()
 end
 export terminate
 
+function useframebuffer(framebuffer)
+  ccall((:gr3_useframebuffer, GR.libGR3), Void, (UInt32, ), framebuffer)
+  _check_error()
+end
+export useframebuffer
+
+function usecurrentframebuffer()
+  ccall((:gr3_usecurrentframebuffer, GR.libGR3), Void, ())
+  _check_error()
+end
+export usecurrentframebuffer
+
 function getimage(width, height, use_alpha=true)
   bpp = use_alpha ? 4 : 3
   bitmap = zeros(UInt8, width * height * bpp)
