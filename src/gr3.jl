@@ -10,6 +10,10 @@ macro triplet(t)
     :( Tuple{$t, $t, $t} )
 end
 
+macro ArrayToVector(ctype, data)
+    return :( convert(Vector{$ctype}, vec($data)) )
+end
+
 type PNG
    s::Array{UInt8}
 end
@@ -139,7 +143,7 @@ function createmesh(n, vertices, normals, colors)
   ccall((:gr3_createmesh, GR.libGR3),
         Int32,
         (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
-        mesh, n, convert(Vector{Float32}, _vertices), convert(Vector{Float32}, _normals), convert(Vector{Float32}, _colors))
+        mesh, n, @ArrayToVector(Float32, _vertices), @ArrayToVector(Float32, _normals), @ArrayToVector(Float32, _colors))
   _check_error()
   return mesh[1]
 end
@@ -154,7 +158,7 @@ function createindexedmesh(num_vertices, vertices, normals, colors, num_indices,
   ccall((:gr3_createindexedmesh, GR.libGR3),
         Int32,
         (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32, Ptr{Int32}),
-        mesh, num_vertices, convert(Vector{Float32}, _vertices), convert(Vector{Float32}, _normals), convert(Vector{Float32}, _colors), num_indices, convert(Vector{Float32}, _indices))
+        mesh, num_vertices, @ArrayToVector(Float32, _vertices), @ArrayToVector(Float32, _normals), @ArrayToVector(Float32, _colors), num_indices, @ArrayToVector(Float32, _indices))
   _check_error()
   return mesh[1]
 end
@@ -169,7 +173,7 @@ function drawmesh(mesh::Int32, n, positions::@triplet(Real), directions::@triple
   ccall((:gr3_drawmesh, GR.libGR3),
         Void,
         (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
-        mesh, n, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _directions), convert(Vector{Float32}, _ups), convert(Vector{Float32}, _colors), convert(Vector{Float32}, _scales))
+        mesh, n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _ups), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _scales))
   _check_error()
 end
 export drawmesh
@@ -182,7 +186,7 @@ function createheightmapmesh(heightmap, num_columns, num_rows)
     ccall((:gr3_createheightmapmesh, GR.libGR3),
           Void,
           (Ptr{Float32}, Int32, Int32),
-          convert(Vector{Float32}, heightmap), num_columns, num_rows)
+          @ArrayToVector(Float32, heightmap), num_columns, num_rows)
     _check_error()
   else
     println("Array has incorrect length or dimension.")
@@ -200,7 +204,7 @@ function drawheightmap(heightmap, num_columns, num_rows, positions, scales)
     ccall((:gr3_drawheightmap, GR.libGR3),
           Void,
           (Ptr{Float32}, Int32, Int32, Ptr{Float32}, Ptr{Float32}),
-          convert(Vector{Float32}, heightmap), num_columns, num_rows, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _scales))
+          @ArrayToVector(Float32, heightmap), num_columns, num_rows, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _scales))
     _check_error()
   else
     println("Array has incorrect length or dimension.")
@@ -264,7 +268,7 @@ function drawcylindermesh(n, positions, directions, colors, radii, lengths)
   ccall((:gr3_drawcylindermesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
-        n, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _directions), convert(Vector{Float32}, _colors), convert(Vector{Float32}, _radii), convert(Vector{Float32}, _lengths))
+        n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _radii), @ArrayToVector(Float32, _lengths))
   _check_error()
 end
 export drawcylindermesh
@@ -278,7 +282,7 @@ function drawconemesh(n, positions, directions, colors, radii, lengths)
   ccall((:gr3_drawconemesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
-        n, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _directions), convert(Vector{Float32}, _colors), convert(Vector{Float32}, _radii), convert(Vector{Float32}, _lengths))
+        n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _radii), @ArrayToVector(Float32, _lengths))
   _check_error()
 end
 export drawconemesh
@@ -290,7 +294,7 @@ function drawspheremesh(n, positions, colors, radii)
   ccall((:gr3_drawspheremesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
-        n, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _colors), convert(Vector{Float32}, _radii))
+        n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _radii))
   _check_error()
 end
 export drawspheremesh
@@ -304,7 +308,7 @@ function drawcubemesh(n, positions, directions, ups, colors, scales)
   ccall((:gr3_drawcubemesh, GR.libGR3),
         Void,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
-        n, convert(Vector{Float32}, _positions), convert(Vector{Float32}, _directions), convert(Vector{Float32}, _ups), convert(Vector{Float32}, _colors), convert(Vector{Float32}, _scales))
+        n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _ups), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _scales))
   _check_error()
 end
 export drawcubemesh
@@ -328,7 +332,7 @@ function createisosurfacemesh(grid::Array{UInt16,3}, step::@triplet(Float64), of
   err = ccall((:gr3_createisosurfacemesh, GR.libGR3),
               Int32,
               (Ptr{Cint}, Ptr{UInt16}, UInt16, Int32, Int32, Int32, Int32, Int32, Int32, Float64, Float64, Float64, Float64, Float64, Float64),
-              mesh, convert(Vector{UInt16}, data), UInt16(isolevel), dim_x, dim_y, dim_z, stride_x, stride_y, stride_z, step_x, step_y, step_z, offset_x, offset_y, offset_z)
+              mesh, @ArrayToVector(UInt16, data), UInt16(isolevel), dim_x, dim_y, dim_z, stride_x, stride_y, stride_z, step_x, step_y, step_z, offset_x, offset_y, offset_z)
   _check_error()
   return mesh[1]
 end
@@ -355,7 +359,7 @@ function surface(px, py, pz, option::Int)
     ccall((:gr3_surface, GR.libGR3),
           Void,
           (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32),
-          nx, ny, convert(Vector{Float32}, _px), convert(Vector{Float32}, _py), convert(Vector{Float32}, _pz), option)
+          nx, ny, @ArrayToVector(Float32, _px), @ArrayToVector(Float32, _py), @ArrayToVector(Float32, _pz), option)
     _check_error()
   else
     println("Arrays have incorrect length or dimension.")
