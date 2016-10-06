@@ -417,7 +417,7 @@ function colorbar(off=0, colors=256)
     charheight = max(0.016 * diag, 0.012)
     GR.setcharheight(charheight)
     if get(plt.kvs, :zflip, false)
-        options = GR.inqscale() | GR.OPTION_FLIP_Y
+        options = (GR.inqscale() | GR.OPTION_FLIP_Y) & ~GR.OPTION_FLIP_X
         GR.setscale(options)
     end
     if plt.kvs[:scale] & GR.OPTION_Z_LOG == 0
