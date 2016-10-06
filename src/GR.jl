@@ -53,6 +53,7 @@ export
   setfillcolorind,
   setcolorrep,
   setscale,
+  inqscale,
   setwindow,
   setviewport,
   selntran,
@@ -1231,6 +1232,15 @@ function setscale(options::Int)
         Void,
         (Int32, ),
         options)
+end
+
+function inqscale()
+  _options = Cint[0]
+   ccall( (:gr_inqscale, libGR),
+         Void,
+         (Ptr{Int32}, ),
+         _options)
+  return _options[1]
 end
 
 """

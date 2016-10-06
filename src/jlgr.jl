@@ -416,6 +416,10 @@ function colorbar(off=0, colors=256)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     charheight = max(0.016 * diag, 0.012)
     GR.setcharheight(charheight)
+    if get(plt.kvs, :zflip, false)
+        options = GR.inqscale() | GR.OPTION_FLIP_Y
+        GR.setscale(options)
+    end
     if plt.kvs[:scale] & GR.OPTION_Z_LOG == 0
         ztick = 0.5 * GR.tick(zmin, zmax)
         GR.axes(0, ztick, 1, zmin, 0, 1, 0.005)
