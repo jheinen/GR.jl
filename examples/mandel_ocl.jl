@@ -2,12 +2,10 @@
 
 # Calculate Mandelbrot set using OpenCL
 
-if VERSION < v"0.4-"
-  typealias UInt16 Uint16
+using OpenCL
+if VERSION < v"0.5-"
+  const cl = OpenCL
 end
-
-import OpenCL
-const cl = OpenCL
 
 import GR
 
@@ -65,8 +63,9 @@ function calc_fractal(q, min_x, max_x, min_y, max_y, width, height, iters)
     output_opencl = cl.Buffer(UInt16, ctx, :w, length(output))
 
     k = cl.Kernel(prg, "mandelbrot")
-    cl.call(queue, k, length(q), nothing, q_opencl, output_opencl,
-            min_x, max_x, min_y, max_y, UInt16(width), UInt16(height), UInt16(iters))
+    queue(k, length(q), nothing, q_opencl, output_opencl,
+          min_x, max_x, min_y, max_y,
+          UInt16(width), UInt16(height), UInt16(iters))
     cl.copy!(queue, output, output_opencl)
 
     return output
