@@ -3,6 +3,13 @@ module jlgr
 using Compat
 import GR
 
+have_stats = true
+try
+    import StatsBase
+catch
+    have_stats = false
+end
+
 const None = Union{}
 
 macro _tuple(t)
@@ -708,17 +715,17 @@ function plot_args(args; fmt=:xys)
     while length(args) > 0
         local x, y, z, c
         a = shift!(args)
-        if isa(a, AbstractVecOrMat)
+        if isa(a, AbstractVecOrMat) || isa(a, Function)
             elt = eltype(a)
             if elt <: Complex
                 x = real(a)
                 y = imag(a)
                 z = Void
                 c = Void
-            elseif elt <: Real
+            elseif elt <: Real || isa(a, Function)
                 if fmt == :xys
                     if length(args) >= 1 &&
-                       (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || typeof(args[1]) == Function)
+                       (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || isa(args[1], Function))
                         x = a
                         y = shift!(args)
                         z = Void
@@ -733,21 +740,21 @@ function plot_args(args; fmt=:xys)
                 elseif fmt == :xyac || fmt == :xyzc
                     if length(args) >= 3 &&
                         isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real &&
-                       (isa(args[2], AbstractVecOrMat) && eltype(args[2]) <: Real || typeof(args[2]) == Function) &&
-                       (isa(args[3], AbstractVecOrMat) && eltype(args[3]) <: Real || typeof(args[3]) == Function)
+                       (isa(args[2], AbstractVecOrMat) && eltype(args[2]) <: Real || isa(args[2], Function)) &&
+                       (isa(args[3], AbstractVecOrMat) && eltype(args[3]) <: Real || isa(args[3], Function))
                         x = a
                         y = shift!(args)
                         z = shift!(args)
                         c = shift!(args)
                     elseif length(args) >= 2 &&
                         isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real &&
-                       (isa(args[2], AbstractVecOrMat) && eltype(args[2]) <: Real || typeof(args[2]) == Function)
+                       (isa(args[2], AbstractVecOrMat) && eltype(args[2]) <: Real || isa(args[2], Function))
                         x = a
                         y = shift!(args)
                         z = shift!(args)
                         c = Void
                     elseif fmt == :xyac && length(args) >= 1 &&
-                       (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || typeof(args[1]) == Function)
+                       (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || isa(args[1], Function))
                         x = a
                         y = shift!(args)
                         z = Void
@@ -766,7 +773,11 @@ function plot_args(args; fmt=:xys)
         else
             error("expected array or function")
         end
-        if typeof(z) == Function
+        if isa(y, Function)
+            f = y
+            y = Float64[f(a) for a in x]
+        end
+        if isa(z, Function)
             f = z
             z = Float64[f(a,b) for b in y, a in x]
         end
@@ -788,6 +799,7 @@ function plot_args(args; fmt=:xys)
         isa(c, UnitRange) && (c = collect(c))
 
         isvector(x) && (x = vec(x))
+
         if typeof(y) == Function
             y = [y(a) for a in x]
         else
@@ -873,9 +885,13 @@ end
 
 function histogram(x; kv...)
     merge!(plt.kvs, Dict(kv))
-
-    h = Base.hist(x)
-    x, y = float(collect(h[1])), float(h[2])
+    if have_stats
+        h = StatsBase.fit(StatsBase.Histogram, x)
+        x, y = collect(h.edges[1]), float(h.weights)
+    else
+        h = Base.hist(x)
+        x, y = float(collect(h[1])), float(h[2])
+    end
     plt.args = [(x, y, Void, Void, "")]
 
     plot_data(kind=:hist)
