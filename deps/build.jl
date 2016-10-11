@@ -36,6 +36,11 @@ if !have_dir
       if id in ("Debian", "Ubuntu")
         os = id
       end
+    elseif isfile("/etc/redhat-release")
+      rel = Compat.readstring(Compat.pipeline(`cat /etc/redhat-release`, `sed s/.*release\ //`, `sed s/\ .*//`))[1:end-1]
+      if rel > "7.0"
+        os = "Redhat"
+      end
     end
   end
   tarball = "gr-$version-$os-$arch.tar.gz"
