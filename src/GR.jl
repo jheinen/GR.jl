@@ -133,6 +133,7 @@ export
   stem,
   histogram,
   contourf,
+  heatmap,
   wireframe,
   plot3,
   scatter3,
@@ -1851,8 +1852,6 @@ end
     +------------------+--+--------------------------------------------------------------+
     |SHADED_MESH       | 6|Applies light source shading to the 3-D surface               |
     +------------------+--+--------------------------------------------------------------+
-    |HEATMAP           | 7|Applies a heatmap to the surface                              |
-    +------------------+--+--------------------------------------------------------------+
 
 """
 function surface(px, py, pz, option::Int)
@@ -2728,7 +2727,6 @@ OPTION_Z_SHADED_MESH = 3
 OPTION_COLORED_MESH = 4
 OPTION_CELL_ARRAY = 5
 OPTION_SHADED_MESH = 6
-OPTION_HEATMAP = 7
 
 MODEL_RGB = 0
 MODEL_HSV = 1
@@ -2845,6 +2843,7 @@ stem(args...; kwargs...) = jlgr.stem(args...; kwargs...)
 histogram(x; kwargs...) = jlgr.histogram(x; kwargs...)
 contour(args...; kwargs...) = jlgr.contour(args...; kwargs...)
 contourf(args...; kwargs...) = jlgr.contourf(args...; kwargs...)
+heatmap(D; kwargs...) = jlgr.heatmap(D; kwargs...)
 wireframe(args...; kwargs...) = jlgr.wireframe(args...; kwargs...)
 surface(args...; kwargs...) = jlgr.surface(args...; kwargs...)
 plot3(args...; kwargs...) = jlgr.plot3(args...; kwargs...)

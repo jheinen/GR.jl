@@ -20,7 +20,7 @@ end
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf]
+const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -88,7 +88,7 @@ function set_viewport(kind, subplot)
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
         viewport[2] -= 0.0525
     end
-    if kind in (:contour, :contourf, :surface, :trisurf)
+    if kind in (:contour, :contourf, :heatmap, :surface, :trisurf)
         viewport[2] -= 0.1
     end
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
@@ -656,6 +656,13 @@ function plot_data(; kv...)
             end
             GR.surface(x, y, z, GR.OPTION_CELL_ARRAY)
             colorbar()
+        elseif kind == :heatmap
+            xmin, xmax, ymin, ymax = plt.kvs[:window]
+            width, height = size(z)
+            data = (float(z) - minimum(z)) / (maximum(z) - minimum(z))
+            data = round(Int32, 1000 + data * 255)
+            GR.cellarray(xmin, xmax, ymin, ymax, width, height, data)
+            colorbar()
         elseif kind == :wireframe
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 50, 50)
@@ -911,6 +918,19 @@ function contourf(args...; kv...)
     plt.args = plot_args(args, fmt=:xyzc)
 
     plot_data(kind=:contourf)
+end
+
+function heatmap(D; kv...)
+    merge!(plt.kvs, Dict(kv))
+
+    if ndims(D) == 2
+        width, height = size(D)
+        plt.args = [(1:width, 1:height, D, Void, "")]
+
+        plot_data(kind=:heatmap)
+    else
+        error("expected 2-D array")
+    end
 end
 
 function wireframe(args...; kv...)
