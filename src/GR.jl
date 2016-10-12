@@ -82,7 +82,7 @@ export
   surface,
   contour,
   setcolormap,
-  colormap,
+  colorbar,
   inqcolor,
   inqcolorfromrgb,
   hsvtorgb,
@@ -121,6 +121,7 @@ export
   quiver,
   # Convenience functions
   jlgr,
+  colormap,
   figure,
   hold,
   subplot,
@@ -1942,8 +1943,8 @@ function setcolormap(index::Int)
         index)
 end
 
-function colormap()
-  ccall( (:gr_colormap, libGR),
+function colorbar()
+  ccall( (:gr_colorbar, libGR),
         Void,
         ()
         )
@@ -2830,6 +2831,7 @@ const gr3 = GR.GR3
 # Convenience functions
 include("jlgr.jl")
 
+colormap() = jlgr.colormap()
 figure(; kwargs...) = jlgr.figure(; kwargs...)
 hold(flag) = jlgr.hold(flag)
 subplot(m, n, p) = jlgr.subplot(m, n, p)

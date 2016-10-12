@@ -437,6 +437,17 @@ function colorbar(off=0, colors=256)
     GR.restorestate()
 end
 
+function colormap()
+    rgb = zeros(256, 3)
+    for colorind in 1:256
+        color = GR.inqcolor(999 + colorind)
+        rgb[colorind, 1] = float( color        & 0xff) / 255.0
+        rgb[colorind, 2] = float((color >> 8)  & 0xff) / 255.0
+        rgb[colorind, 3] = float((color >> 16) & 0xff) / 255.0
+    end
+    rgb
+end
+
 function figure(; kv...)
     global plt
     plt = Figure()
