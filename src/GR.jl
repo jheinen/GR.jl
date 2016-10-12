@@ -1955,7 +1955,7 @@ function inqcolor(color::Int)
         Void,
         (Int32, Ptr{Int32}),
         color, rgb)
-  return rgb
+  return rgb[1]
 end
 
 function inqcolorfromrgb(red::Real, green::Real, blue::Real)
