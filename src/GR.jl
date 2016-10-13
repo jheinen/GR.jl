@@ -199,6 +199,7 @@ function __init__()
         exit(-1)
     end
     const libGR3 = replace(libGR, "libGR", "libGR3")
+    ENV["GKS_USE_CAIRO_PNG"] = "true"
 end
 
 function opengks()
