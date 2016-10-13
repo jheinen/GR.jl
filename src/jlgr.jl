@@ -277,7 +277,11 @@ function draw_axes(kind, pass=1)
             GR.axes3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, majory, 0, ticksize)
         end
     else
-        GR.grid(xtick, ytick, 0, 0, majorx, majory)
+        if kind in (:heatmap, :imshow)
+            ticksize = -ticksize
+        else
+            GR.grid(xtick, ytick, 0, 0, majorx, majory)
+        end
         GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
         GR.axes(xtick, ytick, xorg[2], yorg[2], -majorx, -majory, -ticksize)
     end
@@ -446,6 +450,17 @@ function colormap()
         rgb[colorind, 3] = float((color >> 16) & 0xff) / 255.0
     end
     rgb
+end
+
+function to_rgba(value, cmap)
+    if !isnan(value)
+        r, g, b = cmap[round(Int, value * 255 + 1), :]
+        a = 1.0
+    else
+        r, g, b, a = zeros(4)
+    end
+    round(Int, a * 255) << 24 + round(Int, b * 255) << 16 +
+    round(Int, g * 255) << 8  + round(Int, r * 255)
 end
 
 function figure(; kv...)
@@ -670,9 +685,10 @@ function plot_data(; kv...)
         elseif kind == :heatmap
             xmin, xmax, ymin, ymax = plt.kvs[:window]
             width, height = size(z)
+            cmap = colormap()
             data = (float(z) - minimum(z)) / (maximum(z) - minimum(z))
-            data = round(Int32, 1000 + data * 255)
-            GR.cellarray(xmin, xmax, ymin, ymax, width, height, data)
+            rgba = [to_rgba(value, cmap) for value = data]
+            GR.drawimage(xmin, xmax, ymin, ymax, width, height, rgba)
             colorbar()
         elseif kind == :wireframe
             if length(x) == length(y) == length(z)
