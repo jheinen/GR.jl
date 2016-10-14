@@ -24,12 +24,16 @@ const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :heatmap,
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
+const kw_args = [:alpha, :backgroundcolor, :color, :colormap, :figsize, :labels, :size, :title, :xflip, :xlabel, :xlog, :yflip, :ylabel, :ylog, :zflip, :zlog]
+
 type PlotObject
+    obj
     args
     kvs
 end
 
 function Figure(width=600, height=450)
+    obj = Dict()
     args = @_tuple(Any)
     kvs = Dict()
     kvs[:size] = (width, height)
@@ -37,7 +41,7 @@ function Figure(width=600, height=450)
     kvs[:subplot] = [0, 1, 0, 1]
     kvs[:clear] = true
     kvs[:update] = true
-    PlotObject(args, kvs)
+    PlotObject(obj, args, kvs)
 end
 
 plt = Figure()
@@ -464,6 +468,21 @@ function to_rgba(value, cmap)
     round(Int, g * 255) << 8  + round(Int, r * 255)
 end
 
+function create_context(kind, dict)
+    plt.kvs[:kind] = kind
+    plt.obj = copy(plt.kvs)
+    for (k, v) in dict
+        if ! (k in kw_args)
+            println("Invalid keyword: $k")
+        end
+    end
+    merge!(plt.kvs, dict)
+end
+
+function restore_context()
+    plt.kvs = copy(plt.obj)
+end
+
 function figure(; kv...)
     global plt
     plt = Figure()
@@ -504,7 +523,7 @@ function plot_img(I)
     end
 
     if width  * (viewport[4] - viewport[3]) <
-       height * (viewport[2] - viewport[1])
+        height * (viewport[2] - viewport[1])
         w = float(width) / height * (viewport[4] - viewport[3])
         xmin = max(0.5 * (viewport[1] + viewport[2] - w), viewport[1])
         xmax = min(0.5 * (viewport[1] + viewport[2] + w), viewport[2])
@@ -590,9 +609,7 @@ function plot_polar(θ, ρ)
     GR.polyline(x, y)
 end
 
-function plot_data(; kv...)
-    merge!(plt.kvs, Dict(kv))
-
+function plot_data(flag=true)
     if plt.args == @_tuple(Any)
         return
     end
@@ -738,9 +755,13 @@ function plot_data(; kv...)
     if plt.kvs[:update]
         GR.updatews()
         if GR.isinline()
+            restore_context()
             return GR.show()
         end
     end
+
+    flag && restore_context()
+    return
 end
 
 function plot_args(args; fmt=:xys)
@@ -883,7 +904,7 @@ function plot_args(args; fmt=:xys)
 end
 
 function plot(args::PlotArg...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:line, Dict(kv))
 
     if plt.kvs[:ax]
         plt.args = append!(plt.args, plot_args(args))
@@ -891,35 +912,36 @@ function plot(args::PlotArg...; kv...)
         plt.args = plot_args(args)
     end
 
-    plot_data(kind=:line)
+    plot_data()
 end
 
 function oplot(args::PlotArg...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:line, Dict(kv))
 
     plt.args = append!(plt.args, plot_args(args))
 
-    plot_data(kind=:line)
+    plot_data()
 end
 
 function scatter(args...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:scatter, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyac)
 
-    plot_data(kind=:scatter)
+    plot_data()
 end
 
 function stem(args...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:stem, Dict(kv))
 
     plt.args = plot_args(args)
 
-    plot_data(kind=:stem)
+    plot_data()
 end
 
 function histogram(x; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:hist, Dict(kv))
+
     if have_stats
         h = StatsBase.fit(StatsBase.Histogram, x)
         x, y = collect(h.edges[1]), float(h.weights)
@@ -929,97 +951,103 @@ function histogram(x; kv...)
     end
     plt.args = [(x, y, Void, Void, "")]
 
-    plot_data(kind=:hist)
+    plot_data()
 end
 
 function contour(args...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:contour, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
 
-    plot_data(kind=:contour)
+    plot_data()
 end
 
 function contourf(args...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:contourf, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
 
-    plot_data(kind=:contourf)
+    plot_data()
 end
 
 function heatmap(D; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:heatmap, Dict(kv))
 
     if ndims(D) == 2
         width, height = size(D)
         plt.args = [(1:width, 1:height, D, Void, "")]
 
-        plot_data(kind=:heatmap)
+        plot_data()
     else
         error("expected 2-D array")
     end
 end
 
 function wireframe(args...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:wireframe, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
 
-    plot_data(kind=:wireframe)
+    plot_data()
 end
 
 function surface(args...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:surface, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
 
-    plot_data(kind=:surface)
+    plot_data()
 end
 
 function plot3(args...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:plot3, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
 
-    plot_data(kind=:plot3)
+    plot_data()
 end
 
 function scatter3(args...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:scatter3, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
 
-    plot_data(kind=:scatter3)
+    plot_data()
 end
 
 function title(s)
-    plot_data(title=s)
+    plt.kvs[:title] = s
+    plot_data(false)
 end
 
 function xlabel(s)
-    plot_data(xlabel=s)
+    plt.kvs[:xlabel] = s
+    plot_data(false)
 end
 
 function ylabel(s)
-    plot_data(ylabel=s)
+    plt.kvs[:ylabel] = s
+    plot_data(false)
 end
 
 function legend(args::AbstractString...; kv...)
-    plot_data(labels=args)
+    plt.kvs[:labels] = args
+    plot_data(false)
 end
 
 function xlim(a)
-    plot_data(xlim=a)
+    plt.kvs[:xlim] = a
+    plot_data(false)
 end
 
 function ylim(a)
-    plot_data(ylim=a)
+    plt.kvs[:ylim] = a
+    plot_data(false)
 end
 
 function savefig(filename)
     GR.beginprint(filename)
-    plot_data()
+    plot_data(false)
     GR.endprint()
 end
 
@@ -1050,19 +1078,19 @@ function peaks(n=49)
 end
 
 function imshow(I; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:imshow, Dict(kv))
 
     plt.args = [(Void, Void, I, Void, "")]
 
-    plot_data(kind=:imshow)
+    plot_data()
 end
 
 function isosurface(V; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:isosurface, Dict(kv))
 
     plt.args = [(Void, Void, V, Void, "")]
 
-    plot_data(kind=:isosurface)
+    plot_data()
 end
 
 function cart2sph(x, y, z)
@@ -1080,19 +1108,19 @@ function sph2cart(azimuth, elevation, r)
 end
 
 function polar(args...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:polar, Dict(kv))
 
     plt.args = plot_args(args)
 
-    plot_data(kind=:polar)
+    plot_data()
 end
 
 function trisurf(args...; kv...)
-    merge!(plt.kvs, Dict(kv))
+    create_context(:trisurf, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
 
-    plot_data(kind=:trisurf)
+    plot_data()
 end
 
 end # module
