@@ -2448,7 +2448,7 @@ function readimage(path)
         (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{UInt32}}),
         path, width, height, data)
   if width[1] > 0 && height[1] > 0
-    img = pointer_to_array(data[1], (width[1], height[1]))
+    img = Compat.unsafe_wrap(Array{UInt32}, data[1], (width[1], height[1]))
     return Int(width[1]), Int(height[1]), img
   else
     return 0, 0, zeros(UInt32, 0)
