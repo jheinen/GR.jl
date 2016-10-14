@@ -170,6 +170,9 @@ function __init__()
     global libGR, libGR3
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
+        if grdir == ""
+            grdir = None
+        end
     elseif isdir(joinpath(homedir(), "gr"), "fonts")
         grdir = joinpath(homedir(), "gr")
     else
@@ -196,6 +199,7 @@ function __init__()
     end
     if !isfile(libGR)
         println("Unable to load GR framework runtime environment")
+        println("$(libGR): No such file")
         exit(-1)
     end
     const libGR3 = replace(libGR, "libGR", "libGR3")
