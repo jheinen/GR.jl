@@ -24,7 +24,7 @@ const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :heatmap,
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
-const kw_args = [:alpha, :backgroundcolor, :color, :colormap, :figsize, :labels, :size, :title, :xflip, :xlabel, :xlog, :yflip, :ylabel, :ylog, :zflip, :zlog]
+const kw_args = [:alpha, :backgroundcolor, :color, :colormap, :figsize, :labels, :size, :title, :xflip, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlim, :zlog]
 
 type PlotObject
     obj
@@ -617,10 +617,8 @@ function plot_data(flag=true)
 
     plt.kvs[:clear] && GR.clearws()
 
-    if kind in (:imshow, :isosurface)
-        set_viewport(kind, plt.kvs[:subplot])
-    elseif !plt.kvs[:ax]
-        set_viewport(kind, plt.kvs[:subplot])
+    set_viewport(kind, plt.kvs[:subplot])
+    if !plt.kvs[:ax]
         set_window(kind)
         if kind == :polar
             draw_polar_axes()
@@ -694,9 +692,6 @@ function plot_data(flag=true)
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
                 z = reshape(z, 200, 200)
-            end
-            if plt.kvs[:scale] & GR.OPTION_Z_LOG != 0
-                z = log(z)
             end
             GR.surface(x, y, z, GR.OPTION_CELL_ARRAY)
             colorbar()
@@ -789,7 +784,12 @@ function plot_args(args; fmt=:xys)
                     else
                         y = a
                         n = isrowvec(y) ? size(y, 2) : size(y, 1)
-                        x = linspace(1, n, n)
+                        if haskey(plt.kvs, :xlim)
+                            xmin, xmax = plt.kvs[:xlim]
+                            x = linspace(xmin, xmax, n)
+                        else
+                            x = linspace(1, n, n)
+                        end
                         z = Void
                         c = Void
                     end
@@ -818,8 +818,18 @@ function plot_args(args; fmt=:xys)
                     elseif fmt == :xyzc && length(args) == 0
                         z = a
                         nx, ny = size(z)
-                        x = linspace(1, nx, nx)
-                        y = linspace(1, ny, ny)
+                        if haskey(plt.kvs, :xlim)
+                            xmin, xmax = plt.kvs[:xlim]
+                            x = linspace(xmin, xmax, nx)
+                        else
+                            x = linspace(1, nx, nx)
+                        end
+                        if haskey(plt.kvs, :ylim)
+                            ymin, ymax = plt.kvs[:ylim]
+                            y = linspace(ymin, ymax, ny)
+                        else
+                            y = linspace(1, ny, ny)
+                        end
                         c = Void
                     end
                 end
