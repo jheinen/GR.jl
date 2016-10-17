@@ -6,7 +6,7 @@ using Base.Test
 tests = [ "ex", "griddata" ]
 
 for t in tests
-    tp = joinpath(Pkg.dir("GR"), "test", "$(t).jl")
+    tp = joinpath(dirname(@__FILE__), "$(t).jl")
     println("running $(tp) ...")
     inline("pdf")
     include(tp)

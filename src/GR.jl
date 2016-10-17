@@ -185,7 +185,7 @@ function __init__()
         end
     end
     if grdir == None
-        grdir = joinpath(Pkg.dir(), "GR", "deps", "gr")
+        grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
     end
     ENV["GRDIR"] = grdir
     ENV["GKS_FONTPATH"] = grdir
