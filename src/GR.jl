@@ -117,7 +117,7 @@ export
   mathtex,
   selectcontext,
   trisurface,
-  gradient,
+# gradient, # deprecated, but still in Base
   quiver,
   # Convenience functions
   jlgr,
@@ -156,8 +156,7 @@ export
   libGR3,
   gr3,
   isinline,
-  inline,
-  show
+  inline
 
 
 mime_type = None
