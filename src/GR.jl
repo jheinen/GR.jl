@@ -234,70 +234,70 @@ end
 """
     openws(workstation_id::Int, connection, workstation_type::Int)
 
-    Open a graphical workstation.
+Open a graphical workstation.
 
-    **Parameters:**
+**Parameters:**
 
-    `workstation_id` :
-        A workstation identifier.
-    `connection` :
-        A connection identifier.
-    `workstation_type` :
-        The desired workstation type.
+`workstation_id` :
+    A workstation identifier.
+`connection` :
+    A connection identifier.
+`workstation_type` :
+    The desired workstation type.
 
-    Available workstation types:
+Available workstation types:
 
-    +-------------+------------------------------------------------------+
-    |            5|Workstation Independent Segment Storage               |
-    +-------------+------------------------------------------------------+
-    |         7, 8|Computer Graphics Metafile (CGM binary, clear text)   |
-    +-------------+------------------------------------------------------+
-    |           41|Windows GDI                                           |
-    +-------------+------------------------------------------------------+
-    |           51|Mac Quickdraw                                         |
-    +-------------+------------------------------------------------------+
-    |      61 - 64|PostScript (b/w, color)                               |
-    +-------------+------------------------------------------------------+
-    |     101, 102|Portable Document Format (plain, compressed)          |
-    +-------------+------------------------------------------------------+
-    |    210 - 213|X Windows                                             |
-    +-------------+------------------------------------------------------+
-    |          214|Sun Raster file (RF)                                  |
-    +-------------+------------------------------------------------------+
-    |     215, 218|Graphics Interchange Format (GIF87, GIF89)            |
-    +-------------+------------------------------------------------------+
-    |          216|Motif User Interface Language (UIL)                   |
-    +-------------+------------------------------------------------------+
-    |          320|Windows Bitmap (BMP)                                  |
-    +-------------+------------------------------------------------------+
-    |          321|JPEG image file                                       |
-    +-------------+------------------------------------------------------+
-    |          322|Portable Network Graphics file (PNG)                  |
-    +-------------+------------------------------------------------------+
-    |          323|Tagged Image File Format (TIFF)                       |
-    +-------------+------------------------------------------------------+
-    |          370|Xfig vector graphics file                             |
-    +-------------+------------------------------------------------------+
-    |          371|Gtk                                                   |
-    +-------------+------------------------------------------------------+
-    |          380|wxWidgets                                             |
-    +-------------+------------------------------------------------------+
-    |          381|Qt4                                                   |
-    +-------------+------------------------------------------------------+
-    |          382|Scaleable Vector Graphics (SVG)                       |
-    +-------------+------------------------------------------------------+
-    |          390|Windows Metafile                                      |
-    +-------------+------------------------------------------------------+
-    |          400|Quartz                                                |
-    +-------------+------------------------------------------------------+
-    |          410|Socket driver                                         |
-    +-------------+------------------------------------------------------+
-    |          415|0MQ driver                                            |
-    +-------------+------------------------------------------------------+
-    |          420|OpenGL                                                |
-    +-------------+------------------------------------------------------+
-    |          430|HTML5 Canvas                                          |
-    +-------------+------------------------------------------------------+
++-------------+------------------------------------------------------+
+|            5|Workstation Independent Segment Storage               |
++-------------+------------------------------------------------------+
+|         7, 8|Computer Graphics Metafile (CGM binary, clear text)   |
++-------------+------------------------------------------------------+
+|           41|Windows GDI                                           |
++-------------+------------------------------------------------------+
+|           51|Mac Quickdraw                                         |
++-------------+------------------------------------------------------+
+|      61 - 64|PostScript (b/w, color)                               |
++-------------+------------------------------------------------------+
+|     101, 102|Portable Document Format (plain, compressed)          |
++-------------+------------------------------------------------------+
+|    210 - 213|X Windows                                             |
++-------------+------------------------------------------------------+
+|          214|Sun Raster file (RF)                                  |
++-------------+------------------------------------------------------+
+|     215, 218|Graphics Interchange Format (GIF87, GIF89)            |
++-------------+------------------------------------------------------+
+|          216|Motif User Interface Language (UIL)                   |
++-------------+------------------------------------------------------+
+|          320|Windows Bitmap (BMP)                                  |
++-------------+------------------------------------------------------+
+|          321|JPEG image file                                       |
++-------------+------------------------------------------------------+
+|          322|Portable Network Graphics file (PNG)                  |
++-------------+------------------------------------------------------+
+|          323|Tagged Image File Format (TIFF)                       |
++-------------+------------------------------------------------------+
+|          370|Xfig vector graphics file                             |
++-------------+------------------------------------------------------+
+|          371|Gtk                                                   |
++-------------+------------------------------------------------------+
+|          380|wxWidgets                                             |
++-------------+------------------------------------------------------+
+|          381|Qt4                                                   |
++-------------+------------------------------------------------------+
+|          382|Scaleable Vector Graphics (SVG)                       |
++-------------+------------------------------------------------------+
+|          390|Windows Metafile                                      |
++-------------+------------------------------------------------------+
+|          400|Quartz                                                |
++-------------+------------------------------------------------------+
+|          410|Socket driver                                         |
++-------------+------------------------------------------------------+
+|          415|0MQ driver                                            |
++-------------+------------------------------------------------------+
+|          420|OpenGL                                                |
++-------------+------------------------------------------------------+
+|          430|HTML5 Canvas                                          |
++-------------+------------------------------------------------------+
 
 """
 function openws(workstation_id::Int, connection, workstation_type::Int)
@@ -310,12 +310,12 @@ end
 """
     closews(workstation_id::Int)
 
-    Close the specified workstation.
+Close the specified workstation.
 
-    **Parameters:**
+**Parameters:**
 
-    `workstation_id` :
-        A workstation identifier.
+`workstation_id` :
+    A workstation identifier.
 
 """
 function closews(workstation_id::Int)
@@ -328,12 +328,12 @@ end
 """
     activatews(workstation_id::Int)
 
-    Activate the specified workstation.
+Activate the specified workstation.
 
-    **Parameters:**
+**Parameters:**
 
-    `workstation_id` :
-        A workstation identifier.
+`workstation_id` :
+    A workstation identifier.
 
 """
 function activatews(workstation_id::Int)
@@ -346,12 +346,12 @@ end
 """
     deactivatews(workstation_id::Int)
 
-    Deactivate the specified workstation.
+Deactivate the specified workstation.
 
-    **Parameters:**
+**Parameters:**
 
-    `workstation_id` :
-        A workstation identifier.
+`workstation_id` :
+    A workstation identifier.
 
 """
 function deactivatews(workstation_id::Int)
@@ -393,19 +393,19 @@ end
 """
     polyline(x, y)
 
-    Draw a polyline using the current line attributes, starting from the
-    first data point and ending at the last data point.
+Draw a polyline using the current line attributes, starting from the
+first data point and ending at the last data point.
 
-    **Parameters:**
+**Parameters:**
 
-    `x` :
-        A list containing the X coordinates
-    `y` :
-        A list containing the Y coordinates
+`x` :
+    A list containing the X coordinates
+`y` :
+    A list containing the Y coordinates
 
-    The values for `x` and `y` are in world coordinates. The attributes that
-    control the appearance of a polyline are linetype, linewidth and color
-    index.
+The values for `x` and `y` are in world coordinates. The attributes that
+control the appearance of a polyline are linetype, linewidth and color
+index.
 
 """
 function polyline(x, y)
@@ -420,18 +420,18 @@ end
 """
     polymarker(x, y)
 
-    Draw marker symbols centered at the given data points.
+Draw marker symbols centered at the given data points.
 
-    **Parameters:**
+**Parameters:**
 
-    `x` :
-        A list containing the X coordinates
-    `y` :
-        A list containing the Y coordinates
+`x` :
+    A list containing the X coordinates
+`y` :
+    A list containing the Y coordinates
 
-    The values for `x` and `y` are in world coordinates. The attributes that
-    control the appearance of a polymarker are marker type, marker size
-    scale factor and color index.
+The values for `x` and `y` are in world coordinates. The attributes that
+control the appearance of a polymarker are marker type, marker size
+scale factor and color index.
 
 """
 function polymarker(x, y)
@@ -465,21 +465,21 @@ end
 """
     text(x::Real, y::Real, string)
 
-    Draw a text at position `x`, `y` using the current text attributes.
+Draw a text at position `x`, `y` using the current text attributes.
 
-    **Parameters:**
+**Parameters:**
 
-    `x` :
-        The X coordinate of starting position of the text string
-    `y` :
-        The Y coordinate of starting position of the text string
-    `string` :
-        The text to be drawn
+`x` :
+    The X coordinate of starting position of the text string
+`y` :
+    The Y coordinate of starting position of the text string
+`string` :
+    The text to be drawn
 
-    The values for `x` and `y` are in normalized device coordinates.
-    The attributes that control the appearance of text are text font and precision,
-    character expansion factor, character spacing, text color index, character
-    height, character up vector, text path and text alignment.
+The values for `x` and `y` are in normalized device coordinates.
+The attributes that control the appearance of text are text font and precision,
+character expansion factor, character spacing, text color index, character
+height, character up vector, text path and text alignment.
 
 """
 function text(x::Real, y::Real, string)
@@ -502,17 +502,17 @@ end
 """
     fillarea(x, y)
 
-    Allows you to specify a polygonal shape of an area to be filled.
+Allows you to specify a polygonal shape of an area to be filled.
 
-    **Parameters:**
+**Parameters:**
 
-    `x` :
-        A list containing the X coordinates
-    `y` :
-        A list containing the Y coordinates
+`x` :
+    A list containing the X coordinates
+`y` :
+    A list containing the Y coordinates
 
-    The attributes that control the appearance of fill areas are fill area interior
-    style, fill area style index and fill area color index.
+The attributes that control the appearance of fill areas are fill area interior
+style, fill area style index and fill area color index.
 
 """
 function fillarea(x, y)
@@ -527,23 +527,23 @@ end
 """
     cellarray(xmin::Real, xmax::Real, ymin::Real, ymax::Real, dimx::Int, dimy::Int, color)
 
-    Display rasterlike images in a device-independent manner. The cell array
-    function partitions a rectangle given by two corner points into DIMX X DIMY
-    cells, each of them colored individually by the corresponding color index
-    of the given cell array.
+Display rasterlike images in a device-independent manner. The cell array
+function partitions a rectangle given by two corner points into DIMX X DIMY
+cells, each of them colored individually by the corresponding color index
+of the given cell array.
 
-    **Parameters:**
+**Parameters:**
 
-    `xmin`, `ymin` :
-        Lower left point of the rectangle
-    `xmax`, `ymax` :
-        Upper right point of the rectangle
-    `dimx`, `dimy` :
-        X and Y dimension of the color index array
-    `color` :
-        Color index array
+`xmin`, `ymin` :
+    Lower left point of the rectangle
+`xmax`, `ymax` :
+    Upper right point of the rectangle
+`dimx`, `dimy` :
+    X and Y dimension of the color index array
+`color` :
+    Color index array
 
-    The values for `xmin`, `xmax`, `ymin` and `ymax` are in world coordinates.
+The values for `xmin`, `xmax`, `ymin` and `ymax` are in world coordinates.
 
 """
 function cellarray(xmin::Real, xmax::Real, ymin::Real, ymax::Real, dimx::Int, dimy::Int, color)
@@ -559,27 +559,27 @@ end
 """
     spline(x, y, m, method)
 
-    Generate a cubic spline-fit, starting from the first data point and
-    ending at the last data point.
+Generate a cubic spline-fit, starting from the first data point and
+ending at the last data point.
 
-    **Parameters:**
+**Parameters:**
 
-    `x` :
-        A list containing the X coordinates
-    `y` :
-        A list containing the Y coordinates
-    `m` :
-        The number of points in the polygon to be drawn (`m` > len(`x`))
-    `method` :
-        The smoothing method
+`x` :
+    A list containing the X coordinates
+`y` :
+    A list containing the Y coordinates
+`m` :
+    The number of points in the polygon to be drawn (`m` > len(`x`))
+`method` :
+    The smoothing method
 
-    The values for `x` and `y` are in world coordinates. The attributes that
-    control the appearance of a spline-fit are linetype, linewidth and color
-    index.
+The values for `x` and `y` are in world coordinates. The attributes that
+control the appearance of a spline-fit are linetype, linewidth and color
+index.
 
-    If `method` is > 0, then a generalized cross-validated smoothing spline is calculated.
-    If `method` is 0, then an interpolating natural cubic spline is calculated.
-    If `method` is < -1, then a cubic B-spline is calculated.
+If `method` is > 0, then a generalized cross-validated smoothing spline is calculated.
+If `method` is 0, then an interpolating natural cubic spline is calculated.
+If `method` is < -1, then a cubic B-spline is calculated.
 
 """
 function spline(x, y, m, method)
@@ -607,40 +607,40 @@ end
 """
     setlinetype(style::Int)
 
-    Specify the line style for polylines.
+Specify the line style for polylines.
 
-    **Parameters:**
+**Parameters:**
 
-    `style` :
-        The polyline line style
+`style` :
+    The polyline line style
 
-    The available line types are:
+The available line types are:
 
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_SOLID             |   1|Solid line                                         |
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_DASHED            |   2|Dashed line                                        |
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_DOTTED            |   3|Dotted line                                        |
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_DASHED_DOTTED     |   4|Dashed-dotted line                                 |
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_DASH_2_DOT        |  -1|Sequence of one dash followed by two dots          |
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_DASH_3_DOT        |  -2|Sequence of one dash followed by three dots        |
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_LONG_DASH         |  -3|Sequence of long dashes                            |
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_LONG_SHORT_DASH   |  -4|Sequence of a long dash followed by a short dash   |
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_SPACED_DASH       |  -5|Sequence of dashes double spaced                   |
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_SPACED_DOT        |  -6|Sequence of dots double spaced                     |
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_DOUBLE_DOT        |  -7|Sequence of pairs of dots                          |
-    +---------------------------+----+---------------------------------------------------+
-    |LINETYPE_TRIPLE_DOT        |  -8|Sequence of groups of three dots                   |
-    +---------------------------+----+---------------------------------------------------+
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_SOLID             |   1|Solid line                                         |
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_DASHED            |   2|Dashed line                                        |
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_DOTTED            |   3|Dotted line                                        |
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_DASHED_DOTTED     |   4|Dashed-dotted line                                 |
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_DASH_2_DOT        |  -1|Sequence of one dash followed by two dots          |
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_DASH_3_DOT        |  -2|Sequence of one dash followed by three dots        |
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_LONG_DASH         |  -3|Sequence of long dashes                            |
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_LONG_SHORT_DASH   |  -4|Sequence of a long dash followed by a short dash   |
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_SPACED_DASH       |  -5|Sequence of dashes double spaced                   |
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_SPACED_DOT        |  -6|Sequence of dots double spaced                     |
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_DOUBLE_DOT        |  -7|Sequence of pairs of dots                          |
++---------------------------+----+---------------------------------------------------+
+|LINETYPE_TRIPLE_DOT        |  -8|Sequence of groups of three dots                   |
++---------------------------+----+---------------------------------------------------+
 
 """
 function setlinetype(style::Int)
@@ -653,17 +653,17 @@ end
 """
     setlinewidth(width::Real)
 
-    Define the line width of subsequent polyline output primitives.
+Define the line width of subsequent polyline output primitives.
 
-    **Parameters:**
+**Parameters:**
 
-    `width` :
-        The polyline line width scale factor
+`width` :
+    The polyline line width scale factor
 
-    The line width is calculated as the nominal line width generated
-    on the workstation multiplied by the line width scale factor.
-    This value is mapped by the workstation to the nearest available line width.
-    The default line width is 1.0, or 1 times the line width generated on the graphics device.
+The line width is calculated as the nominal line width generated
+on the workstation multiplied by the line width scale factor.
+This value is mapped by the workstation to the nearest available line width.
+The default line width is 1.0, or 1 times the line width generated on the graphics device.
 
 """
 function setlinewidth(width::Real)
@@ -676,12 +676,12 @@ end
 """
     setlinecolorind(color::Int)
 
-    Define the color of subsequent polyline output primitives.
+Define the color of subsequent polyline output primitives.
 
-    **Parameters:**
+**Parameters:**
 
-    `color` :
-        The polyline color index (COLOR < 1256)
+`color` :
+    The polyline color index (COLOR < 1256)
 
 """
 function setlinecolorind(color::Int)
@@ -694,90 +694,90 @@ end
 """
     setmarkertype(mtype::Int)
 
-    Specifiy the marker type for polymarkers.
+Specifiy the marker type for polymarkers.
 
-    **Parameters:**
+**Parameters:**
 
-    `style` :
-        The polymarker marker type
+`style` :
+    The polymarker marker type
 
-    The available marker types are:
+The available marker types are:
 
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_DOT               |    1|Smallest displayable dot                        |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_PLUS              |    2|Plus sign                                       |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_ASTERISK          |    3|Asterisk                                        |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_CIRCLE            |    4|Hollow circle                                   |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_DIAGONAL_CROSS    |    5|Diagonal cross                                  |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SOLID_CIRCLE      |   -1|Filled circle                                   |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_TRIANGLE_UP       |   -2|Hollow triangle pointing upward                 |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SOLID_TRI_UP      |   -3|Filled triangle pointing upward                 |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_TRIANGLE_DOWN     |   -4|Hollow triangle pointing downward               |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SOLID_TRI_DOWN    |   -5|Filled triangle pointing downward               |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SQUARE            |   -6|Hollow square                                   |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SOLID_SQUARE      |   -7|Filled square                                   |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_BOWTIE            |   -8|Hollow bowtie                                   |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SOLID_BOWTIE      |   -9|Filled bowtie                                   |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_HGLASS            |  -10|Hollow hourglass                                |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SOLID_HGLASS      |  -11|Filled hourglass                                |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_DIAMOND           |  -12|Hollow diamond                                  |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SOLID_DIAMOND     |  -13|Filled Diamond                                  |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_STAR              |  -14|Hollow star                                     |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SOLID_STAR        |  -15|Filled Star                                     |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_TRI_UP_DOWN       |  -16|Hollow triangles pointing up and down overlaid  |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SOLID_TRI_RIGHT   |  -17|Filled triangle point right                     |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SOLID_TRI_LEFT    |  -18|Filled triangle pointing left                   |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_HOLLOW PLUS       |  -19|Hollow plus sign                                |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_SOLID PLUS        |  -20|Solid plus sign                                 |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_PENTAGON          |  -21|Pentagon                                        |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_HEXAGON           |  -22|Hexagon                                         |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_HEPTAGON          |  -23|Heptagon                                        |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_OCTAGON           |  -24|Octagon                                         |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_STAR_4            |  -25|4-pointed star                                  |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_STAR_5            |  -26|5-pointed star (pentagram)                      |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_STAR_6            |  -27|6-pointed star (hexagram)                       |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_STAR_7            |  -28|7-pointed star (heptagram)                      |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_STAR_8            |  -29|8-pointed star (octagram)                       |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_VLINE             |  -30|verical line                                    |
-    +-----------------------------+-----+------------------------------------------------+
-    |MARKERTYPE_HLINE             |  -31|horizontal line                                 |
-    +-----------------------------+-----+------------------------------------------------+
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_DOT               |    1|Smallest displayable dot                        |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_PLUS              |    2|Plus sign                                       |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_ASTERISK          |    3|Asterisk                                        |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_CIRCLE            |    4|Hollow circle                                   |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_DIAGONAL_CROSS    |    5|Diagonal cross                                  |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SOLID_CIRCLE      |   -1|Filled circle                                   |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_TRIANGLE_UP       |   -2|Hollow triangle pointing upward                 |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SOLID_TRI_UP      |   -3|Filled triangle pointing upward                 |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_TRIANGLE_DOWN     |   -4|Hollow triangle pointing downward               |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SOLID_TRI_DOWN    |   -5|Filled triangle pointing downward               |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SQUARE            |   -6|Hollow square                                   |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SOLID_SQUARE      |   -7|Filled square                                   |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_BOWTIE            |   -8|Hollow bowtie                                   |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SOLID_BOWTIE      |   -9|Filled bowtie                                   |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_HGLASS            |  -10|Hollow hourglass                                |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SOLID_HGLASS      |  -11|Filled hourglass                                |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_DIAMOND           |  -12|Hollow diamond                                  |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SOLID_DIAMOND     |  -13|Filled Diamond                                  |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_STAR              |  -14|Hollow star                                     |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SOLID_STAR        |  -15|Filled Star                                     |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_TRI_UP_DOWN       |  -16|Hollow triangles pointing up and down overlaid  |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SOLID_TRI_RIGHT   |  -17|Filled triangle point right                     |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SOLID_TRI_LEFT    |  -18|Filled triangle pointing left                   |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_HOLLOW PLUS       |  -19|Hollow plus sign                                |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_SOLID PLUS        |  -20|Solid plus sign                                 |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_PENTAGON          |  -21|Pentagon                                        |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_HEXAGON           |  -22|Hexagon                                         |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_HEPTAGON          |  -23|Heptagon                                        |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_OCTAGON           |  -24|Octagon                                         |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_STAR_4            |  -25|4-pointed star                                  |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_STAR_5            |  -26|5-pointed star (pentagram)                      |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_STAR_6            |  -27|6-pointed star (hexagram)                       |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_STAR_7            |  -28|7-pointed star (heptagram)                      |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_STAR_8            |  -29|8-pointed star (octagram)                       |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_VLINE             |  -30|verical line                                    |
++-----------------------------+-----+------------------------------------------------+
+|MARKERTYPE_HLINE             |  -31|horizontal line                                 |
++-----------------------------+-----+------------------------------------------------+
 
-    Polymarkers appear centered over their specified coordinates.
+Polymarkers appear centered over their specified coordinates.
 
 """
 function setmarkertype(mtype::Int)
@@ -790,15 +790,15 @@ end
 """
     setmarkersize(mtype::Real)
 
-    Specify the marker size for polymarkers.
+Specify the marker size for polymarkers.
 
-    **Parameters:**
+**Parameters:**
 
-    `size` :
-        Scale factor applied to the nominal marker size
+`size` :
+    Scale factor applied to the nominal marker size
 
-    The polymarker size is calculated as the nominal size generated on the graphics device
-    multiplied by the marker size scale factor.
+The polymarker size is calculated as the nominal size generated on the graphics device
+multiplied by the marker size scale factor.
 
 """
 function setmarkersize(mtype::Real)
@@ -811,12 +811,12 @@ end
 """
     setmarkercolorind(color::Int)
 
-    Define the color of subsequent polymarker output primitives.
+Define the color of subsequent polymarker output primitives.
 
-    **Parameters:**
+**Parameters:**
 
-    `color` :
-        The polymarker color index (COLOR < 1256)
+`color` :
+    The polymarker color index (COLOR < 1256)
 
 """
 function setmarkercolorind(color::Int)
@@ -829,95 +829,95 @@ end
 """
     settextfontprec(font::Int, precision::Int)
 
-    Specify the text font and precision for subsequent text output primitives.
+Specify the text font and precision for subsequent text output primitives.
 
-    **Parameters:**
+**Parameters:**
 
-    `font` :
-        Text font (see tables below)
-    `precision` :
-        Text precision (see table below)
+`font` :
+    Text font (see tables below)
+`precision` :
+    Text precision (see table below)
 
-    The available text fonts are:
+The available text fonts are:
 
-    +--------------------------------------+-----+
-    |FONT_TIMES_ROMAN                      |  101|
-    +--------------------------------------+-----+
-    |FONT_TIMES_ITALIC                     |  102|
-    +--------------------------------------+-----+
-    |FONT_TIMES_BOLD                       |  103|
-    +--------------------------------------+-----+
-    |FONT_TIMES_BOLDITALIC                 |  104|
-    +--------------------------------------+-----+
-    |FONT_HELVETICA                        |  105|
-    +--------------------------------------+-----+
-    |FONT_HELVETICA_OBLIQUE                |  106|
-    +--------------------------------------+-----+
-    |FONT_HELVETICA_BOLD                   |  107|
-    +--------------------------------------+-----+
-    |FONT_HELVETICA_BOLDOBLIQUE            |  108|
-    +--------------------------------------+-----+
-    |FONT_COURIER                          |  109|
-    +--------------------------------------+-----+
-    |FONT_COURIER_OBLIQUE                  |  110|
-    +--------------------------------------+-----+
-    |FONT_COURIER_BOLD                     |  111|
-    +--------------------------------------+-----+
-    |FONT_COURIER_BOLDOBLIQUE              |  112|
-    +--------------------------------------+-----+
-    |FONT_SYMBOL                           |  113|
-    +--------------------------------------+-----+
-    |FONT_BOOKMAN_LIGHT                    |  114|
-    +--------------------------------------+-----+
-    |FONT_BOOKMAN_LIGHTITALIC              |  115|
-    +--------------------------------------+-----+
-    |FONT_BOOKMAN_DEMI                     |  116|
-    +--------------------------------------+-----+
-    |FONT_BOOKMAN_DEMIITALIC               |  117|
-    +--------------------------------------+-----+
-    |FONT_NEWCENTURYSCHLBK_ROMAN           |  118|
-    +--------------------------------------+-----+
-    |FONT_NEWCENTURYSCHLBK_ITALIC          |  119|
-    +--------------------------------------+-----+
-    |FONT_NEWCENTURYSCHLBK_BOLD            |  120|
-    +--------------------------------------+-----+
-    |FONT_NEWCENTURYSCHLBK_BOLDITALIC      |  121|
-    +--------------------------------------+-----+
-    |FONT_AVANTGARDE_BOOK                  |  122|
-    +--------------------------------------+-----+
-    |FONT_AVANTGARDE_BOOKOBLIQUE           |  123|
-    +--------------------------------------+-----+
-    |FONT_AVANTGARDE_DEMI                  |  124|
-    +--------------------------------------+-----+
-    |FONT_AVANTGARDE_DEMIOBLIQUE           |  125|
-    +--------------------------------------+-----+
-    |FONT_PALATINO_ROMAN                   |  126|
-    +--------------------------------------+-----+
-    |FONT_PALATINO_ITALIC                  |  127|
-    +--------------------------------------+-----+
-    |FONT_PALATINO_BOLD                    |  128|
-    +--------------------------------------+-----+
-    |FONT_PALATINO_BOLDITALIC              |  129|
-    +--------------------------------------+-----+
-    |FONT_ZAPFCHANCERY_MEDIUMITALIC        |  130|
-    +--------------------------------------+-----+
-    |FONT_ZAPFDINGBATS                     |  131|
-    +--------------------------------------+-----+
++--------------------------------------+-----+
+|FONT_TIMES_ROMAN                      |  101|
++--------------------------------------+-----+
+|FONT_TIMES_ITALIC                     |  102|
++--------------------------------------+-----+
+|FONT_TIMES_BOLD                       |  103|
++--------------------------------------+-----+
+|FONT_TIMES_BOLDITALIC                 |  104|
++--------------------------------------+-----+
+|FONT_HELVETICA                        |  105|
++--------------------------------------+-----+
+|FONT_HELVETICA_OBLIQUE                |  106|
++--------------------------------------+-----+
+|FONT_HELVETICA_BOLD                   |  107|
++--------------------------------------+-----+
+|FONT_HELVETICA_BOLDOBLIQUE            |  108|
++--------------------------------------+-----+
+|FONT_COURIER                          |  109|
++--------------------------------------+-----+
+|FONT_COURIER_OBLIQUE                  |  110|
++--------------------------------------+-----+
+|FONT_COURIER_BOLD                     |  111|
++--------------------------------------+-----+
+|FONT_COURIER_BOLDOBLIQUE              |  112|
++--------------------------------------+-----+
+|FONT_SYMBOL                           |  113|
++--------------------------------------+-----+
+|FONT_BOOKMAN_LIGHT                    |  114|
++--------------------------------------+-----+
+|FONT_BOOKMAN_LIGHTITALIC              |  115|
++--------------------------------------+-----+
+|FONT_BOOKMAN_DEMI                     |  116|
++--------------------------------------+-----+
+|FONT_BOOKMAN_DEMIITALIC               |  117|
++--------------------------------------+-----+
+|FONT_NEWCENTURYSCHLBK_ROMAN           |  118|
++--------------------------------------+-----+
+|FONT_NEWCENTURYSCHLBK_ITALIC          |  119|
++--------------------------------------+-----+
+|FONT_NEWCENTURYSCHLBK_BOLD            |  120|
++--------------------------------------+-----+
+|FONT_NEWCENTURYSCHLBK_BOLDITALIC      |  121|
++--------------------------------------+-----+
+|FONT_AVANTGARDE_BOOK                  |  122|
++--------------------------------------+-----+
+|FONT_AVANTGARDE_BOOKOBLIQUE           |  123|
++--------------------------------------+-----+
+|FONT_AVANTGARDE_DEMI                  |  124|
++--------------------------------------+-----+
+|FONT_AVANTGARDE_DEMIOBLIQUE           |  125|
++--------------------------------------+-----+
+|FONT_PALATINO_ROMAN                   |  126|
++--------------------------------------+-----+
+|FONT_PALATINO_ITALIC                  |  127|
++--------------------------------------+-----+
+|FONT_PALATINO_BOLD                    |  128|
++--------------------------------------+-----+
+|FONT_PALATINO_BOLDITALIC              |  129|
++--------------------------------------+-----+
+|FONT_ZAPFCHANCERY_MEDIUMITALIC        |  130|
++--------------------------------------+-----+
+|FONT_ZAPFDINGBATS                     |  131|
++--------------------------------------+-----+
 
-    The available text precisions are:
+The available text precisions are:
 
-    +---------------------------+---+--------------------------------------+
-    |TEXT_PRECISION_STRING      |  0|String precision (higher quality)     |
-    +---------------------------+---+--------------------------------------+
-    |TEXT_PRECISION_CHAR        |  1|Character precision (medium quality)  |
-    +---------------------------+---+--------------------------------------+
-    |TEXT_PRECISION_STROKE      |  2|Stroke precision (lower quality)      |
-    +---------------------------+---+--------------------------------------+
++---------------------------+---+--------------------------------------+
+|TEXT_PRECISION_STRING      |  0|String precision (higher quality)     |
++---------------------------+---+--------------------------------------+
+|TEXT_PRECISION_CHAR        |  1|Character precision (medium quality)  |
++---------------------------+---+--------------------------------------+
+|TEXT_PRECISION_STROKE      |  2|Stroke precision (lower quality)      |
++---------------------------+---+--------------------------------------+
 
-    The appearance of a font depends on the text precision value specified.
-    STRING, CHARACTER or STROKE precision allows for a greater or lesser
-    realization of the text primitives, for efficiency. STRING is the default
-    precision for GR and produces the highest quality output.
+The appearance of a font depends on the text precision value specified.
+STRING, CHARACTER or STROKE precision allows for a greater or lesser
+realization of the text primitives, for efficiency. STRING is the default
+precision for GR and produces the highest quality output.
 
 """
 function settextfontprec(font::Int, precision::Int)
@@ -930,16 +930,16 @@ end
 """
     setcharexpan(factor::Real)
 
-    Set the current character expansion factor (width to height ratio).
+Set the current character expansion factor (width to height ratio).
 
-    **Parameters:**
+**Parameters:**
 
-    `factor` :
-        Text expansion factor applied to the nominal text width-to-height ratio
+`factor` :
+    Text expansion factor applied to the nominal text width-to-height ratio
 
-    `setcharexpan` defines the width of subsequent text output primitives. The expansion
-    factor alters the width of the generated characters, but not their height. The default
-    text expansion factor is 1, or one times the normal width-to-height ratio of the text.
+`setcharexpan` defines the width of subsequent text output primitives. The expansion
+factor alters the width of the generated characters, but not their height. The default
+text expansion factor is 1, or one times the normal width-to-height ratio of the text.
 
 """
 function setcharexpan(factor::Real)
@@ -959,15 +959,15 @@ end
 """
     settextcolorind(color::Int)
 
-    Sets the current text color index.
+Sets the current text color index.
 
-    **Parameters:**
+**Parameters:**
 
-    `color` :
-        The text color index (COLOR < 1256)
+`color` :
+    The text color index (COLOR < 1256)
 
-    `settextcolorind` defines the color of subsequent text output primitives.
-    GR uses the default foreground color (black=1) for the default text color index.
+`settextcolorind` defines the color of subsequent text output primitives.
+GR uses the default foreground color (black=1) for the default text color index.
 
 """
 function settextcolorind(color::Int)
@@ -980,16 +980,16 @@ end
 """
     setcharheight(height::Real)
 
-    Set the current character height.
+Set the current character height.
 
-    **Parameters:**
+**Parameters:**
 
-    `height` :
-        Text height value
+`height` :
+    Text height value
 
-    `setcharheight` defines the height of subsequent text output primitives. Text height
-    is defined as a percentage of the default window. GR uses the default text height of
-    0.027 (2.7% of the height of the default window).
+`setcharheight` defines the height of subsequent text output primitives. Text height
+is defined as a percentage of the default window. GR uses the default text height of
+0.027 (2.7% of the height of the default window).
 
 """
 function setcharheight(height::Real)
@@ -1002,15 +1002,15 @@ end
 """
     setcharup(ux::Real, uy::Real)
 
-    Set the current character text angle up vector.
+Set the current character text angle up vector.
 
-    **Parameters:**
+**Parameters:**
 
-    `ux`, `uy` :
-        Text up vector
+`ux`, `uy` :
+    Text up vector
 
-    `setcharup` defines the vertical rotation of subsequent text output primitives.
-    The text up vector is initially set to (0, 1), horizontal to the baseline.
+`setcharup` defines the vertical rotation of subsequent text output primitives.
+The text up vector is initially set to (0, 1), horizontal to the baseline.
 
 """
 function setcharup(ux::Real, uy::Real)
@@ -1023,22 +1023,22 @@ end
 """
     settextpath(path::Int)
 
-    Define the current direction in which subsequent text will be drawn.
+Define the current direction in which subsequent text will be drawn.
 
-    **Parameters:**
+**Parameters:**
 
-    `path` :
-        Text path (see table below)
+`path` :
+    Text path (see table below)
 
-    +----------------------+---+---------------+
-    |TEXT_PATH_RIGHT       |  0|left-to-right  |
-    +----------------------+---+---------------+
-    |TEXT_PATH_LEFT        |  1|right-to-left  |
-    +----------------------+---+---------------+
-    |TEXT_PATH_UP          |  2|downside-up    |
-    +----------------------+---+---------------+
-    |TEXT_PATH_DOWN        |  3|upside-down    |
-    +----------------------+---+---------------+
++----------------------+---+---------------+
+|TEXT_PATH_RIGHT       |  0|left-to-right  |
++----------------------+---+---------------+
+|TEXT_PATH_LEFT        |  1|right-to-left  |
++----------------------+---+---------------+
+|TEXT_PATH_UP          |  2|downside-up    |
++----------------------+---+---------------+
+|TEXT_PATH_DOWN        |  3|upside-down    |
++----------------------+---+---------------+
 
 """
 function settextpath(path::Int)
@@ -1051,42 +1051,42 @@ end
 """
     settextalign(horizontal::Int, vertical::Int)
 
-    Set the current horizontal and vertical alignment for text.
+Set the current horizontal and vertical alignment for text.
 
-    **Parameters:**
+**Parameters:**
 
-    `horizontal` :
-        Horizontal text alignment (see the table below)
-    `vertical` :
-        Vertical text alignment (see the table below)
+`horizontal` :
+    Horizontal text alignment (see the table below)
+`vertical` :
+    Vertical text alignment (see the table below)
 
-    `settextalign` specifies how the characters in a text primitive will be aligned
-    in horizontal and vertical space. The default text alignment indicates horizontal left
-    alignment and vertical baseline alignment.
+`settextalign` specifies how the characters in a text primitive will be aligned
+in horizontal and vertical space. The default text alignment indicates horizontal left
+alignment and vertical baseline alignment.
 
-    +-------------------------+---+----------------+
-    |TEXT_HALIGN_NORMAL       |  0|                |
-    +-------------------------+---+----------------+
-    |TEXT_HALIGN_LEFT         |  1|Left justify    |
-    +-------------------------+---+----------------+
-    |TEXT_HALIGN_CENTER       |  2|Center justify  |
-    +-------------------------+---+----------------+
-    |TEXT_HALIGN_RIGHT        |  3|Right justify   |
-    +-------------------------+---+----------------+
++-------------------------+---+----------------+
+|TEXT_HALIGN_NORMAL       |  0|                |
++-------------------------+---+----------------+
+|TEXT_HALIGN_LEFT         |  1|Left justify    |
++-------------------------+---+----------------+
+|TEXT_HALIGN_CENTER       |  2|Center justify  |
++-------------------------+---+----------------+
+|TEXT_HALIGN_RIGHT        |  3|Right justify   |
++-------------------------+---+----------------+
 
-    +-------------------------+---+------------------------------------------------+
-    |TEXT_VALIGN_NORMAL       |  0|                                                |
-    +-------------------------+---+------------------------------------------------+
-    |TEXT_VALIGN_TOP          |  1|Align with the top of the characters            |
-    +-------------------------+---+------------------------------------------------+
-    |TEXT_VALIGN_CAP          |  2|Aligned with the cap of the characters          |
-    +-------------------------+---+------------------------------------------------+
-    |TEXT_VALIGN_HALF         |  3|Aligned with the half line of the characters    |
-    +-------------------------+---+------------------------------------------------+
-    |TEXT_VALIGN_BASE         |  4|Aligned with the base line of the characters    |
-    +-------------------------+---+------------------------------------------------+
-    |TEXT_VALIGN_BOTTOM       |  5|Aligned with the bottom line of the characters  |
-    +-------------------------+---+------------------------------------------------+
++-------------------------+---+------------------------------------------------+
+|TEXT_VALIGN_NORMAL       |  0|                                                |
++-------------------------+---+------------------------------------------------+
+|TEXT_VALIGN_TOP          |  1|Align with the top of the characters            |
++-------------------------+---+------------------------------------------------+
+|TEXT_VALIGN_CAP          |  2|Aligned with the cap of the characters          |
++-------------------------+---+------------------------------------------------+
+|TEXT_VALIGN_HALF         |  3|Aligned with the half line of the characters    |
++-------------------------+---+------------------------------------------------+
+|TEXT_VALIGN_BASE         |  4|Aligned with the base line of the characters    |
++-------------------------+---+------------------------------------------------+
+|TEXT_VALIGN_BOTTOM       |  5|Aligned with the bottom line of the characters  |
++-------------------------+---+------------------------------------------------+
 
 """
 function settextalign(horizontal::Int, vertical::Int)
@@ -1099,25 +1099,25 @@ end
 """
     setfillintstyle(style::Int)
 
-    Set the fill area interior style to be used for fill areas.
+Set the fill area interior style to be used for fill areas.
 
-    **Parameters:**
+**Parameters:**
 
-    `style` :
-        The style of fill to be used
+`style` :
+    The style of fill to be used
 
-    `setfillintstyle` defines the interior style  for subsequent fill area output
-    primitives. The default interior style is HOLLOW.
+`setfillintstyle` defines the interior style  for subsequent fill area output
+primitives. The default interior style is HOLLOW.
 
-    +---------+---+--------------------------------------------------------------------------------+
-    |HOLLOW   |  0|No filling. Just draw the bounding polyline                                     |
-    +---------+---+--------------------------------------------------------------------------------+
-    |SOLID    |  1|Fill the interior of the polygon using the fill color index                     |
-    +---------+---+--------------------------------------------------------------------------------+
-    |PATTERN  |  2|Fill the interior of the polygon using the style index as a pattern index       |
-    +---------+---+--------------------------------------------------------------------------------+
-    |HATCH    |  3|Fill the interior of the polygon using the style index as a cross-hatched style |
-    +---------+---+--------------------------------------------------------------------------------+
++---------+---+--------------------------------------------------------------------------------+
+|HOLLOW   |  0|No filling. Just draw the bounding polyline                                     |
++---------+---+--------------------------------------------------------------------------------+
+|SOLID    |  1|Fill the interior of the polygon using the fill color index                     |
++---------+---+--------------------------------------------------------------------------------+
+|PATTERN  |  2|Fill the interior of the polygon using the style index as a pattern index       |
++---------+---+--------------------------------------------------------------------------------+
+|HATCH    |  3|Fill the interior of the polygon using the style index as a cross-hatched style |
++---------+---+--------------------------------------------------------------------------------+
 
 """
 function setfillintstyle(style::Int)
@@ -1130,18 +1130,18 @@ end
 """
     setfillstyle(index::Int)
 
-    Sets the fill style to be used for subsequent fill areas.
+Sets the fill style to be used for subsequent fill areas.
 
-    **Parameters:**
+**Parameters:**
 
-    `index` :
-        The fill style index to be used
+`index` :
+    The fill style index to be used
 
-    `setfillstyle` specifies an index when PATTERN fill or HATCH fill is requested by the
-    `setfillintstyle` function. If the interior style is set to PATTERN, the fill style
-    index points to a device-independent pattern table. If interior style is set to HATCH
-    the fill style index indicates different hatch styles. If HOLLOW or SOLID is specified
-    for the interior style, the fill style index is unused.
+`setfillstyle` specifies an index when PATTERN fill or HATCH fill is requested by the
+`setfillintstyle` function. If the interior style is set to PATTERN, the fill style
+index points to a device-independent pattern table. If interior style is set to HATCH
+the fill style index indicates different hatch styles. If HOLLOW or SOLID is specified
+for the interior style, the fill style index is unused.
 
 """
 function setfillstyle(index::Int)
@@ -1154,15 +1154,15 @@ end
 """
     setfillcolorind(color::Int)
 
-    Sets the current fill area color index.
+Sets the current fill area color index.
 
-    **Parameters:**
+**Parameters:**
 
-    `color` :
-        The fill area color index (COLOR < 1256)
+`color` :
+    The fill area color index (COLOR < 1256)
 
-    `setfillcolorind` defines the color of subsequent fill area output primitives.
-    GR uses the default foreground color (black=1) for the default fill area color index.
+`setfillcolorind` defines the color of subsequent fill area output primitives.
+GR uses the default foreground color (black=1) for the default fill area color index.
 
 """
 function setfillcolorind(color::Int)
@@ -1175,19 +1175,19 @@ end
 """
     setcolorrep(index::Int, red::Real, green::Real, blue::Real)
 
-    `setcolorrep` allows to redefine an existing color index representation by specifying
-    an RGB color triplet.
+`setcolorrep` allows to redefine an existing color index representation by specifying
+an RGB color triplet.
 
-    **Parameters:**
+**Parameters:**
 
-    `index` :
-        Color index in the range 0 to 1256
-    `red` :
-        Red intensity in the range 0.0 to 1.0
-    `green` :
-        Green intensity in the range 0.0 to 1.0
-    `blue`:
-        Blue intensity in the range 0.0 to 1.0
+`index` :
+    Color index in the range 0 to 1256
+`red` :
+    Red intensity in the range 0.0 to 1.0
+`green` :
+    Green intensity in the range 0.0 to 1.0
+`blue`:
+    Blue intensity in the range 0.0 to 1.0
 
 """
 function setcolorrep(index::Int, red::Real, green::Real, blue::Real)
@@ -1200,37 +1200,37 @@ end
 """
     setscale(options::Int)
 
-    `setscale` sets the type of transformation to be used for subsequent GR output
-    primitives.
+`setscale` sets the type of transformation to be used for subsequent GR output
+primitives.
 
-    **Parameters:**
+**Parameters:**
 
-    `options` :
-        Scale specification (see Table below)
+`options` :
+    Scale specification (see Table below)
 
-    +---------------+--------------------+
-    |OPTION_X_LOG   |Logarithmic X-axis  |
-    +---------------+--------------------+
-    |OPTION_Y_LOG   |Logarithmic Y-axis  |
-    +---------------+--------------------+
-    |OPTION_Z_LOG   |Logarithmic Z-axis  |
-    +---------------+--------------------+
-    |OPTION_FLIP_X  |Flip X-axis         |
-    +---------------+--------------------+
-    |OPTION_FLIP_Y  |Flip Y-axis         |
-    +---------------+--------------------+
-    |OPTION_FLIP_Z  |Flip Z-axis         |
-    +---------------+--------------------+
++---------------+--------------------+
+|OPTION_X_LOG   |Logarithmic X-axis  |
++---------------+--------------------+
+|OPTION_Y_LOG   |Logarithmic Y-axis  |
++---------------+--------------------+
+|OPTION_Z_LOG   |Logarithmic Z-axis  |
++---------------+--------------------+
+|OPTION_FLIP_X  |Flip X-axis         |
++---------------+--------------------+
+|OPTION_FLIP_Y  |Flip Y-axis         |
++---------------+--------------------+
+|OPTION_FLIP_Z  |Flip Z-axis         |
++---------------+--------------------+
 
-    `setscale` defines the current transformation according to the given scale
-    specification which may be or'ed together using any of the above options. GR uses
-    these options for all subsequent output primitives until another value is provided.
-    The scale options are used to transform points from an abstract logarithmic or
-    semi-logarithmic coordinate system, which may be flipped along each axis, into the
-    world coordinate system.
+`setscale` defines the current transformation according to the given scale
+specification which may be or'ed together using any of the above options. GR uses
+these options for all subsequent output primitives until another value is provided.
+The scale options are used to transform points from an abstract logarithmic or
+semi-logarithmic coordinate system, which may be flipped along each axis, into the
+world coordinate system.
 
-    Note: When applying a logarithmic transformation to a specific axis, the system
-    assumes that the axes limits are greater than zero.
+Note: When applying a logarithmic transformation to a specific axis, the system
+assumes that the axes limits are greater than zero.
 
 """
 function setscale(options::Int)
@@ -1252,27 +1252,27 @@ end
 """
     setwindow(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
 
-    `setwindow` establishes a window, or rectangular subspace, of world coordinates to be
-    plotted. If you desire log scaling or mirror-imaging of axes, use the SETSCALE function.
+`setwindow` establishes a window, or rectangular subspace, of world coordinates to be
+plotted. If you desire log scaling or mirror-imaging of axes, use the SETSCALE function.
 
-    **Parameters:**
+**Parameters:**
 
-    `xmin` :
-        The left horizontal coordinate of the window (`xmin` < `xmax`).
-    `xmax` :
-        The right horizontal coordinate of the window.
-    `ymin` :
-        The bottom vertical coordinate of the window (`ymin` < `ymax`).
-    `ymax` :
-        The top vertical coordinate of the window.
+`xmin` :
+    The left horizontal coordinate of the window (`xmin` < `xmax`).
+`xmax` :
+    The right horizontal coordinate of the window.
+`ymin` :
+    The bottom vertical coordinate of the window (`ymin` < `ymax`).
+`ymax` :
+    The top vertical coordinate of the window.
 
-    `setwindow` defines the rectangular portion of the World Coordinate space (WC) to be
-    associated with the specified normalization transformation. The WC window and the
-    Normalized Device Coordinates (NDC) viewport define the normalization transformation
-    through which all output primitives are mapped. The WC window is mapped onto the
-    rectangular NDC viewport which is, in turn, mapped onto the display surface of the
-    open and active workstation, in device coordinates. By default, GR uses the range
-    [0,1] x [0,1], in world coordinates, as the normalization transformation window.
+`setwindow` defines the rectangular portion of the World Coordinate space (WC) to be
+associated with the specified normalization transformation. The WC window and the
+Normalized Device Coordinates (NDC) viewport define the normalization transformation
+through which all output primitives are mapped. The WC window is mapped onto the
+rectangular NDC viewport which is, in turn, mapped onto the display surface of the
+open and active workstation, in device coordinates. By default, GR uses the range
+[0,1] x [0,1], in world coordinates, as the normalization transformation window.
 
 """
 function setwindow(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
@@ -1285,25 +1285,25 @@ end
 """
     setviewport(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
 
-    `setviewport` establishes a rectangular subspace of normalized device coordinates.
+`setviewport` establishes a rectangular subspace of normalized device coordinates.
 
-    **Parameters:**
+**Parameters:**
 
-    `xmin` :
-        The left horizontal coordinate of the viewport.
-    `xmax` :
-        The right horizontal coordinate of the viewport (0 <= `xmin` < `xmax` <= 1).
-    `ymin` :
-        The bottom vertical coordinate of the viewport.
-    `ymax` :
-        The top vertical coordinate of the viewport (0 <= `ymin` < `ymax` <= 1).
+`xmin` :
+    The left horizontal coordinate of the viewport.
+`xmax` :
+    The right horizontal coordinate of the viewport (0 <= `xmin` < `xmax` <= 1).
+`ymin` :
+    The bottom vertical coordinate of the viewport.
+`ymax` :
+    The top vertical coordinate of the viewport (0 <= `ymin` < `ymax` <= 1).
 
-    `setviewport` defines the rectangular portion of the Normalized Device Coordinate
-    (NDC) space to be associated with the specified normalization transformation. The
-    NDC viewport and World Coordinate (WC) window define the normalization transformation
-    through which all output primitives pass. The WC window is mapped onto the rectangular
-    NDC viewport which is, in turn, mapped onto the display surface of the open and active
-    workstation, in device coordinates.
+`setviewport` defines the rectangular portion of the Normalized Device Coordinate
+(NDC) space to be associated with the specified normalization transformation. The
+NDC viewport and World Coordinate (WC) window define the normalization transformation
+through which all output primitives pass. The WC window is mapped onto the rectangular
+NDC viewport which is, in turn, mapped onto the display surface of the open and active
+workstation, in device coordinates.
 
 """
 function setviewport(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
@@ -1316,19 +1316,19 @@ end
 """
     selntran(transform::Int)
 
-    `selntran` selects a predefined transformation from world coordinates to normalized
-    device coordinates.
+`selntran` selects a predefined transformation from world coordinates to normalized
+device coordinates.
 
-    **Parameters:**
+**Parameters:**
 
-    `transform` :
-        A normalization transformation number.
+`transform` :
+    A normalization transformation number.
 
-    +------+----------------------------------------------------------------------------------------------------+
-    |     0|Selects the identity transformation in which both the window and viewport have the range of 0 to 1  |
-    +------+----------------------------------------------------------------------------------------------------+
-    |  >= 1|Selects a normalization transformation as defined by `setwindow` and `setviewport`                  |
-    +------+----------------------------------------------------------------------------------------------------+
++------+----------------------------------------------------------------------------------------------------+
+|     0|Selects the identity transformation in which both the window and viewport have the range of 0 to 1  |
++------+----------------------------------------------------------------------------------------------------+
+|  >= 1|Selects a normalization transformation as defined by `setwindow` and `setviewport`                  |
++------+----------------------------------------------------------------------------------------------------+
 
 """
 function selntran(transform::Int)
@@ -1341,25 +1341,25 @@ end
 """
     setclip(indicator::Int)
 
-    Set the clipping indicator.
+Set the clipping indicator.
 
-    **Parameters:**
+**Parameters:**
 
-    `indicator` :
-        An indicator specifying whether clipping is on or off.
+`indicator` :
+    An indicator specifying whether clipping is on or off.
 
-    +----+---------------------------------------------------------------+
-    |   0|Clipping is off. Data outside of the window will be drawn.     |
-    +----+---------------------------------------------------------------+
-    |   1|Clipping is on. Data outside of the window will not be drawn.  |
-    +----+---------------------------------------------------------------+
++----+---------------------------------------------------------------+
+|   0|Clipping is off. Data outside of the window will be drawn.     |
++----+---------------------------------------------------------------+
+|   1|Clipping is on. Data outside of the window will not be drawn.  |
++----+---------------------------------------------------------------+
 
-    `setclip` enables or disables clipping of the image drawn in the current window.
-    Clipping is defined as the removal of those portions of the graph that lie outside of
-    the defined viewport. If clipping is on, GR does not draw generated output primitives
-    past the viewport boundaries. If clipping is off, primitives may exceed the viewport
-    boundaries, and they will be drawn to the edge of the workstation window.
-    By default, clipping is on.
+`setclip` enables or disables clipping of the image drawn in the current window.
+Clipping is defined as the removal of those portions of the graph that lie outside of
+the defined viewport. If clipping is on, GR does not draw generated output primitives
+past the viewport boundaries. If clipping is off, primitives may exceed the viewport
+boundaries, and they will be drawn to the edge of the workstation window.
+By default, clipping is on.
 
 """
 function setclip(indicator::Int)
@@ -1372,23 +1372,23 @@ end
 """
     setwswindow(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
 
-    Set the area of the NDC viewport that is to be drawn in the workstation window.
+Set the area of the NDC viewport that is to be drawn in the workstation window.
 
-    **Parameters:**
+**Parameters:**
 
-    `xmin` :
-        The left horizontal coordinate of the workstation window.
-    `xmax` :
-        The right horizontal coordinate of the workstation window (0 <= `xmin` < `xmax` <= 1).
-    `ymin` :
-        The bottom vertical coordinate of the workstation window.
-    `ymax` :
-        The top vertical coordinate of the workstation window (0 <= `ymin` < `ymax` <= 1).
+`xmin` :
+    The left horizontal coordinate of the workstation window.
+`xmax` :
+    The right horizontal coordinate of the workstation window (0 <= `xmin` < `xmax` <= 1).
+`ymin` :
+    The bottom vertical coordinate of the workstation window.
+`ymax` :
+    The top vertical coordinate of the workstation window (0 <= `ymin` < `ymax` <= 1).
 
-    `setwswindow` defines the rectangular area of the Normalized Device Coordinate space
-    to be output to the device. By default, the workstation transformation will map the
-    range [0,1] x [0,1] in NDC onto the largest square on the workstation’s display
-    surface. The aspect ratio of the workstation window is maintained at 1 to 1.
+`setwswindow` defines the rectangular area of the Normalized Device Coordinate space
+to be output to the device. By default, the workstation transformation will map the
+range [0,1] x [0,1] in NDC onto the largest square on the workstation’s display
+surface. The aspect ratio of the workstation window is maintained at 1 to 1.
 
 """
 function setwswindow(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
@@ -1401,23 +1401,23 @@ end
 """
     setwsviewport(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
 
-    Define the size of the workstation graphics window in meters.
+Define the size of the workstation graphics window in meters.
 
-    **Parameters:**
+**Parameters:**
 
-    `xmin` :
-        The left horizontal coordinate of the workstation viewport.
-    `xmax` :
-        The right horizontal coordinate of the workstation viewport.
-    `ymin` :
-        The bottom vertical coordinate of the workstation viewport.
-    `ymax` :
-        The top vertical coordinate of the workstation viewport.
+`xmin` :
+    The left horizontal coordinate of the workstation viewport.
+`xmax` :
+    The right horizontal coordinate of the workstation viewport.
+`ymin` :
+    The bottom vertical coordinate of the workstation viewport.
+`ymax` :
+    The top vertical coordinate of the workstation viewport.
 
-    `setwsviewport` places a workstation window on the display of the specified size in
-    meters. This command allows the workstation window to be accurately sized for a
-    display or hardcopy device, and is often useful for sizing graphs for desktop
-    publishing applications.
+`setwsviewport` places a workstation window on the display of the specified size in
+meters. This command allows the workstation window to be accurately sized for a
+display or hardcopy device, and is often useful for sizing graphs for desktop
+publishing applications.
 
 """
 function setwsviewport(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
@@ -1479,26 +1479,26 @@ end
 """
     setspace(zmin::Real, zmax::Real, rotation::Int, tilt::Int)
 
-    Set the abstract Z-space used for mapping three-dimensional output primitives into
-    the current world coordinate space.
+Set the abstract Z-space used for mapping three-dimensional output primitives into
+the current world coordinate space.
 
-    **Parameters:**
+**Parameters:**
 
-    `zmin` :
-        Minimum value for the Z-axis.
-    `zmax` :
-        Maximum value for the Z-axis.
-    `rotation` :
-        Angle for the rotation of the X axis, in degrees.
-    `tilt` :
-        Viewing angle of the Z axis in degrees.
+`zmin` :
+    Minimum value for the Z-axis.
+`zmax` :
+    Maximum value for the Z-axis.
+`rotation` :
+    Angle for the rotation of the X axis, in degrees.
+`tilt` :
+    Viewing angle of the Z axis in degrees.
 
-    `setspace` establishes the limits of an abstract Z-axis and defines the angles for
-    rotation and for the viewing angle (tilt) of a simulated three-dimensional graph,
-    used for mapping corresponding output primitives into the current window.
-    These settings are used for all subsequent three-dimensional output primitives until
-    other values are specified. Angles of rotation and viewing angle must be specified
-    between 0° and 90°.
+`setspace` establishes the limits of an abstract Z-axis and defines the angles for
+rotation and for the viewing angle (tilt) of a simulated three-dimensional graph,
+used for mapping corresponding output primitives into the current window.
+These settings are used for all subsequent three-dimensional output primitives until
+other values are specified. Angles of rotation and viewing angle must be specified
+between 0° and 90°.
 
 """
 function setspace(zmin::Real, zmax::Real, rotation::Int, tilt::Int)
@@ -1511,91 +1511,91 @@ end
 """
     textext(x::Real, y::Real, string)
 
-    Draw a text at position `x`, `y` using the current text attributes. Strings can be
-    defined to create basic mathematical expressions and Greek letters.
+Draw a text at position `x`, `y` using the current text attributes. Strings can be
+defined to create basic mathematical expressions and Greek letters.
 
-    **Parameters:**
+**Parameters:**
 
-    `x` :
-        The X coordinate of starting position of the text string
-    `y` :
-        The Y coordinate of starting position of the text string
-    `string` :
-        The text to be drawn
+`x` :
+    The X coordinate of starting position of the text string
+`y` :
+    The Y coordinate of starting position of the text string
+`string` :
+    The text to be drawn
 
-    The values for X and Y are in normalized device coordinates.
-    The attributes that control the appearance of text are text font and precision,
-    character expansion factor, character spacing, text color index, character
-    height, character up vector, text path and text alignment.
+The values for X and Y are in normalized device coordinates.
+The attributes that control the appearance of text are text font and precision,
+character expansion factor, character spacing, text color index, character
+height, character up vector, text path and text alignment.
 
-    The character string is interpreted to be a simple mathematical formula.
-    The following notations apply:
+The character string is interpreted to be a simple mathematical formula.
+The following notations apply:
 
-    Subscripts and superscripts: These are indicated by carets ('^') and underscores
-    ('_'). If the sub/superscript contains more than one character, it must be enclosed
-    in curly braces ('{}').
+Subscripts and superscripts: These are indicated by carets ('^') and underscores
+('_'). If the sub/superscript contains more than one character, it must be enclosed
+in curly braces ('{}').
 
-    Fractions are typeset with A '/' B, where A stands for the numerator and B for the
-    denominator.
+Fractions are typeset with A '/' B, where A stands for the numerator and B for the
+denominator.
 
-    To include a Greek letter you must specify the corresponding keyword after a
-    backslash ('\') character. The text translator produces uppercase or lowercase
-    Greek letters depending on the case of the keyword.
+To include a Greek letter you must specify the corresponding keyword after a
+backslash ('\') character. The text translator produces uppercase or lowercase
+Greek letters depending on the case of the keyword.
 
-    +--------+---------+
-    |Letter  |Keyword  |
-    +--------+---------+
-    |Α α     |alpha    |
-    +--------+---------+
-    |Β β     |beta     |
-    +--------+---------+
-    |Γ γ     |gamma    |
-    +--------+---------+
-    |Δ δ     |delta    |
-    +--------+---------+
-    |Ε ε     |epsilon  |
-    +--------+---------+
-    |Ζ ζ     |zeta     |
-    +--------+---------+
-    |Η η     |eta      |
-    +--------+---------+
-    |Θ θ     |theta    |
-    +--------+---------+
-    |Ι ι     |iota     |
-    +--------+---------+
-    |Κ κ     |kappa    |
-    +--------+---------+
-    |Λ λ     |lambda   |
-    +--------+---------+
-    |Μ μ     |mu       |
-    +--------+---------+
-    |Ν ν     |nu       |
-    +--------+---------+
-    |Ξ ξ     |xi       |
-    +--------+---------+
-    |Ο ο     |omicron  |
-    +--------+---------+
-    |Π π     |pi       |
-    +--------+---------+
-    |Ρ ρ     |rho      |
-    +--------+---------+
-    |Σ σ     |sigma    |
-    +--------+---------+
-    |Τ τ     |tau      |
-    +--------+---------+
-    |Υ υ     |upsilon  |
-    +--------+---------+
-    |Φ φ     |phi      |
-    +--------+---------+
-    |Χ χ     |chi      |
-    +--------+---------+
-    |Ψ ψ     |psi      |
-    +--------+---------+
-    |Ω ω     |omega    |
-    +--------+---------+
++--------+---------+
+|Letter  |Keyword  |
++--------+---------+
+|Α α     |alpha    |
++--------+---------+
+|Β β     |beta     |
++--------+---------+
+|Γ γ     |gamma    |
++--------+---------+
+|Δ δ     |delta    |
++--------+---------+
+|Ε ε     |epsilon  |
++--------+---------+
+|Ζ ζ     |zeta     |
++--------+---------+
+|Η η     |eta      |
++--------+---------+
+|Θ θ     |theta    |
++--------+---------+
+|Ι ι     |iota     |
++--------+---------+
+|Κ κ     |kappa    |
++--------+---------+
+|Λ λ     |lambda   |
++--------+---------+
+|Μ μ     |mu       |
++--------+---------+
+|Ν ν     |nu       |
++--------+---------+
+|Ξ ξ     |xi       |
++--------+---------+
+|Ο ο     |omicron  |
++--------+---------+
+|Π π     |pi       |
++--------+---------+
+|Ρ ρ     |rho      |
++--------+---------+
+|Σ σ     |sigma    |
++--------+---------+
+|Τ τ     |tau      |
++--------+---------+
+|Υ υ     |upsilon  |
++--------+---------+
+|Φ φ     |phi      |
++--------+---------+
+|Χ χ     |chi      |
++--------+---------+
+|Ψ ψ     |psi      |
++--------+---------+
+|Ω ω     |omega    |
++--------+---------+
 
-    For more sophisticated mathematical formulas, you should use the `gr.mathtex`
-    function.
+For more sophisticated mathematical formulas, you should use the `gr.mathtex`
+function.
 
 """
 function textext(x::Real, y::Real, string)
@@ -1618,31 +1618,31 @@ end
 """
     axes(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real)
 
-    Draw X and Y coordinate axes with linearly and/or logarithmically spaced tick marks.
+Draw X and Y coordinate axes with linearly and/or logarithmically spaced tick marks.
 
-    **Parameters:**
+**Parameters:**
 
-    `x_tick`, `y_tick` :
-        The interval between minor tick marks on each axis.
-    `x_org`, `y_org` :
-        The world coordinates of the origin (point of intersection) of the X
-        and Y axes.
-    `major_x`, `major_y` :
-        Unitless integer values specifying the number of minor tick intervals
-        between major tick marks. Values of 0 or 1 imply no minor ticks.
-        Negative values specify no labels will be drawn for the associated axis.
-    `tick_size` :
-        The length of minor tick marks specified in a normalized device
-        coordinate unit. Major tick marks are twice as long as minor tick marks.
-        A negative value reverses the tick marks on the axes from inward facing
-        to outward facing (or vice versa).
+`x_tick`, `y_tick` :
+    The interval between minor tick marks on each axis.
+`x_org`, `y_org` :
+    The world coordinates of the origin (point of intersection) of the X
+    and Y axes.
+`major_x`, `major_y` :
+    Unitless integer values specifying the number of minor tick intervals
+    between major tick marks. Values of 0 or 1 imply no minor ticks.
+    Negative values specify no labels will be drawn for the associated axis.
+`tick_size` :
+    The length of minor tick marks specified in a normalized device
+    coordinate unit. Major tick marks are twice as long as minor tick marks.
+    A negative value reverses the tick marks on the axes from inward facing
+    to outward facing (or vice versa).
 
-    Tick marks are positioned along each axis so that major tick marks fall on the axes
-    origin (whether visible or not). Major tick marks are labeled with the corresponding
-    data values. Axes are drawn according to the scale of the window. Axes and tick marks
-    are drawn using solid lines; line color and width can be modified using the
-    `setlinetype` and `setlinewidth` functions. Axes are drawn according to
-    the linear or logarithmic transformation established by the `setscale` function.
+Tick marks are positioned along each axis so that major tick marks fall on the axes
+origin (whether visible or not). Major tick marks are labeled with the corresponding
+data values. Axes are drawn according to the scale of the window. Axes and tick marks
+are drawn using solid lines; line color and width can be modified using the
+`setlinetype` and `setlinewidth` functions. Axes are drawn according to
+the linear or logarithmic transformation established by the `setscale` function.
 
 """
 function axes(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real)
@@ -1655,22 +1655,22 @@ end
 """
     grid(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int)
 
-    Draw a linear and/or logarithmic grid.
+Draw a linear and/or logarithmic grid.
 
-    **Parameters:**
+**Parameters:**
 
-    `x_tick`, `y_tick` :
-        The length in world coordinates of the interval between minor grid
-        lines.
-    `x_org`, `y_org` :
-        The world coordinates of the origin (point of intersection) of the grid.
-    `major_x`, `major_y` :
-        Unitless integer values specifying the number of minor grid lines
-        between major grid lines. Values of 0 or 1 imply no grid lines.
+`x_tick`, `y_tick` :
+    The length in world coordinates of the interval between minor grid
+    lines.
+`x_org`, `y_org` :
+    The world coordinates of the origin (point of intersection) of the grid.
+`major_x`, `major_y` :
+    Unitless integer values specifying the number of minor grid lines
+    between major grid lines. Values of 0 or 1 imply no grid lines.
 
-    Major grid lines correspond to the axes origin and major tick marks whether visible
-    or not. Minor grid lines are drawn at points equal to minor tick marks. Major grid
-    lines are drawn using black lines and minor grid lines are drawn using gray lines.
+Major grid lines correspond to the axes origin and major tick marks whether visible
+or not. Minor grid lines are drawn at points equal to minor tick marks. Major grid
+lines are drawn using black lines and minor grid lines are drawn using gray lines.
 
 """
 function grid(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int)
@@ -1690,18 +1690,18 @@ end
 """
     verrorbars(px, py, e1, e2)
 
-    Draw a standard vertical error bar graph.
+Draw a standard vertical error bar graph.
 
-    **Parameters:**
+**Parameters:**
 
-    `px` :
-        A list of length N containing the X coordinates
-    `py` :
-        A list of length N containing the Y coordinates
-    `e1` :
-         The absolute values of the lower error bar data
-    `e2` :
-         The absolute values of the upper error bar data
+`px` :
+    A list of length N containing the X coordinates
+`py` :
+    A list of length N containing the Y coordinates
+`e1` :
+     The absolute values of the lower error bar data
+`e2` :
+     The absolute values of the upper error bar data
 
 """
 function verrorbars(px, py, e1, e2)
@@ -1716,18 +1716,18 @@ end
 """
     herrorbars(px, py, e1, e2)
 
-    Draw a standard horizontal error bar graph.
+Draw a standard horizontal error bar graph.
 
-    **Parameters:**
+**Parameters:**
 
-    `px` :
-        A list of length N containing the X coordinates
-    `py` :
-        A list of length N containing the Y coordinates
-    `e1` :
-         The absolute values of the lower error bar data
-    `e2` :
-         The absolute values of the upper error bar data
+`px` :
+    A list of length N containing the X coordinates
+`py` :
+    A list of length N containing the Y coordinates
+`e1` :
+     The absolute values of the lower error bar data
+`e2` :
+     The absolute values of the upper error bar data
 
 """
 function herrorbars(px, py, e1, e2)
@@ -1742,21 +1742,21 @@ end
 """
     polyline3d(px, py, pz)
 
-    Draw a 3D curve using the current line attributes, starting from the
-    first data point and ending at the last data point.
+Draw a 3D curve using the current line attributes, starting from the
+first data point and ending at the last data point.
 
-    **Parameters:**
+**Parameters:**
 
-    `x` :
-        A list of length N containing the X coordinates
-    `y` :
-        A list of length N containing the Y coordinates
-    `z` :
-        A list of length N containing the Z coordinates
+`x` :
+    A list of length N containing the X coordinates
+`y` :
+    A list of length N containing the Y coordinates
+`z` :
+    A list of length N containing the Z coordinates
 
-    The values for `x`, `y` and `z` are in world coordinates. The attributes that
-    control the appearance of a polyline are linetype, linewidth and color
-    index.
+The values for `x`, `y` and `z` are in world coordinates. The attributes that
+control the appearance of a polyline are linetype, linewidth and color
+index.
 
 """
 function polyline3d(px, py, pz)
@@ -1771,20 +1771,20 @@ end
 """
     polymarker3d(px, py, pz)
 
-    Draw marker symbols centered at the given 3D data points.
+Draw marker symbols centered at the given 3D data points.
 
-    **Parameters:**
+**Parameters:**
 
-    `x` :
-        A list of length N containing the X coordinates
-    `y` :
-        A list of length N containing the Y coordinates
-    `z` :
-        A list of length N containing the Z coordinates
+`x` :
+    A list of length N containing the X coordinates
+`y` :
+    A list of length N containing the Y coordinates
+`z` :
+    A list of length N containing the Z coordinates
 
-    The values for `x`, `y` and `z` are in world coordinates. The attributes
-    that control the appearance of a polymarker are marker type, marker size
-    scale factor and color index.
+The values for `x`, `y` and `z` are in world coordinates. The attributes
+that control the appearance of a polymarker are marker type, marker size
+scale factor and color index.
 
 """
 function polymarker3d(px, py, pz)
@@ -1806,12 +1806,12 @@ end
 """
     titles3d(x_title, y_title, z_title)
 
-    Display axis titles just outside of their respective axes.
+Display axis titles just outside of their respective axes.
 
-    **Parameters:**
+**Parameters:**
 
-    `x_title`, `y_title`, `z_title` :
-        The text to be displayed on each axis
+`x_title`, `y_title`, `z_title` :
+    The text to be displayed on each axis
 
 """
 function titles3d(x_title, y_title, z_title)
@@ -1824,39 +1824,39 @@ end
 """
     surface(px, py, pz, option::Int)
 
-    Draw a three-dimensional surface plot for the given data points.
+Draw a three-dimensional surface plot for the given data points.
 
-    **Parameters:**
+**Parameters:**
 
-    `x` :
-        A list containing the X coordinates
-    `y` :
-        A list containing the Y coordinates
-    `z` :
-        A list of length `len(x)` * `len(y)` or an appropriately dimensioned
-        array containing the Z coordinates
-    `option` :
-        Surface display option (see table below)
+`x` :
+    A list containing the X coordinates
+`y` :
+    A list containing the Y coordinates
+`z` :
+    A list of length `len(x)` * `len(y)` or an appropriately dimensioned
+    array containing the Z coordinates
+`option` :
+    Surface display option (see table below)
 
-    `x` and `y` define a grid. `z` is a singly dimensioned array containing at least
-    `nx` * `ny` data points. Z describes the surface height at each point on the grid.
-    Data is ordered as shown in the following table:
+`x` and `y` define a grid. `z` is a singly dimensioned array containing at least
+`nx` * `ny` data points. Z describes the surface height at each point on the grid.
+Data is ordered as shown in the following table:
 
-    +------------------+--+--------------------------------------------------------------+
-    |LINES             | 0|Use X Y polylines to denote the surface                       |
-    +------------------+--+--------------------------------------------------------------+
-    |MESH              | 1|Use a wire grid to denote the surface                         |
-    +------------------+--+--------------------------------------------------------------+
-    |FILLED_MESH       | 2|Applies an opaque grid to the surface                         |
-    +------------------+--+--------------------------------------------------------------+
-    |Z_SHADED_MESH     | 3|Applies Z-value shading to the surface                        |
-    +------------------+--+--------------------------------------------------------------+
-    |COLORED_MESH      | 4|Applies a colored grid to the surface                         |
-    +------------------+--+--------------------------------------------------------------+
-    |CELL_ARRAY        | 5|Applies a grid of individually-colored cells to the surface   |
-    +------------------+--+--------------------------------------------------------------+
-    |SHADED_MESH       | 6|Applies light source shading to the 3-D surface               |
-    +------------------+--+--------------------------------------------------------------+
++------------------+--+--------------------------------------------------------------+
+|LINES             | 0|Use X Y polylines to denote the surface                       |
++------------------+--+--------------------------------------------------------------+
+|MESH              | 1|Use a wire grid to denote the surface                         |
++------------------+--+--------------------------------------------------------------+
+|FILLED_MESH       | 2|Applies an opaque grid to the surface                         |
++------------------+--+--------------------------------------------------------------+
+|Z_SHADED_MESH     | 3|Applies Z-value shading to the surface                        |
++------------------+--+--------------------------------------------------------------+
+|COLORED_MESH      | 4|Applies a colored grid to the surface                         |
++------------------+--+--------------------------------------------------------------+
+|CELL_ARRAY        | 5|Applies a grid of individually-colored cells to the surface   |
++------------------+--+--------------------------------------------------------------+
+|SHADED_MESH       | 6|Applies light source shading to the 3-D surface               |
++------------------+--+--------------------------------------------------------------+
 
 """
 function surface(px, py, pz, option::Int)
@@ -1890,25 +1890,25 @@ end
 """
     contour(px, py, h, pz, major_h::Int)
 
-    Draw contours of a three-dimensional data set whose values are specified over a
-    rectangular mesh. Contour lines may optionally be labeled.
+Draw contours of a three-dimensional data set whose values are specified over a
+rectangular mesh. Contour lines may optionally be labeled.
 
-    **Parameters:**
+**Parameters:**
 
-    `x` :
-        A list containing the X coordinates
-    `y` :
-        A list containing the Y coordinates
-    `h` :
-        A list containing the Z coordinate for the height values
-    `z` :
-        A list of length `len(x)` * `len(y)` or an appropriately dimensioned
-        array containing the Z coordinates
-    `major_h` :
-        Directs GR to label contour lines. For example, a value of 3 would label
-        every third line. A value of 1 will label every line. A value of 0
-        produces no labels. To produce colored contour lines, add an offset
-        of 1000 to `major_h`.
+`x` :
+    A list containing the X coordinates
+`y` :
+    A list containing the Y coordinates
+`h` :
+    A list containing the Z coordinate for the height values
+`z` :
+    A list of length `len(x)` * `len(y)` or an appropriately dimensioned
+    array containing the Z coordinates
+`major_h` :
+    Directs GR to label contour lines. For example, a value of 3 would label
+    every third line. A value of 1 will label every line. A value of 0
+    produces no labels. To produce colored contour lines, add an offset
+    of 1000 to `major_h`.
 
 """
 function contour(px, py, h, pz, major_h::Int)
@@ -2019,35 +2019,35 @@ end
 """
     beginprint(pathname)
 
-    Open and activate a print device.
+Open and activate a print device.
 
-    **Parameters:**
+**Parameters:**
 
-    `pathname` :
-        Filename for the print device.
+`pathname` :
+    Filename for the print device.
 
-    `beginprint` opens an additional graphics output device. The device type is obtained
-    from the given file extension. The following file types are supported:
+`beginprint` opens an additional graphics output device. The device type is obtained
+from the given file extension. The following file types are supported:
 
-    +-------------+---------------------------------------+
-    |.ps, .eps    |PostScript                             |
-    +-------------+---------------------------------------+
-    |.pdf         |Portable Document Format               |
-    +-------------+---------------------------------------+
-    |.bmp         |Windows Bitmap (BMP)                   |
-    +-------------+---------------------------------------+
-    |.jpeg, .jpg  |JPEG image file                        |
-    +-------------+---------------------------------------+
-    |.png         |Portable Network Graphics file (PNG)   |
-    +-------------+---------------------------------------+
-    |.tiff, .tif  |Tagged Image File Format (TIFF)        |
-    +-------------+---------------------------------------+
-    |.fig         |Xfig vector graphics file              |
-    +-------------+---------------------------------------+
-    |.svg         |Scalable Vector Graphics               |
-    +-------------+---------------------------------------+
-    |.wmf         |Windows Metafile                       |
-    +-------------+---------------------------------------+
++-------------+---------------------------------------+
+|.ps, .eps    |PostScript                             |
++-------------+---------------------------------------+
+|.pdf         |Portable Document Format               |
++-------------+---------------------------------------+
+|.bmp         |Windows Bitmap (BMP)                   |
++-------------+---------------------------------------+
+|.jpeg, .jpg  |JPEG image file                        |
++-------------+---------------------------------------+
+|.png         |Portable Network Graphics file (PNG)   |
++-------------+---------------------------------------+
+|.tiff, .tif  |Tagged Image File Format (TIFF)        |
++-------------+---------------------------------------+
+|.fig         |Xfig vector graphics file              |
++-------------+---------------------------------------+
+|.svg         |Scalable Vector Graphics               |
++-------------+---------------------------------------+
+|.wmf         |Windows Metafile                       |
++-------------+---------------------------------------+
 
 """
 function beginprint(pathname)
@@ -2060,82 +2060,82 @@ end
 """
     beginprintext(pathname, mode, fmt, orientation)
 
-    Open and activate a print device with the given layout attributes.
+Open and activate a print device with the given layout attributes.
 
-    **Parameters:**
+**Parameters:**
 
-    `pathname` :
-        Filename for the print device.
-    `mode` :
-        Output mode (Color, GrayScale)
-    `fmt` :
-        Output format (see table below)
-    `orientation` :
-        Page orientation (Landscape, Portait)
+`pathname` :
+    Filename for the print device.
+`mode` :
+    Output mode (Color, GrayScale)
+`fmt` :
+    Output format (see table below)
+`orientation` :
+    Page orientation (Landscape, Portait)
 
-    The available formats are:
+The available formats are:
 
-    +-----------+---------------+
-    |A4         |0.210 x 0.297  |
-    +-----------+---------------+
-    |B5         |0.176 x 0.250  |
-    +-----------+---------------+
-    |Letter     |0.216 x 0.279  |
-    +-----------+---------------+
-    |Legal      |0.216 x 0.356  |
-    +-----------+---------------+
-    |Executive  |0.191 x 0.254  |
-    +-----------+---------------+
-    |A0         |0.841 x 1.189  |
-    +-----------+---------------+
-    |A1         |0.594 x 0.841  |
-    +-----------+---------------+
-    |A2         |0.420 x 0.594  |
-    +-----------+---------------+
-    |A3         |0.297 x 0.420  |
-    +-----------+---------------+
-    |A5         |0.148 x 0.210  |
-    +-----------+---------------+
-    |A6         |0.105 x 0.148  |
-    +-----------+---------------+
-    |A7         |0.074 x 0.105  |
-    +-----------+---------------+
-    |A8         |0.052 x 0.074  |
-    +-----------+---------------+
-    |A9         |0.037 x 0.052  |
-    +-----------+---------------+
-    |B0         |1.000 x 1.414  |
-    +-----------+---------------+
-    |B1         |0.500 x 0.707  |
-    +-----------+---------------+
-    |B10        |0.031 x 0.044  |
-    +-----------+---------------+
-    |B2         |0.500 x 0.707  |
-    +-----------+---------------+
-    |B3         |0.353 x 0.500  |
-    +-----------+---------------+
-    |B4         |0.250 x 0.353  |
-    +-----------+---------------+
-    |B6         |0.125 x 0.176  |
-    +-----------+---------------+
-    |B7         |0.088 x 0.125  |
-    +-----------+---------------+
-    |B8         |0.062 x 0.088  |
-    +-----------+---------------+
-    |B9         |0.044 x 0.062  |
-    +-----------+---------------+
-    |C5E        |0.163 x 0.229  |
-    +-----------+---------------+
-    |Comm10E    |0.105 x 0.241  |
-    +-----------+---------------+
-    |DLE        |0.110 x 0.220  |
-    +-----------+---------------+
-    |Folio      |0.210 x 0.330  |
-    +-----------+---------------+
-    |Ledger     |0.432 x 0.279  |
-    +-----------+---------------+
-    |Tabloid    |0.279 x 0.432  |
-    +-----------+---------------+
++-----------+---------------+
+|A4         |0.210 x 0.297  |
++-----------+---------------+
+|B5         |0.176 x 0.250  |
++-----------+---------------+
+|Letter     |0.216 x 0.279  |
++-----------+---------------+
+|Legal      |0.216 x 0.356  |
++-----------+---------------+
+|Executive  |0.191 x 0.254  |
++-----------+---------------+
+|A0         |0.841 x 1.189  |
++-----------+---------------+
+|A1         |0.594 x 0.841  |
++-----------+---------------+
+|A2         |0.420 x 0.594  |
++-----------+---------------+
+|A3         |0.297 x 0.420  |
++-----------+---------------+
+|A5         |0.148 x 0.210  |
++-----------+---------------+
+|A6         |0.105 x 0.148  |
++-----------+---------------+
+|A7         |0.074 x 0.105  |
++-----------+---------------+
+|A8         |0.052 x 0.074  |
++-----------+---------------+
+|A9         |0.037 x 0.052  |
++-----------+---------------+
+|B0         |1.000 x 1.414  |
++-----------+---------------+
+|B1         |0.500 x 0.707  |
++-----------+---------------+
+|B10        |0.031 x 0.044  |
++-----------+---------------+
+|B2         |0.500 x 0.707  |
++-----------+---------------+
+|B3         |0.353 x 0.500  |
++-----------+---------------+
+|B4         |0.250 x 0.353  |
++-----------+---------------+
+|B6         |0.125 x 0.176  |
++-----------+---------------+
+|B7         |0.088 x 0.125  |
++-----------+---------------+
+|B8         |0.062 x 0.088  |
++-----------+---------------+
+|B9         |0.044 x 0.062  |
++-----------+---------------+
+|C5E        |0.163 x 0.229  |
++-----------+---------------+
+|Comm10E    |0.105 x 0.241  |
++-----------+---------------+
+|DLE        |0.110 x 0.220  |
++-----------+---------------+
+|Folio      |0.210 x 0.330  |
++-----------+---------------+
+|Ledger     |0.432 x 0.279  |
++-----------+---------------+
+|Tabloid    |0.279 x 0.432  |
++-----------+---------------+
 
 """
 function beginprintext(pathname, mode, fmt, orientation)
@@ -2186,18 +2186,18 @@ end
 """
     drawrect(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
 
-    Draw a rectangle using the current line attributes.
+Draw a rectangle using the current line attributes.
 
-    **Parameters:**
+**Parameters:**
 
-    `xmin` :
-        Lower left edge of the rectangle
-    `xmax` :
-        Lower right edge of the rectangle
-    `ymin` :
-        Upper left edge of the rectangle
-    `ymax` :
-        Upper right edge of the rectangle
+`xmin` :
+    Lower left edge of the rectangle
+`xmax` :
+    Lower right edge of the rectangle
+`ymin` :
+    Upper left edge of the rectangle
+`ymax` :
+    Upper right edge of the rectangle
 
 """
 function drawrect(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
@@ -2210,18 +2210,18 @@ end
 """
     fillrect(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
 
-    Draw a filled rectangle using the current fill attributes.
+Draw a filled rectangle using the current fill attributes.
 
-    **Parameters:**
+**Parameters:**
 
-    `xmin` :
-        Lower left edge of the rectangle
-    `xmax` :
-        Lower right edge of the rectangle
-    `ymin` :
-        Upper left edge of the rectangle
-    `ymax` :
-        Upper right edge of the rectangle
+`xmin` :
+    Lower left edge of the rectangle
+`xmax` :
+    Lower right edge of the rectangle
+`ymin` :
+    Upper left edge of the rectangle
+`ymax` :
+    Upper right edge of the rectangle
 
 """
 function fillrect(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
@@ -2234,26 +2234,26 @@ end
 """
     drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
 
-    Draw a circular or elliptical arc covering the specified rectangle.
+Draw a circular or elliptical arc covering the specified rectangle.
 
-    **Parameters:**
+**Parameters:**
 
-    `xmin` :
-        Lower left edge of the rectangle
-    `xmax` :
-        Lower right edge of the rectangle
-    `ymin` :
-        Upper left edge of the rectangle
-    `ymax` :
-        Upper right edge of the rectangle
-    `a1` :
-        The start angle
-    `a2` :
-        The end angle
+`xmin` :
+    Lower left edge of the rectangle
+`xmax` :
+    Lower right edge of the rectangle
+`ymin` :
+    Upper left edge of the rectangle
+`ymax` :
+    Upper right edge of the rectangle
+`a1` :
+    The start angle
+`a2` :
+    The end angle
 
-    The resulting arc begins at `a1` and ends at `a2` degrees. Angles are interpreted
-    such that 0 degrees is at the 3 o'clock position. The center of the arc is the center
-    of the given rectangle.
+The resulting arc begins at `a1` and ends at `a2` degrees. Angles are interpreted
+such that 0 degrees is at the 3 o'clock position. The center of the arc is the center
+of the given rectangle.
 
 """
 function drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
@@ -2266,26 +2266,26 @@ end
 """
     fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
 
-    Fill a circular or elliptical arc covering the specified rectangle.
+Fill a circular or elliptical arc covering the specified rectangle.
 
-    **Parameters:**
+**Parameters:**
 
-    `xmin` :
-        Lower left edge of the rectangle
-    `xmax` :
-        Lower right edge of the rectangle
-    `ymin` :
-        Upper left edge of the rectangle
-    `ymax` :
-        Upper right edge of the rectangle
-    `a1` :
-        The start angle
-    `a2` :
-        The end angle
+`xmin` :
+    Lower left edge of the rectangle
+`xmax` :
+    Lower right edge of the rectangle
+`ymin` :
+    Upper left edge of the rectangle
+`ymax` :
+    Upper right edge of the rectangle
+`a1` :
+    The start angle
+`a2` :
+    The end angle
 
-    The resulting arc begins at `a1` and ends at `a2` degrees. Angles are interpreted
-    such that 0 degrees is at the 3 o'clock position. The center of the arc is the center
-    of the given rectangle.
+The resulting arc begins at `a1` and ends at `a2` degrees. Angles are interpreted
+such that 0 degrees is at the 3 o'clock position. The center of the arc is the center
+of the given rectangle.
 
 """
 function fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
@@ -2298,32 +2298,32 @@ end
 """
     drawpath(points, codes, fill::Int)
 
-    Draw simple and compound outlines consisting of line segments and bezier curves.
+Draw simple and compound outlines consisting of line segments and bezier curves.
 
-    **Parameters:**
+**Parameters:**
 
-    `points` :
-        (N, 2) array of (x, y) vertices
-    `codes` :
-        N-length array of path codes
-    `fill` :
-        A flag indication whether resulting path is to be filled or not
+`points` :
+    (N, 2) array of (x, y) vertices
+`codes` :
+    N-length array of path codes
+`fill` :
+    A flag indication whether resulting path is to be filled or not
 
-    The following path codes are recognized:
+The following path codes are recognized:
 
-    +----------+-----------------------------------------------------------+
-    |      STOP|end the entire path                                        |
-    +----------+-----------------------------------------------------------+
-    |    MOVETO|move to the given vertex                                   |
-    +----------+-----------------------------------------------------------+
-    |    LINETO|draw a line from the current position to the given vertex  |
-    +----------+-----------------------------------------------------------+
-    |    CURVE3|draw a quadratic Bézier curve                              |
-    +----------+-----------------------------------------------------------+
-    |    CURVE4|draw a cubic Bézier curve                                  |
-    +----------+-----------------------------------------------------------+
-    | CLOSEPOLY|draw a line segment to the start point of the current path |
-    +----------+-----------------------------------------------------------+
++----------+-----------------------------------------------------------+
+|      STOP|end the entire path                                        |
++----------+-----------------------------------------------------------+
+|    MOVETO|move to the given vertex                                   |
++----------+-----------------------------------------------------------+
+|    LINETO|draw a line from the current position to the given vertex  |
++----------+-----------------------------------------------------------+
+|    CURVE3|draw a quadratic Bézier curve                              |
++----------+-----------------------------------------------------------+
+|    CURVE4|draw a cubic Bézier curve                                  |
++----------+-----------------------------------------------------------+
+| CLOSEPOLY|draw a line segment to the start point of the current path |
++----------+-----------------------------------------------------------+
 
 """
 function drawpath(points, codes, fill::Int)
@@ -2337,53 +2337,53 @@ end
 """
     setarrowstyle(style::Int)
 
-    Set the arrow style to be used for subsequent arrow commands.
+Set the arrow style to be used for subsequent arrow commands.
 
-    **Parameters:**
+**Parameters:**
 
-    `style` :
-        The arrow style to be used
+`style` :
+    The arrow style to be used
 
-    `setarrowstyle` defines the arrow style for subsequent arrow primitives.
-    The default arrow style is 1.
+`setarrowstyle` defines the arrow style for subsequent arrow primitives.
+The default arrow style is 1.
 
-    +---+----------------------------------+
-    |  1|simple, single-ended              |
-    +---+----------------------------------+
-    |  2|simple, single-ended, acute head  |
-    +---+----------------------------------+
-    |  3|hollow, single-ended              |
-    +---+----------------------------------+
-    |  4|filled, single-ended              |
-    +---+----------------------------------+
-    |  5|triangle, single-ended            |
-    +---+----------------------------------+
-    |  6|filled triangle, single-ended     |
-    +---+----------------------------------+
-    |  7|kite, single-ended                |
-    +---+----------------------------------+
-    |  8|filled kite, single-ended         |
-    +---+----------------------------------+
-    |  9|simple, double-ended              |
-    +---+----------------------------------+
-    | 10|simple, double-ended, acute head  |
-    +---+----------------------------------+
-    | 11|hollow, double-ended              |
-    +---+----------------------------------+
-    | 12|filled, double-ended              |
-    +---+----------------------------------+
-    | 13|triangle, double-ended            |
-    +---+----------------------------------+
-    | 14|filled triangle, double-ended     |
-    +---+----------------------------------+
-    | 15|kite, double-ended                |
-    +---+----------------------------------+
-    | 16|filled kite, double-ended         |
-    +---+----------------------------------+
-    | 17|double line, single-ended         |
-    +---+----------------------------------+
-    | 18|double line, double-ended         |
-    +---+----------------------------------+
++---+----------------------------------+
+|  1|simple, single-ended              |
++---+----------------------------------+
+|  2|simple, single-ended, acute head  |
++---+----------------------------------+
+|  3|hollow, single-ended              |
++---+----------------------------------+
+|  4|filled, single-ended              |
++---+----------------------------------+
+|  5|triangle, single-ended            |
++---+----------------------------------+
+|  6|filled triangle, single-ended     |
++---+----------------------------------+
+|  7|kite, single-ended                |
++---+----------------------------------+
+|  8|filled kite, single-ended         |
++---+----------------------------------+
+|  9|simple, double-ended              |
++---+----------------------------------+
+| 10|simple, double-ended, acute head  |
++---+----------------------------------+
+| 11|hollow, double-ended              |
++---+----------------------------------+
+| 12|filled, double-ended              |
++---+----------------------------------+
+| 13|triangle, double-ended            |
++---+----------------------------------+
+| 14|filled triangle, double-ended     |
++---+----------------------------------+
+| 15|kite, double-ended                |
++---+----------------------------------+
+| 16|filled kite, double-ended         |
++---+----------------------------------+
+| 17|double line, single-ended         |
++---+----------------------------------+
+| 18|double line, double-ended         |
++---+----------------------------------+
 
 """
 function setarrowstyle(style::Int)
@@ -2396,15 +2396,15 @@ end
 """
     setarrowsize(size::Real)
 
-    Set the arrow size to be used for subsequent arrow commands.
+Set the arrow size to be used for subsequent arrow commands.
 
-    **Parameters:**
+**Parameters:**
 
-    `size` :
-        The arrow size to be used
+`size` :
+    The arrow size to be used
 
-    `setarrowsize` defines the arrow size for subsequent arrow primitives.
-    The default arrow size is 1.
+`setarrowsize` defines the arrow size for subsequent arrow primitives.
+The default arrow size is 1.
 
 """
 function setarrowsize(size::Real)
@@ -2417,18 +2417,18 @@ end
 """
     drawarrow(x1::Real, y1::Real, x2::Real, y2::Real)
 
-    Draw an arrow between two points.
+Draw an arrow between two points.
 
-    **Parameters:**
+**Parameters:**
 
-    `x1`, `y1` :
-        Starting point of the arrow (tail)
-    `x2`, `y2` :
-        Head of the arrow
+`x1`, `y1` :
+    Starting point of the arrow (tail)
+`x2`, `y2` :
+    Head of the arrow
 
-    Different arrow styles (angles between arrow tail and wing, optionally filled
-    heads, double headed arrows) are available and can be set with the `setarrowstyle`
-    function.
+Different arrow styles (angles between arrow tail and wing, optionally filled
+heads, double headed arrows) are available and can be set with the `setarrowstyle`
+function.
 
 """
 function drawarrow(x1::Real, y1::Real, x2::Real, y2::Real)
@@ -2457,34 +2457,34 @@ end
 """
     drawimage(xmin::Real, xmax::Real, ymin::Real, ymax::Real, width::Int, height::Int, data, model::Int = 0)
 
-    Draw an image into a given rectangular area.
+Draw an image into a given rectangular area.
 
-    **Parameters:**
+**Parameters:**
 
-    `xmin`, `ymin` :
-        First corner point of the rectangle
-    `xmax`, `ymax` :
-        Second corner point of the rectangle
-    `width`, `height` :
-        The width and the height of the image
-    `data` :
-        An array of color values dimensioned `width` by `height`
-    `model` :
-        Color model (default=0)
+`xmin`, `ymin` :
+    First corner point of the rectangle
+`xmax`, `ymax` :
+    Second corner point of the rectangle
+`width`, `height` :
+    The width and the height of the image
+`data` :
+    An array of color values dimensioned `width` by `height`
+`model` :
+    Color model (default=0)
 
-    The available color models are:
+The available color models are:
 
-    +-----------------------+---+-----------+
-    |MODEL_RGB              |  0|   AARRGGBB|
-    +-----------------------+---+-----------+
-    |MODEL_HSV              |  1|   AAVVSSHH|
-    +-----------------------+---+-----------+
++-----------------------+---+-----------+
+|MODEL_RGB              |  0|   AARRGGBB|
++-----------------------+---+-----------+
+|MODEL_HSV              |  1|   AAVVSSHH|
++-----------------------+---+-----------+
 
 
-    The points (`xminx`, `ymin`) and (`xmax`, `ymax`) are world coordinates defining
-    diagonally opposite corner points of a rectangle. This rectangle is divided into
-    `width` by `height` cells. The two-dimensional array `data` specifies colors
-    for each cell.
+The points (`xminx`, `ymin`) and (`xmax`, `ymax`) are world coordinates defining
+diagonally opposite corner points of a rectangle. This rectangle is divided into
+`width` by `height` cells. The two-dimensional array `data` specifies colors
+for each cell.
 
 """
 function drawimage(xmin::Real, xmax::Real, ymin::Real, ymax::Real, width::Int, height::Int, data, model::Int = 0)
@@ -2507,21 +2507,21 @@ end
 """
     setshadow(offsetx::Real, offsety::Real, blur::Real)
 
-    `setshadow` allows drawing of shadows, realized by images painted underneath,
-    and offset from, graphics objects such that the shadow mimics the effect of a light
-    source cast on the graphics objects.
+`setshadow` allows drawing of shadows, realized by images painted underneath,
+and offset from, graphics objects such that the shadow mimics the effect of a light
+source cast on the graphics objects.
 
-    **Parameters:**
+**Parameters:**
 
-    `offsetx` :
-        An x-offset, which specifies how far in the horizontal direction the
-        shadow is offset from the object
-    `offsety` :
-        A y-offset, which specifies how far in the vertical direction the shadow
-        is offset from the object
-    `blur` :
-        A blur value, which specifies whether the object has a hard or a diffuse
-        edge
+`offsetx` :
+    An x-offset, which specifies how far in the horizontal direction the
+    shadow is offset from the object
+`offsety` :
+    A y-offset, which specifies how far in the vertical direction the shadow
+    is offset from the object
+`blur` :
+    A blur value, which specifies whether the object has a hard or a diffuse
+    edge
 
 """
 function setshadow(offsetx::Real, offsety::Real, blur::Real)
@@ -2534,12 +2534,12 @@ end
 """
     settransparency(alpha::Real)
 
-    Set the value of the alpha component associated with GR colors
+Set the value of the alpha component associated with GR colors
 
-    **Parameters:**
+**Parameters:**
 
-    `alpha` :
-        An alpha value (0.0 - 1.0)
+`alpha` :
+    An alpha value (0.0 - 1.0)
 
 """
 function settransparency(alpha::Real)
@@ -2552,12 +2552,12 @@ end
 """
     setcoordxform(mat)
 
-    Change the coordinate transformation according to the given matrix.
+Change the coordinate transformation according to the given matrix.
 
-    **Parameters:**
+**Parameters:**
 
-    `mat[3][2]` :
-        2D transformation matrix
+`mat[3][2]` :
+    2D transformation matrix
 
 """
 function setcoordxform(mat)
@@ -2571,16 +2571,16 @@ end
 """
     begingraphics(path)
 
-    Open a file for graphics output.
+Open a file for graphics output.
 
-    **Parameters:**
+**Parameters:**
 
-    `path` :
-        Filename for the graphics file.
+`path` :
+    Filename for the graphics file.
 
-    `begingraphics` allows to write all graphics output into a XML-formatted file until
-    the `endgraphics` functions is called. The resulting file may later be imported with
-    the `importgraphics` function.
+`begingraphics` allows to write all graphics output into a XML-formatted file until
+the `endgraphics` functions is called. The resulting file may later be imported with
+the `importgraphics` function.
 
 """
 function begingraphics(path)
@@ -2616,15 +2616,15 @@ end
 """
     mathtex(x::Real, y::Real, string)
 
-    Generate a character string starting at the given location. Strings can be defined
-    to create mathematical symbols and Greek letters using LaTeX syntax.
+Generate a character string starting at the given location. Strings can be defined
+to create mathematical symbols and Greek letters using LaTeX syntax.
 
-    **Parameters:**
+**Parameters:**
 
-    `x`, `y` :
-        Position of the text string specified in world coordinates
-    `string` :
-        The text string to be drawn
+`x`, `y` :
+    Position of the text string specified in world coordinates
+`string` :
+    The text string to be drawn
 
 """
 function mathtex(x::Real, y::Real, string)
@@ -3059,16 +3059,16 @@ end
 """
     trisurface(x, y, z)
 
-    Draw a triangular surface plot for the given data points.
+Draw a triangular surface plot for the given data points.
 
-    **Parameters:**
+**Parameters:**
 
-    `x` :
-        A list containing the X coordinates
-    `y` :
-        A list containing the Y coordinates
-    `z` :
-        A list containing the Z coordinates
+`x` :
+    A list containing the X coordinates
+`y` :
+    A list containing the Y coordinates
+`z` :
+    A list containing the Z coordinates
 
 """
 function trisurface(x, y, z)
