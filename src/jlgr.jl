@@ -24,7 +24,7 @@ const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :heatmap,
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
-const kw_args = [:alpha, :backgroundcolor, :color, :colormap, :figsize, :labels, :size, :title, :xflip, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlim, :zlog]
+const kw_args = [:alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :rotation, :size, :tilt, :title, :xflip, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlim, :zlog]
 
 type PlotObject
     obj
