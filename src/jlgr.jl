@@ -3,13 +3,6 @@ module jlgr
 using Compat
 import GR
 
-have_stats = true
-try
-    import StatsBase
-catch
-    have_stats = false
-end
-
 const None = Union{}
 
 macro _tuple(t)
@@ -677,13 +670,13 @@ function plot_data(flag=true)
             end
         elseif kind == :hist
             ymin = plt.kvs[:window][3]
-            for i = 2:length(y)
+            for i = 1:length(y)
                 GR.setfillcolorind(989)
                 GR.setfillintstyle(GR.INTSTYLE_SOLID)
-                GR.fillrect(x[i-1], x[i], ymin, y[i])
+                GR.fillrect(x[i], x[i+1], ymin, y[i])
                 GR.setfillcolorind(1)
                 GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
-                GR.fillrect(x[i-1], x[i], ymin, y[i])
+                GR.fillrect(x[i], x[i+1], ymin, y[i])
             end
         elseif kind == :contour
             zmin, zmax = plt.kvs[:zrange]
@@ -957,16 +950,27 @@ function stem(args...; kv...)
     plot_data()
 end
 
+function hist(x, nbins::Integer=0)
+    xmin, xmax = minimum(x), maximum(x)
+    if nbins <= 1
+        nbins = round(Int, 3.3 * log10(length(x))) + 1
+    end
+
+    edges = linspace(xmin, xmax, nbins + 1)
+    counts = zeros(nbins)
+
+    for v in x
+        idx = round(Int, (v - xmin) / (xmax - xmin) * (nbins - 1)) + 1
+        counts[idx] += 1
+    end
+
+    collect(edges), counts
+end
+
 function histogram(x; kv...)
     create_context(:hist, Dict(kv))
 
-    if have_stats
-        h = StatsBase.fit(StatsBase.Histogram, x)
-        x, y = collect(h.edges[1]), float(h.weights)
-    else
-        h = Base.hist(x)
-        x, y = float(collect(h[1])), float(h[2])
-    end
+    x, y = hist(x)
     plt.args = [(x, y, Void, Void, "")]
 
     plot_data()
