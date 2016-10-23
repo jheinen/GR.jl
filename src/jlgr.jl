@@ -17,7 +17,7 @@ const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :heatmap,
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
-const kw_args = [:alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :rotation, :size, :tilt, :title, :xflip, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlim, :zlog]
+const kw_args = [:alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :nbins, :rotation, :size, :tilt, :title, :xflip, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlim, :zlog]
 
 type PlotObject
     obj
@@ -970,7 +970,8 @@ end
 function histogram(x; kv...)
     create_context(:hist, Dict(kv))
 
-    x, y = hist(x)
+    nbins = get(plt.kvs, :nbins, 0)
+    x, y = hist(x, nbins)
     plt.args = [(x, y, Void, Void, "")]
 
     plot_data()
