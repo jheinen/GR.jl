@@ -116,6 +116,7 @@ export
   drawgraphics,
   mathtex,
   selectcontext,
+  destroycontext,
   trisurface,
 # gradient, # deprecated, but still in Base
   quiver,
@@ -3044,6 +3045,13 @@ end
 
 function selectcontext(context::Int)
   ccall( (:gr_selectcontext, libGR),
+        Void,
+        (Int32, ),
+        context)
+end
+
+function destroycontext(context::Int)
+  ccall( (:gr_destroycontext, libGR),
         Void,
         (Int32, ),
         context)
