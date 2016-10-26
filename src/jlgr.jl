@@ -13,7 +13,7 @@ end
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf]
+const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -85,7 +85,7 @@ function set_viewport(kind, subplot)
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
         viewport[2] -= 0.0525
     end
-    if kind in (:contour, :contourf, :heatmap, :surface, :trisurf)
+    if kind in (:contour, :contourf, :hexbin, :heatmap, :surface, :trisurf)
         viewport[2] -= 0.1
     end
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
@@ -696,6 +696,13 @@ function plot_data(flag=true)
             end
             GR.surface(x, y, z, GR.OPTION_CELL_ARRAY)
             colorbar()
+        elseif kind == :hexbin
+            nbins = get(plt.kvs, :nbins, 40)
+            cntmax = GR.hexbin(x, y, nbins)
+            if cntmax > 0
+                plt.kvs[:zrange] = 0, cntmax
+                colorbar()
+            end
         elseif kind == :heatmap
             xmin, xmax, ymin, ymax = plt.kvs[:window]
             width, height = size(z)
@@ -989,6 +996,14 @@ function contourf(args...; kv...)
     create_context(:contourf, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
+
+    plot_data()
+end
+
+function hexbin(args...; kv...)
+    create_context(:hexbin, Dict(kv))
+
+    plt.args = plot_args(args)
 
     plot_data()
 end

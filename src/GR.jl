@@ -81,6 +81,7 @@ export
   titles3d,
   surface,
   contour,
+  hexbin,
   setcolormap,
   colorbar,
   inqcolor,
@@ -1941,6 +1942,16 @@ function contour(px, py, h, pz, major_h::Int)
   end
 end
 
+function hexbin(x, y, nbins)
+  assert(length(x) == length(y))
+  n = length(x)
+  cntmax = ccall( (:gr_hexbin, libGR),
+                 Int32,
+                 (Int32, Ptr{Float64}, Ptr{Float64}, Int32),
+                 n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), nbins)
+  return cntmax
+end
+
 function setcolormap(index::Int)
   ccall( (:gr_setcolormap, libGR),
         Void,
@@ -2850,6 +2861,7 @@ stem(args...; kwargs...) = jlgr.stem(args...; kwargs...)
 histogram(x; kwargs...) = jlgr.histogram(x; kwargs...)
 contour(args...; kwargs...) = jlgr.contour(args...; kwargs...)
 contourf(args...; kwargs...) = jlgr.contourf(args...; kwargs...)
+hexbin(args...; kwargs...) = jlgr.hexbin(args...; kwargs...)
 heatmap(D; kwargs...) = jlgr.heatmap(D; kwargs...)
 wireframe(args...; kwargs...) = jlgr.wireframe(args...; kwargs...)
 surface(args...; kwargs...) = jlgr.surface(args...; kwargs...)
