@@ -59,4 +59,8 @@ if !have_dir
       rm("downloads/$tarball")
     end
   end
+  if os == :Darwin
+    app = joinpath("gr", "Applications", "GKSTerm.app")
+    run(`/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f $app`)
+  end
 end
