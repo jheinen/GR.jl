@@ -38,6 +38,7 @@ function Figure(width=600, height=450)
 end
 
 plt = Figure()
+ctx = Dict()
 
 isrowvec(x::AbstractArray) = ndims(x) == 2 && size(x, 1) == 1 && size(x, 2) > 1
 
@@ -481,6 +482,8 @@ function create_context(kind, dict)
 end
 
 function restore_context()
+    global ctx
+    ctx = copy(plt.kvs)
     plt.kvs = copy(plt.obj)
 end
 
@@ -492,8 +495,19 @@ function figure(; kv...)
 end
 
 function hold(flag)
-    plt.kvs[:ax] = flag
-    plt.kvs[:clear] = !flag
+    global ctx
+    if plt.args != @_tuple(Any)
+        plt.kvs[:ax] = flag
+        plt.kvs[:clear] = !flag
+        for k in (:window, :scale, :xaxis, :yaxis, :zaxis)
+            if haskey(ctx, k)
+                plt.kvs[k] = ctx[k]
+            end
+        end
+    else
+        println("Invalid hold state")
+    end
+    flag
 end
 
 function subplot(nr, nc, p)
