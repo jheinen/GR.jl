@@ -283,7 +283,7 @@ function draw_axes(kind, pass=1)
             GR.axes3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, majory, 0, ticksize)
         end
     else
-        if kind in (:heatmap, :imshow)
+        if kind == :heatmap
             ticksize = -ticksize
         else
             GR.grid(xtick, ytick, 0, 0, majorx, majory)
@@ -637,7 +637,7 @@ function plot_data(flag=true)
         set_window(kind)
         if kind == :polar
             draw_polar_axes()
-        elseif kind != :isosurface
+        elseif kind != :imshow && kind != :isosurface
             draw_axes(kind)
         end
     end
