@@ -126,6 +126,7 @@ export
   colormap,
   figure,
   hold,
+  usecolorscheme,
   subplot,
   plot,
   oplot,
@@ -2850,6 +2851,7 @@ include("jlgr.jl")
 colormap() = jlgr.colormap()
 figure(; kwargs...) = jlgr.figure(; kwargs...)
 hold(flag) = jlgr.hold(flag)
+usecolorscheme(index) = jlgr.usecolorscheme(index)
 subplot(m, n, p) = jlgr.subplot(m, n, p)
 plot(args...; kwargs...) = jlgr.plot(args...; kwargs...)
 oplot(args...; kwargs...) = jlgr.oplot(args...; kwargs...)
@@ -3014,7 +3016,8 @@ function show()
         write(content)
         return nothing
     elseif mime_type == "atom"
-        content = Base.HTML(string("""<div style="display: inline-block; background: #ffffff;">""", readstring("gks.svg"), """</div>"""))
+        bg = jlgr.background
+        content = Base.HTML(string("""<div style="display: inline-block; background: #""", hex(bg, 6), """;">""", readstring("gks.svg"), """</div>"""))
         Atom.render(Atom.PlotPane(), content)
         return nothing
     elseif mime_type == "js"

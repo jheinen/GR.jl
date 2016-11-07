@@ -19,6 +19,12 @@ const arg_fmt = [:xys, :xyac, :xyzc]
 
 const kw_args = [:alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :nbins, :rotation, :size, :tilt, :title, :xflip, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlim, :zlog]
 
+const colors = [
+    [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
+    ]
+
+const distinct_cmap = [ 0, 1, 984, 987, 989, 983, 994, 988 ]
+
 type PlotObject
     obj
     args
@@ -39,6 +45,8 @@ end
 
 plt = Figure()
 ctx = Dict()
+scheme = 0
+background = 0xffffff
 
 isrowvec(x::AbstractArray) = ndims(x) == 2 && size(x, 1) == 1 && size(x, 2) > 1
 
@@ -510,6 +518,15 @@ function hold(flag)
     flag
 end
 
+function usecolorscheme(index)
+    global scheme
+    if 1 <= index <= 4
+        scheme = index
+    else
+        println("Invalid color sheme")
+    end
+end
+
 function subplot(nr, nc, p)
     xmin, xmax, ymin, ymax = 1, 0, 1, 0
     for i in collect(p)
@@ -624,13 +641,42 @@ function plot_polar(θ, ρ)
     GR.polyline(x, y)
 end
 
+function RGB(color)
+    rgb = zeros(3)
+    rgb[1] = float((color >> 16) & 0xff) / 255.0
+    rgb[2] = float((color >> 8)  & 0xff) / 255.0
+    rgb[3] = float( color        & 0xff) / 255.0
+    rgb
+end
+
 function plot_data(flag=true)
+    global scheme, background
     if plt.args == @_tuple(Any)
         return
     end
     kind = get(plt.kvs, :kind, :line)
 
     plt.kvs[:clear] && GR.clearws()
+
+    if scheme != 0
+        for colorind in 1:8
+            color = colors[colorind, scheme]
+            if colorind == 1
+                background = color
+            end
+            r, g, b = RGB(color)
+            GR.setcolorrep(colorind - 1, r, g, b)
+            if scheme != 1
+                GR.setcolorrep(distinct_cmap[colorind], r, g, b)
+            end
+        end
+        r, g, b = RGB(colors[1, scheme])
+        rdiff, gdiff, bdiff = RGB(colors[2, scheme]) - [r, g, b]
+        for colorind in 1:12
+            f = (colorind - 1) / 11.0
+            GR.setcolorrep(92 - colorind, r + f*rdiff, g + f*gdiff, b + f*bdiff)
+        end
+    end
 
     set_viewport(kind, plt.kvs[:subplot])
     if !plt.kvs[:ax]
@@ -645,7 +691,7 @@ function plot_data(flag=true)
     if haskey(plt.kvs, :colormap)
         GR.setcolormap(plt.kvs[:colormap])
     else
-        GR.setcolormap(GR.COLORMAP_COOLWARM)
+        GR.setcolormap(GR.COLORMAP_VIRIDIS)
     end
 
     GR.uselinespec(" ")
