@@ -2615,7 +2615,7 @@ function getgraphics()
                  Ptr{Cchar},
                  (),
                  )
-  return Compat.unsafe_string(string)
+  return string != C_NULL ? Compat.unsafe_string(string) : ""
 end
 
 function drawgraphics(string)
