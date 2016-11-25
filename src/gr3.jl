@@ -27,7 +27,7 @@ end
 function _readfile(path)
     data = Array(UInt8, filesize(path))
     s = open(path, "r")
-    Compat.String(read!(s, data))
+    Compat.unsafe_string(read!(s, data))
 end
 
 type GR3Exception <: Exception
@@ -47,7 +47,7 @@ function _check_error()
   error_code = ccall((:gr3_geterror, GR.libGR3), Int32, (Int32, Ptr{Cint}, Ptr{Ptr{UInt8}}), 1, line, file)
   if (error_code != 0)
     line = line[1]
-    file = Compat.String(file[1])
+    file = Compat.unsafe_string(file[1])
     if 0 <= error_code < length(msgs)
       msg = msgs[error_code + 1]
     else
@@ -122,7 +122,7 @@ function getrenderpathstring()
   val = ccall((:gr3_getrenderpathstring, GR.libGR3),
               Ptr{UInt8}, (), )
   _check_error()
-  Compat.String(val)
+  Compat.unsafe_string(val)
 end
 export getrenderpathstring
 
