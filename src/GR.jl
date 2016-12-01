@@ -2488,7 +2488,7 @@ Draw an image into a given rectangular area.
 The available color models are:
 
     +-----------------------+---+-----------+
-    |MODEL_RGB              |  0|   AARRGGBB|
+    |MODEL_RGB              |  0|   AABBGGRR|
     +-----------------------+---+-----------+
     |MODEL_HSV              |  1|   AAVVSSHH|
     +-----------------------+---+-----------+
