@@ -27,7 +27,7 @@ end
 function _readfile(path)
     data = Array(UInt8, filesize(path))
     s = open(path, "r")
-    Compat.unsafe_string(read!(s, data))
+    read!(s, data)
 end
 
 type GR3Exception <: Exception
