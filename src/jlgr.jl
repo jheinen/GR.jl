@@ -43,6 +43,10 @@ function Figure(width=600, height=450)
     PlotObject(obj, args, kvs)
 end
 
+function gcf()
+    plt.kvs
+end
+
 plt = Figure()
 ctx = Dict()
 scheme = 0

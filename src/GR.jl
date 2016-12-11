@@ -125,6 +125,7 @@ export
   jlgr,
   colormap,
   figure,
+  gcf,
   hold,
   usecolorscheme,
   subplot,
@@ -2850,6 +2851,7 @@ include("jlgr.jl")
 
 colormap() = jlgr.colormap()
 figure(; kwargs...) = jlgr.figure(; kwargs...)
+gcf() = jlgr.gcf()
 hold(flag) = jlgr.hold(flag)
 usecolorscheme(index) = jlgr.usecolorscheme(index)
 subplot(m, n, p) = jlgr.subplot(m, n, p)
