@@ -14,8 +14,15 @@ ApplicationWindow {
     onClicked: { nbins.value = 30 }
     hoverEnabled: true
     onPositionChanged: {
-      Julia.mousePosition(mouse.x, mouse.y);
+      xy.text = Julia.mousePosition(mouse.x, mouse.y);
     }
+  }
+
+  Text {
+    id: xy
+    x: 5
+    y: 5
+    text: ""
   }
 
   ColumnLayout {

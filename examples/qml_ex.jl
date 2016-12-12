@@ -32,8 +32,14 @@ function paint(p::QPainter)
   return
 end
 
-function mousePosition(x, y)
-  println("$x, $y")
+function mousePosition(eventx, eventy)
+  sizex = 0.5 * w
+  sizey = 0.5 * h
+  q = max(sizex, sizey)
+  xn = eventx / q
+  yn = eventy / q
+  x, y = ndctowc(xn, yn)
+  "($(round(x,4)), $(round(-y,4)))"
 end
 
 # Convert to cfunction, passing the painter as void*
