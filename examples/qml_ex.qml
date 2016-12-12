@@ -9,6 +9,15 @@ ApplicationWindow {
   height: 450
   visible: true
 
+  MouseArea {
+    anchors.fill: parent
+    onClicked: { nbins.value = 30 }
+    hoverEnabled: true
+    onPositionChanged: {
+      Julia.mousePosition(mouse.x, mouse.y);
+    }
+  }
+
   ColumnLayout {
     id: root
     spacing: 6
