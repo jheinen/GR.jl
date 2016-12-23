@@ -17,7 +17,7 @@ const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :hexbin, 
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
-const kw_args = [:alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :nbins, :rotation, :size, :tilt, :title, :xflip, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlim, :zlog]
+const kw_args = [:alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :location, :nbins, :rotation, :size, :tilt, :title, :xflip, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlim, :zlog]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
@@ -395,6 +395,7 @@ end
 
 function draw_legend()
     viewport = plt.kvs[:viewport]
+    location = get(plt.kvs, :location, 1)
     num_labels = length(plt.kvs[:labels])
     GR.savestate()
     GR.selntran(0)
@@ -404,15 +405,29 @@ function draw_legend()
         tbx, tby = GR.inqtextext(0, 0, label)
         w = max(w, tbx[3])
     end
-    px = viewport[2] - 0.05 - w
-    py = viewport[4] - 0.06
+    num_lines = length(plt.args)
+    h = (num_lines + 1) * 0.03
+    if location in (8, 9, 10)
+        px = 0.5 * (viewport[1] + viewport[2] - w)
+    elseif location in (2, 3, 6)
+        px = viewport[1] + 0.11
+    else
+        px = viewport[2] - 0.05 - w
+    end
+    if location in (5, 6, 7, 10)
+        py = 0.5 * (viewport[3] + viewport[4] + h) - 0.03
+    elseif location in (3, 4, 8)
+        py = viewport[3] + h
+    else
+        py = viewport[4] - 0.06
+    end
     GR.setfillintstyle(GR.INTSTYLE_SOLID)
     GR.setfillcolorind(0)
-    GR.fillrect(px - 0.08, px + w + 0.02, py + 0.03, py - 0.03 * num_labels)
+    GR.fillrect(px - 0.08, px + w + 0.02, py + 0.03, py - 0.03 * num_lines)
     GR.setlinetype(GR.LINETYPE_SOLID)
     GR.setlinecolorind(1)
     GR.setlinewidth(1)
-    GR.drawrect(px - 0.08, px + w + 0.02, py + 0.03, py - 0.03 * num_labels)
+    GR.drawrect(px - 0.08, px + w + 0.02, py + 0.03, py - 0.03 * num_lines)
     i = 0
     GR.uselinespec(" ")
     for (x, y, z, c, spec) in plt.args
