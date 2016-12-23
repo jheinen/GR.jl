@@ -23,7 +23,7 @@ function paint(p::QPainter)
   w, h = width(dev), height(dev)
 
   plt = gcf()
-  plt[:size] = (w * 0.72, h * 0.72)
+  plt[:size] = (w, h)
 
   nbins = Int64(round(parameters.nbins))
   hexbin(randn(1000000), randn(1000000),
@@ -33,11 +33,13 @@ function paint(p::QPainter)
 end
 
 function mousePosition(eventx, eventy)
-  sizex = 0.5 * w
-  sizey = 0.5 * h
-  q = max(sizex, sizey)
-  xn = eventx / q
-  yn = eventy / q
+  xn = eventx / w
+  yn = eventy / h
+  if w > h
+    yn = yn * h / w
+  else
+    xn = xn * w / h
+  end
   x, y = ndctowc(xn, yn)
   "($(round(x,4)), $(round(-y,4)))"
 end
