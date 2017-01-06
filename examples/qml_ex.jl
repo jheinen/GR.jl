@@ -20,11 +20,11 @@ function paint(p::QPainter, item::JuliaPaintedItem)
   ENV["GKSconid"] = split(repr(p.cpp_object), "@")[2]
 
   dev = device(p)
-  w, h = width(dev), height(dev)
   r = effectiveDevicePixelRatio(window(item))
+  w, h = width(dev) / r, height(dev) / r
 
   plt = gcf()
-  plt[:size] = (w/r, h/r)
+  plt[:size] = (w, h)
 
   nbins = Int64(round(parameters.nbins))
   hexbin(randn(1000000), randn(1000000),
