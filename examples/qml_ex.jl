@@ -13,7 +13,7 @@ parameters = Parameters(30)
 w, h = (600, 450)
 
 # Called from QQuickPaintedItem::paint with the QPainter as an argument
-function paint(p::QPainter)
+function paint(p::QPainter, item::JuliaPaintedItem)
   global w, h
 
   ENV["GKSwstype"] = 381
@@ -21,9 +21,10 @@ function paint(p::QPainter)
 
   dev = device(p)
   w, h = width(dev), height(dev)
+  r = effectiveDevicePixelRatio(window(item))
 
   plt = gcf()
-  plt[:size] = (w, h)
+  plt[:size] = (w/r, h/r)
 
   nbins = Int64(round(parameters.nbins))
   hexbin(randn(1000000), randn(1000000),
@@ -45,7 +46,7 @@ function mousePosition(eventx, eventy)
 end
 
 # Convert to cfunction, passing the painter as void*
-paint_cfunction = safe_cfunction(paint, Void, (QPainter,))
+paint_cfunction = safe_cfunction(paint, Void, (QPainter,JuliaPaintedItem))
 
 # paint_cfunction becomes a context property
 @qmlapp qmlfile paint_cfunction parameters
