@@ -34,15 +34,15 @@ function paint(p::QPainter, item::JuliaPaintedItem)
 end
 
 function mousePosition(eventx, eventy)
-  xn = eventx / w
-  yn = eventy / h
   if w > h
-    yn = yn * h / w
+    xn = eventx / w
+    yn = (h - eventy) / w
   else
-    xn = xn * w / h
+    xn = eventx / h
+    yn = (h - eventy) / h
   end
   x, y = ndctowc(xn, yn)
-  "($(round(x,4)), $(round(-y,4)))"
+  "($(round(x,4)), $(round(y,4)))"
 end
 
 # Convert to cfunction, passing the painter as void*

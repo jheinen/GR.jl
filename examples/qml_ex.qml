@@ -9,15 +9,6 @@ ApplicationWindow {
   height: 450
   visible: true
 
-  MouseArea {
-    anchors.fill: parent
-    onClicked: { nbins.value = 30 }
-    hoverEnabled: true
-    onPositionChanged: {
-      xy.text = Julia.mousePosition(mouse.x, mouse.y);
-    }
-  }
-
   Text {
     id: xy
     x: 5
@@ -52,6 +43,15 @@ ApplicationWindow {
       paintFunction : paint_cfunction
       Layout.fillWidth: true
       Layout.fillHeight: true
+
+      MouseArea {
+        anchors.fill: parent
+        onClicked: { nbins.value = 30 }
+        hoverEnabled: true
+        onPositionChanged: {
+          xy.text = Julia.mousePosition(mouse.x, mouse.y);
+        }
+      }
 
       Connections {
         target: nbins
