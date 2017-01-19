@@ -458,7 +458,7 @@ function colorbar(off=0, colors=256)
     GR.setviewport(viewport[2] + 0.02 + off, viewport[2] + 0.05 + off,
                    viewport[3], viewport[4])
     l = zeros(Int32, 1, colors)
-    l[1,:] = round(Int32, linspace(1000, 1255, colors))
+    l[1,:] = Int[round(Int, _) for _ in linspace(1000, 1255, colors)]
     GR.cellarray(0, 1, zmax, zmin, 1, colors, l)
     GR.setlinecolorind(1)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
@@ -573,7 +573,7 @@ function plot_img(I)
     else
         width, height = size(I)
         data = (float(I) - minimum(I)) / (maximum(I) - minimum(I))
-        data = round(Int32, 1000 + data * 255)
+        data = Int32[round(Int32, 1000 + _ * 255) for _ in data]
     end
 
     if width  * (viewport[4] - viewport[3]) <
@@ -731,7 +731,7 @@ function plot_data(flag=true)
             if z != Void || c != Void
                 if c != Void
                     c = (c - minimum(c)) / (maximum(c) - minimum(c))
-                    cind = round(Int64, 1000 + c * 255)
+                    cind = Int[round(Int, 1000 + _ * 255) for _ in c]
                 end
                 for i in 1:length(x)
                     (z != Void) && GR.setmarkersize(z[i] / 100.0)
@@ -1194,7 +1194,7 @@ function peaks(n=49)
     x = linspace(-2.5, 2.5, n)
     y = x
     x, y = meshgrid(x, y)
-    3*(1-x).^2.*exp(-(x.^2) - (y+1).^2) - 10*(x/5 - x.^3 - y.^5).*exp(-x.^2-y.^2) - 1/3*exp(-(x+1).^2 - y.^2)
+    3*(1-x).^2.*exp.(-(x.^2) - (y+1).^2) - 10*(x/5 - x.^3 - y.^5).*exp.(-x.^2-y.^2) - 1/3*exp.(-(x+1).^2 - y.^2)
 end
 
 function imshow(I; kv...)
@@ -1214,16 +1214,16 @@ function isosurface(V; kv...)
 end
 
 function cart2sph(x, y, z)
-    azimuth = atan2(y, x)
-    elevation = atan2(z, sqrt(x.^2 + y.^2))
-    r = sqrt(x.^2 + y.^2 + z.^2)
+    azimuth = atan2.(y, x)
+    elevation = atan2.(z, sqrt.(x.^2 + y.^2))
+    r = sqrt.(x.^2 + y.^2 + z.^2)
     azimuth, elevation, r
 end
 
 function sph2cart(azimuth, elevation, r)
-    x = r .* cos(elevation) .* cos(azimuth)
-    y = r .* cos(elevation) .* sin(azimuth)
-    z = r .* sin(elevation)
+    x = r .* cos.(elevation) .* cos.(azimuth)
+    y = r .* cos.(elevation) .* sin.(azimuth)
+    z = r .* sin.(elevation)
     x, y, z
 end
 
