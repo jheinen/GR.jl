@@ -87,17 +87,20 @@ function set_viewport(kind, subplot)
         vp[1] *= ratio
         vp[2] *= ratio
     end
-    viewport[1] = vp[1] + 0.125 * (vp[2] - vp[1])
-    viewport[2] = vp[1] + 0.925 * (vp[2] - vp[1])
-    viewport[3] = vp[3] + 0.125 * (vp[4] - vp[3])
-    viewport[4] = vp[3] + 0.925 * (vp[4] - vp[3])
-
-    if w > h
-        viewport[3] += (1 - (subplot[4] - subplot[3])^2) * 0.02
-    end
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
-        viewport[2] -= 0.0525
+        extent = min(vp[2] - vp[1], vp[4] - vp[3])
+        vp1 = 0.5 * (vp[1] + vp[2] - extent)
+        vp2 = 0.5 * (vp[1] + vp[2] + extent)
+        vp3 = 0.5 * (vp[3] + vp[4] - extent)
+        vp4 = 0.5 * (vp[3] + vp[4] + extent)
+    else
+        vp1, vp2, vp3, vp4 = vp
     end
+    viewport[1] = vp1 + 0.125 * (vp2 - vp1)
+    viewport[2] = vp1 + 0.925 * (vp2 - vp1)
+    viewport[3] = vp3 + 0.125 * (vp4 - vp3)
+    viewport[4] = vp3 + 0.925 * (vp4 - vp3)
+
     if kind in (:contour, :contourf, :hexbin, :heatmap, :surface, :trisurf)
         viewport[2] -= 0.1
     end
