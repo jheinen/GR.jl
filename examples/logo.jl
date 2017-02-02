@@ -135,10 +135,14 @@ c4 = [ 0.7974, 0.5768,
        0.7739, 0.6274, 0.7974, 0.6047, 0.7974, 0.5768 ]
 
 GR.setcolorrep(1, 0.14, 0.14, 0.14)
-GR.setcolorrep(2, 0.42, 0.522, 0.867)
-GR.setcolorrep(3, 0.839, 0.4, 0.38)
-GR.setcolorrep(4, 0.667, 0.49, 0.753)
-GR.setcolorrep(5, 0.38, 0.67, 0.73)
+GR.setcolorrep(2, 0.251, 0.388, 0.847) # darker blue
+GR.setcolorrep(3, 0.796, 0.235, 0.2)   # darker red
+GR.setcolorrep(4, 0.584, 0.345, 0.698) # darker purple
+GR.setcolorrep(5, 0.22, 0.596, 0.149)  # darker green
+GR.setcolorrep(6, 0.4, 0.51, 0.878)    # lighter blue
+GR.setcolorrep(7, 0.835, 0.388, 0.361) # lighter red
+GR.setcolorrep(8, 0.667, 0.475, 0.757) # lighter purple
+GR.setcolorrep(9, 0.376, 0.678, 0.318) # lighter green
 
 GR.setviewport(0, 1, 0, 1)
 GR.setwindow(0, 1, 0, 1)
@@ -148,11 +152,14 @@ GR.updatews()
 for s in linspace(0.1, 0.5)
   GR.clearws()
   GR.setviewport(0.5 - s, 0.5 + s, 0.5 - s, 0.5 + s)
+  GR.setlinewidth(s * 8)
 
   GR.setfillcolorind(1)
   GR.drawpath(j,  @codes(19), 1)
-  GR.setfillcolorind(2)
+  GR.setfillcolorind(6)
   GR.drawpath(c1, @codes(4), 1)
+  GR.setlinecolorind(2)
+  GR.drawpath(c1, @codes(4), 0)
   GR.setfillcolorind(1)
 
   GR.drawpath(u,  @codes(21), 1)
@@ -165,12 +172,18 @@ for s in linspace(0.1, 0.5)
   GR.setfillcolorind(0)
   GR.drawpath(ai, @codes(8), 1)
 
-  GR.setfillcolorind(3)
+  GR.setfillcolorind(7)
   GR.drawpath(c2, @codes(4), 1)
-  GR.setfillcolorind(4)
+  GR.setlinecolorind(3)
+  GR.drawpath(c2, @codes(4), 0)
+  GR.setfillcolorind(8)
   GR.drawpath(c3, @codes(4), 1)
-  GR.setfillcolorind(5)
+  GR.setlinecolorind(4)
+  GR.drawpath(c3, @codes(4), 0)
+  GR.setfillcolorind(9)
   GR.drawpath(c4, @codes(4), 1)
+  GR.setlinecolorind(5)
+  GR.drawpath(c4, @codes(4), 0)
 
   GR.updatews()
 
