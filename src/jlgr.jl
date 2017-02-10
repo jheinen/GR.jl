@@ -458,7 +458,7 @@ function colorbar(off=0, colors=256)
     GR.setviewport(viewport[2] + 0.02 + off, viewport[2] + 0.05 + off,
                    viewport[3], viewport[4])
     l = zeros(Int32, 1, colors)
-    l[1,:] = Int[round(Int, _) for _ in linspace(1000, 1255, colors)]
+    l[1,:] = Int[round(Int, _i) for _i in linspace(1000, 1255, colors)]
     GR.cellarray(0, 1, zmax, zmin, 1, colors, l)
     GR.setlinecolorind(1)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
@@ -573,7 +573,7 @@ function plot_img(I)
     else
         width, height = size(I)
         data = (float(I) - minimum(I)) / (maximum(I) - minimum(I))
-        data = Int32[round(Int32, 1000 + _ * 255) for _ in data]
+        data = Int32[round(Int32, 1000 + _i * 255) for _i in data]
     end
 
     if width  * (viewport[4] - viewport[3]) <
@@ -735,7 +735,7 @@ function plot_data(flag=true)
             if z != Void || c != Void
                 if c != Void
                     c = (c - minimum(c)) / (maximum(c) - minimum(c))
-                    cind = Int[round(Int, 1000 + _ * 255) for _ in c]
+                    cind = Int[round(Int, 1000 + _i * 255) for _i in c]
                 end
                 for i in 1:length(x)
                     (z != Void) && GR.setmarkersize(z[i] / 100.0)
