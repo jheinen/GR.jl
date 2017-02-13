@@ -9,7 +9,7 @@ macro _tuple(t)
     :( Tuple{$t} )
 end
 
-@compat typealias PlotArg Union{AbstractString, AbstractVector, AbstractMatrix, Function}
+const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
 
