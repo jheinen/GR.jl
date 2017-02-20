@@ -449,7 +449,7 @@ end
 
 function latin1(string)
   b = convert(Array{UInt8}, string)
-  s = zeros(UInt8, length(string))
+  s = zeros(UInt8, length(b))
   len = 0
   mask = 0
   for c in b
