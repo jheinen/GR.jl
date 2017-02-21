@@ -13,7 +13,7 @@ const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf]
+const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf, :tricont]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -833,6 +833,10 @@ function plot_data(flag=true)
             GR.trisurface(x, y, z)
             draw_axes(kind, 2)
             colorbar(0.05)
+        elseif kind == :tricont
+            zmin, zmax = plt.kvs[:zrange]
+            levels = linspace(zmin, zmax, 20)
+            GR.tricontour(x, y, z, levels)
         end
         GR.restorestate()
     end
@@ -1241,6 +1245,14 @@ end
 
 function trisurf(args...; kv...)
     create_context(:trisurf, Dict(kv))
+
+    plt.args = plot_args(args, fmt=:xyzc)
+
+    plot_data()
+end
+
+function tricont(args...; kv...)
+    create_context(:tricont, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
 

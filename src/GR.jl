@@ -119,6 +119,7 @@ export
   selectcontext,
   destroycontext,
   trisurface,
+  tricontour,
 # gradient, # deprecated, but still in Base
   quiver,
   # Convenience functions
@@ -157,6 +158,7 @@ export
   sph2cart,
   polar,
   trisurf,
+  tricont,
   libGR3,
   gr3,
   isinline,
@@ -2887,6 +2889,7 @@ cart2sph(x, y, z) = jlgr.cart2sph(x, y, z)
 sph2cart(θ, ϕ, r) = jlgr.sph2cart(θ, ϕ, r)
 polar(args...; kwargs...) = jlgr.polar(args...; kwargs...)
 trisurf(args...; kwargs...) = jlgr.trisurf(args...; kwargs...)
+tricont(args...; kwargs...) = jlgr.tricont(args...; kwargs...)
 
 type SVG
    s::Array{UInt8}
@@ -3105,6 +3108,32 @@ function trisurface(x, y, z)
         Void,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, z))
+end
+
+"""
+    tricontour(x, y, z, levels)
+
+Draw a contour plot for the given triangle mesh.
+
+**Parameters:**
+
+`x` :
+    A list containing the X coordinates
+`y` :
+    A list containing the Y coordinates
+`z` :
+    A list containing the Z coordinates
+`levels` :
+    A list containing the contour levels
+
+"""
+function tricontour(x, y, z, levels)
+  npoints = length(x)
+  nlevels = length(levels)
+  ccall( (:gr_tricontour, libGR),
+        Void,
+        (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Ptr{Float64}),
+        npoints, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, z), nlevels, convert(Vector{Float64}, levels))
 end
 
 function gradient(x, y, z)
