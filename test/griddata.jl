@@ -20,3 +20,4 @@ polymarker(xd, yd)
 axes(0.25, 0.25, -2, -2, 2, 2, 0.01)
 
 updatews()
+emergencyclosegks()
