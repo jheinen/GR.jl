@@ -33,7 +33,7 @@ function play()
       PortAudio.write(stream, amplitudes)
     end
 
-    power = log(abs(fft(amplitudes)) + 1) * 50
+    power = log(abs(fft(float(amplitudes))) + 1) * 50
     spectrum[:, 1] = round(Int, power[1:250]) + 1000
     spectrum = circshift(spectrum, [0, -1])
 
