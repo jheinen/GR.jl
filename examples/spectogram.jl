@@ -46,6 +46,9 @@ start = time_ns()
 
 while !istaskdone(t)
   spectrum = consume(t)
+  if spectrum == nothing
+     break
+  end
 
   if time_ns() - start > 20 * 1000000   # 20ms
     GR.clearws()
