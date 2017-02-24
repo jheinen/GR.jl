@@ -40,9 +40,9 @@ function paint(w)
     GR.updatews()
 end
 
-win = @Window("Gtk")
+win = Gtk.GtkWindow("Gtk")
 
-canvas = @Canvas(500, 500)
+canvas = Gtk.GtkCanvas(500, 500)
 Gtk.push!(win, canvas)
 
 Gtk.draw(paint, canvas)
