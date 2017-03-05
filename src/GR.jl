@@ -118,6 +118,7 @@ export
   mathtex,
   selectcontext,
   destroycontext,
+  delaunay,
   trisurface,
   tricontour,
 # gradient, # deprecated, but still in Base
@@ -3082,6 +3083,25 @@ function uselinespec(linespec)
                Int32,
                (Ptr{Cchar}, ),
                linespec)
+end
+
+function delaunay(x, y)
+  assert(length(x) == length(y))
+  npoints = length(x)
+  ntri = Cint[0]
+  dim = Cint[3]
+  triangles = Array(Ptr{Int32}, 1)
+  ccall( (:gr_delaunay, libGR),
+        Void,
+        (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}, Ptr{Ptr{Int32}}),
+        npoints, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
+        ntri, triangles)
+  if ntri[1] > 0
+    tri = Compat.unsafe_wrap(Array{Int32}, triangles[1], (dim[1], ntri[1]))
+    return Int(ntri[1]), tri'+1
+  else
+    return 0, zeros(Int32, 0)
+  end
 end
 
 """
