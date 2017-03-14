@@ -77,7 +77,7 @@ while t < 3
   p, v = step(dt, p, v)
 
   clearws()
-  setmarkercolorind(75)
+  setmarkercolorind(983)
   polymarker(p[:,1], p[:,2])
 
   if n > 0

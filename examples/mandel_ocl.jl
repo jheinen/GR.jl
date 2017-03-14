@@ -57,7 +57,7 @@ end
 function calc_fractal(q, min_x, max_x, min_y, max_y, width, height, iters)
     global ctx, queue, prg
 
-    output = Array(UInt16, size(q))
+    output = Array{UInt16}(size(q))
 
     q_opencl = cl.Buffer(Complex128, ctx, (:r, :copy), hostbuf=q)
     output_opencl = cl.Buffer(UInt16, ctx, :w, length(output))

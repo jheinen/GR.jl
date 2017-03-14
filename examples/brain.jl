@@ -1,7 +1,3 @@
-if VERSION < v"0.4-"
-  typealias UInt16 Uint16
-end
-
 import GLFW
 
 import GR

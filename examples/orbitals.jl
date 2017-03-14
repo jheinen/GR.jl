@@ -37,9 +37,9 @@ function Orbital(n::Int,l::Int,m::Int)
 end
 
 function CarttoSph(x::Array,y::Array,z::Array)
-    r = sqrt(x.^2+y.^2+z.^2)
-    θ = acos(z./r)
-    ϕ = atan(y./x)
+    r = sqrt.(x.^2+y.^2+z.^2)
+    θ = acos.(z./r)
+    ϕ = atan.(y./x)
     r,θ,ϕ
 end
 

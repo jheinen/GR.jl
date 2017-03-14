@@ -2458,7 +2458,7 @@ end
 function readimage(path)
   width = Cint[0]
   height = Cint[0]
-  data = Array(Ptr{UInt32}, 1)
+  data = Array{Ptr{UInt32}}(1)
   ccall( (:gr_readimage, libGR),
         Void,
         (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{UInt32}}),
