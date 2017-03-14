@@ -37,7 +37,7 @@ if !have_dir
         os = id
       end
     elseif isfile("/etc/redhat-release")
-      rel = Compat.readstring(Compat.pipeline(`cat /etc/redhat-release`, `sed s/.*release\ //`, `sed s/\ .*//`))[1:end-1]
+      rel = Compat.readstring(Compat.pipeline(`cat /etc/redhat-release`, `sed s/.\*release\ //`, `sed s/\ .\*//`))[1:end-1]
       if rel > "7.0"
         os = "Redhat"
       end
