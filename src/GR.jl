@@ -119,6 +119,7 @@ export
   selectcontext,
   destroycontext,
   delaunay,
+  interp2,
   trisurface,
   tricontour,
 # gradient, # deprecated, but still in Base
@@ -3102,6 +3103,37 @@ function delaunay(x, y)
   else
     return 0, zeros(Int32, 0)
   end
+end
+
+function interp2(X, Y, Z, Xq, Yq, method::Int=0, extrapval=0)
+  nx = length(X)
+  ny = length(Y)
+  if typeof(Z) == Function
+    f = Z
+    Z = Float64[f(x,y) for y in Y, x in X]
+  end
+  nz = length(Z)
+  if ndims(Z) == 1
+    out_of_bounds = nz != nx * ny
+  elseif ndims(Z) == 2
+    out_of_bounds = size(Z)[1] != nx || size(Z)[2] != ny
+  else
+    out_of_bounds = true
+  end
+  Zq = []
+  if !out_of_bounds
+    if ndims(Z) == 2
+      Z = reshape(Z, nx * ny)
+    end
+    nxq = length(Xq)
+    nyq = length(Yq)
+    Zq = Cdouble[1 : nxq * nyq; ]
+    ccall( (:gr_interp2, libGR),
+          Void,
+          (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Cdouble}, Int32, Float64),
+          nx, ny, convert(Vector{Float64}, X), convert(Vector{Float64}, Y), convert(Vector{Float64}, Z), nxq, nyq, convert(Vector{Float64}, Xq), convert(Vector{Float64}, Yq), Zq, method, extrapval)
+  end
+  reshape(Zq, nxq, nyq)
 end
 
 """
