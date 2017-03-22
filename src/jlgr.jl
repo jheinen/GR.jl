@@ -776,6 +776,8 @@ function plot_data(flag=true)
         elseif kind == :contourf
             zmin, zmax = plt.kvs[:zrange]
             GR.setspace(zmin, zmax, 0, 90)
+            scale = plt.kvs[:scale]
+            GR.setscale(scale)
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
                 z = reshape(z, 200, 200)
