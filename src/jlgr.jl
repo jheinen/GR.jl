@@ -797,7 +797,7 @@ function plot_data(flag=true)
             cmap = colormap()
             data = (float(z) - minimum(z)) / (maximum(z) - minimum(z))
             rgba = [to_rgba(value, cmap) for value = data]
-            GR.drawimage(xmin, xmax, ymin, ymax, width, height, rgba)
+            GR.drawimage(xmin, xmax, ymax, ymin, width, height, rgba)
             colorbar()
         elseif kind == :wireframe
             if length(x) == length(y) == length(z)
@@ -1104,8 +1104,12 @@ function heatmap(D; kv...)
     create_context(:heatmap, Dict(kv))
 
     if ndims(D) == 2
-        width, height = size(D)
-        plt.args = [(1:width, 1:height, D, Void, "")]
+        z = D'
+        width, height = size(z)
+        if !haskey(plt.kvs, :xlim) plt.kvs[:xlim] = (0.5, width + 0.5) end
+        if !haskey(plt.kvs, :ylim) plt.kvs[:ylim] = (0.5, height + 0.5) end
+
+        plt.args = [(1:width, 1:height, z, Void, "")]
 
         plot_data()
     else
