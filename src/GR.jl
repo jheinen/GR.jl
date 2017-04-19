@@ -2,16 +2,10 @@ __precompile__()
 
 module GR
 
-using Compat
-
-if VERSION > v"0.5-"
-  if Sys.KERNEL == :NT
-    const os = :Windows
-  else
-    const os = Sys.KERNEL
-  end
+if Sys.KERNEL == :NT
+  const os = :Windows
 else
-  const os = OS_NAME
+  const os = Sys.KERNEL
 end
 
 const None = Union{}
@@ -2465,7 +2459,7 @@ function readimage(path)
         (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{UInt32}}),
         path, width, height, data)
   if width[1] > 0 && height[1] > 0
-    img = Compat.unsafe_wrap(Array{UInt32}, data[1], (width[1], height[1]))
+    img = unsafe_wrap(Array{UInt32}, data[1], (width[1], height[1]))
     return Int(width[1]), Int(height[1]), img
   else
     return 0, 0, zeros(UInt32, 0)
@@ -2620,7 +2614,7 @@ function getgraphics()
                  Ptr{Cchar},
                  (),
                  )
-  return string != C_NULL ? Compat.unsafe_string(string) : ""
+  return string != C_NULL ? unsafe_string(string) : ""
 end
 
 function drawgraphics(string)
@@ -2896,17 +2890,17 @@ tricont(args...; kwargs...) = jlgr.tricont(args...; kwargs...)
 type SVG
    s::Array{UInt8}
 end
-@compat Base.show(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
+Base.show(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
 
 type PNG
    s::Array{UInt8}
 end
-@compat Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
+Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 
 type HTML
    s::AbstractString
 end
-@compat Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
+Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
 function _readfile(path)
     data = Array(UInt8, filesize(path))
@@ -2929,7 +2923,7 @@ function startserver()
     app = WebSockets.WebSocketHandler() do req, client
         while true
             msg = WebSockets.read(client)
-            if startswith(Compat.unsafe_string(msg), "ready")
+            if startswith(unsafe_string(msg), "ready")
                 if length(msgs) != 0
                     WebSockets.write(client, msgs[1])
                     shift!(msgs)
@@ -3098,7 +3092,7 @@ function delaunay(x, y)
         npoints, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
         ntri, triangles)
   if ntri[1] > 0
-    tri = Compat.unsafe_wrap(Array{Int32}, triangles[1], (dim[1], ntri[1]))
+    tri = unsafe_wrap(Array{Int32}, triangles[1], (dim[1], ntri[1]))
     return Int(ntri[1]), tri'+1
   else
     return 0, zeros(Int32, 0)

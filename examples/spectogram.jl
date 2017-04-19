@@ -1,24 +1,9 @@
-if VERSION < v"0.4-"
-  import AudioIO
-  const pa = AudioIO
-else
-  import PortAudio, LibSndFile
-end
+import PortAudio, LibSndFile
 import GR
 
 function play()
-  if VERSION < v"0.4-"
-    f = pa.open("Monty_Python.wav")
-    data = read(f)
-    close(f)
-
-    pa.Pa_Initialize()
-    stream = pa.Pa_OpenDefaultStream(0, 1, pa.paInt16, 44100.0, 1024)
-    pa.Pa_StartStream(stream)
-  else
-    data = LibSndFile.load("Monty_Python.wav")
-    stream = PortAudio.PortAudioStream(0, 1, blocksize=1024)
-  end
+  data = LibSndFile.load("Monty_Python.wav")
+  stream = PortAudio.PortAudioStream(0, 1, blocksize=1024)
   spectrum = zeros(Int32, 250, 250)
 
   start = 1
@@ -26,12 +11,7 @@ function play()
     amplitudes = data[start:start+1024]
     start += 1024
 
-    if VERSION < v"0.4-"
-      pa.Pa_WriteStream(stream, amplitudes)
-      amplitudes /= 22050.0
-    else
-      PortAudio.write(stream, amplitudes)
-    end
+    PortAudio.write(stream, amplitudes)
 
     power = log(abs(fft(float(amplitudes))) + 1) * 50
     spectrum[:, 1] = round(Int, power[1:250]) + 1000

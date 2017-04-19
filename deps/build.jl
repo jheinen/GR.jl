@@ -1,4 +1,3 @@
-import Compat
 if "GRDIR" in keys(ENV)
     have_dir = length(ENV["GRDIR"]) > 0
 elseif isdir(joinpath(homedir(), "gr"), "fonts")
@@ -20,24 +19,20 @@ if !have_dir
       version = "latest"
     end
   end
-  if VERSION > v"0.5-"
-    if Sys.KERNEL == :NT
-      os = :Windows
-    else
-      os = Sys.KERNEL
-    end
+  if Sys.KERNEL == :NT
+    os = :Windows
   else
-    os = OS_NAME
+    os = Sys.KERNEL
   end
   const arch = Sys.ARCH
   if os == :Linux && arch == :x86_64
     if isfile("/etc/debian_version")
-      id = Compat.readstring(Compat.pipeline(`lsb_release -i`, `cut -f2`))[1:end-1]
+      id = readstring(pipeline(`lsb_release -i`, `cut -f2`))[1:end-1]
       if id in ("Debian", "Ubuntu")
         os = id
       end
     elseif isfile("/etc/redhat-release")
-      rel = Compat.readstring(Compat.pipeline(`cat /etc/redhat-release`, `sed s/.\*release\ //`, `sed s/\ .\*//`))[1:end-1]
+      rel = readstring(pipeline(`cat /etc/redhat-release`, `sed s/.\*release\ //`, `sed s/\ .\*//`))[1:end-1]
       if rel > "7.0"
         os = "Redhat"
       end

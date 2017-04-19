@@ -1,6 +1,5 @@
 module jlgr
 
-using Compat
 import GR
 
 const None = Union{}
@@ -988,15 +987,15 @@ function plot_args(args; fmt=:xys)
                 xyzc = [ (x, y, z, c) ]
             elseif isa(x, AbstractVector)
                 xyzc = length(x) == size(y, 1) ?
-                       [ (x, Compat.view(y,:,j), z, c) for j = 1:size(y, 2) ] :
-                       [ (x, Compat.view(y,i,:), z, c) for i = 1:size(y, 1) ]
+                       [ (x, view(y,:,j), z, c) for j = 1:size(y, 2) ] :
+                       [ (x, view(y,i,:), z, c) for i = 1:size(y, 1) ]
             elseif isa(y, AbstractVector)
                 xyzc = size(x, 1) == length(y) ?
-                       [ (Compat.view(x,:,j), y, z, c) for j = 1:size(x, 2) ] :
-                       [ (Compat.view(x,i,:), y, z, c) for i = 1:size(x, 1) ]
+                       [ (view(x,:,j), y, z, c) for j = 1:size(x, 2) ] :
+                       [ (view(x,i,:), y, z, c) for i = 1:size(x, 1) ]
             else
                 @assert size(x) == size(y)
-                xyzc = [ (Compat.view(x,:,j), Compat.view(y,:,j), z, c) for j = 1:size(y, 2) ]
+                xyzc = [ (view(x,:,j), view(y,:,j), z, c) for j = 1:size(y, 2) ]
             end
         elseif isa(x, AbstractVector) && isa(y, AbstractVector) &&
                (isa(z, AbstractVector) || typeof(z) == Array{Float64,2} ||

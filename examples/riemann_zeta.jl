@@ -2,10 +2,6 @@
 
 # A view of the Riemann Zeta function using the domain coloring method
 
-if VERSION < v"0.4-"
-  typealias UInt32 Uint32
-end
-
 import GR
 
 

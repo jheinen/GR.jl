@@ -1,7 +1,5 @@
 module GR3
 
-using Compat
-
 import GR
 
 const None = Union{}
@@ -17,12 +15,12 @@ end
 type PNG
    s::Array{UInt8}
 end
-@compat Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
+Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 
 type HTML
    s::AbstractString
 end
-@compat Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
+Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
 function _readfile(path)
     data = Array(UInt8, filesize(path))
@@ -47,7 +45,7 @@ function _check_error()
   error_code = ccall((:gr3_geterror, GR.libGR3), Int32, (Int32, Ptr{Cint}, Ptr{Ptr{UInt8}}), 1, line, file)
   if (error_code != 0)
     line = line[1]
-    file = Compat.unsafe_string(file[1])
+    file = unsafe_string(file[1])
     if 0 <= error_code < length(msgs)
       msg = msgs[error_code + 1]
     else
@@ -122,7 +120,7 @@ function getrenderpathstring()
   val = ccall((:gr3_getrenderpathstring, GR.libGR3),
               Ptr{UInt8}, (), )
   _check_error()
-  Compat.unsafe_string(val)
+  unsafe_string(val)
 end
 export getrenderpathstring
 
