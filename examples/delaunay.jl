@@ -26,7 +26,7 @@ function points_from_image(img, npts)
 end
 
 img = load("julia_logo.png")
-x, y, cols = points_from_image(img, 30000)
+x, y, cols = points_from_image(img', 30000)
 
 settransparency(0.5)
 setmarkersize(0.5)
