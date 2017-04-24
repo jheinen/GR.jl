@@ -778,6 +778,8 @@ The available marker types are:
     +-----------------------------+-----+------------------------------------------------+
     |MARKERTYPE_HLINE             |  -31|horizontal line                                 |
     +-----------------------------+-----+------------------------------------------------+
+    |MARKERTYPE_OMARK             |  -32|o-mark                                          |
+    +-----------------------------+-----+------------------------------------------------+
 
 Polymarkers appear centered over their specified coordinates.
 
@@ -2729,6 +2731,7 @@ MARKERTYPE_STAR_7 = -28
 MARKERTYPE_STAR_8 = -29
 MARKERTYPE_VLINE = -30
 MARKERTYPE_HLINE = -31
+MARKERTYPE_OMARK = -32
 
 OPTION_X_LOG = 1
 OPTION_Y_LOG = 2
