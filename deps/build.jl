@@ -12,7 +12,7 @@ else
     end
 end
 if !have_dir
-  version = v"0.23.0"
+  version = v"0.24.0"
   try
     v = Pkg.installed("GR")
     if string(v)[end:end] == "+"
