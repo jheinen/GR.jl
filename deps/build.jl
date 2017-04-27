@@ -26,15 +26,15 @@ if !have_dir
   end
   const arch = Sys.ARCH
   if os == :Linux && arch == :x86_64
-    if isfile("/etc/debian_version")
-      id = readstring(pipeline(`lsb_release -i`, `cut -f2`))[1:end-1]
-      if id in ("Debian", "Ubuntu")
-        os = id
-      end
-    elseif isfile("/etc/redhat-release")
+    if isfile("/etc/redhat-release")
       rel = readstring(pipeline(`cat /etc/redhat-release`, `sed s/.\*release\ //`, `sed s/\ .\*//`))[1:end-1]
       if rel > "7.0"
         os = "Redhat"
+      end
+    elseif isfile("/etc/os-release")
+      id = readstring(pipeline(`cat /etc/os-release`, `grep ^ID=`, `cut -d= -f2`))[1:end-1]
+      if id in ("debian", "ubuntu")
+        os = ucfirst(id)
       end
     end
   end
