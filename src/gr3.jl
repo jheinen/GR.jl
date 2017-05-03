@@ -364,6 +364,155 @@ function surface(px, py, pz, option::Int)
   end
 end
 
+function createslicemeshes(grid; x::Union{Real, Void}=nothing, y::Union{Real, Void}=nothing, z::Union{Real, Void}=nothing, step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing)
+    if x == nothing && y == nothing && z == nothing
+        x = 0.5
+        y = 0.5
+        z = 0.5
+    end
+    if typeof(grid[1,1,1]) <: Unsigned
+        input_max = typemax(typeof(grid[1,1,1]))
+    elseif typeof(grid[1,1,1]) <: Real
+        input_max = convert(typeof(grid[1,1,1]), 1.0)
+        grid = min.(grid, input_max)
+    else
+        println("grid must be three dimensional array of Real numbers")
+        return(nothing)
+    end
+    scaling_factor = typemax(UInt16) / input_max
+    grid = convert(Array{UInt16, 3}, floor.(grid * scaling_factor))
+    nx, ny, nz = size(grid)
+    if step == nothing && offset == nothing
+        step = (2.0/(nx-1), 2.0/(ny-1), 2.0/(nz-1))
+        offset = (-1.0, -1.0, -1.0)
+    elseif offset == nothing
+        offset = (-step[1] * (nx-1) / 2.0,
+                  -step[2] * (ny-1) / 2.0,
+                  -step[3] * (nz-1) / 2.0)
+    elseif step == nothing
+        step = (-offset[1] * 2.0 / (nx-1),
+                -offset[2] * 2.0 / (ny-1),
+                -offset[3] * 2.0 / (nz-1))
+    end
+    stride_x, stride_y, stride_z = 1, nx, nx*ny
+    dim_x, dim_y, dim_z = convert(Tuple{UInt32, UInt32, UInt32}, size(grid))
+    step_x, step_y, step_z = convert(Tuple{Float64, Float64, Float64}, step)
+    offset_x, offset_y, offset_z = convert(Tuple{Float64, Float64, Float64}, offset)
+
+    if x != nothing
+        x = convert(UInt32, floor(clamp(x, 0, 1) * nx))
+        mesh = Cint[0]
+        ccall((:gr3_createxslicemesh, GR.libGR3),
+            Void,
+            (Ptr{UInt32}, Ptr{UInt16}, UInt32,
+            UInt32, UInt32, UInt32,
+            UInt32, UInt32, UInt32,
+            Float64, Float64, Float64,
+            Float64, Float64, Float64),
+            mesh, grid, x,
+            dim_x, dim_y, dim_z,
+            stride_x, stride_y, stride_z,
+            step_x, step_y, step_z,
+            offset_x, offset_y, offset_z)
+        _check_error()
+        _mesh_x = mesh[1]
+    else
+        _mesh_x = nothing
+    end
+
+    if y != nothing
+        y = convert(UInt32, floor(clamp(y, 0, 1) * ny))
+        mesh = Cint[0]
+        ccall((:gr3_createyslicemesh, GR.libGR3),
+            Void,
+            (Ptr{UInt32}, Ptr{UInt16}, UInt32,
+            UInt32, UInt32, UInt32,
+            UInt32, UInt32, UInt32,
+            Float64, Float64, Float64,
+            Float64, Float64, Float64),
+            mesh, grid, y,
+            dim_x, dim_y, dim_z,
+            stride_x, stride_y, stride_z,
+            step_x, step_y, step_z,
+            offset_x, offset_y, offset_z)
+        _check_error()
+        _mesh_y = mesh[1]
+    else
+        _mesh_y = nothing
+    end
+
+    if z != nothing
+        z = convert(UInt32, floor(clamp(z, 0, 1) * nz))
+        mesh = Cint[0]
+        ccall((:gr3_createzslicemesh, GR.libGR3),
+            Void,
+            (Ptr{UInt32}, Ptr{UInt16}, UInt32,
+            UInt32, UInt32, UInt32,
+            UInt32, UInt32, UInt32,
+            Float64, Float64, Float64,
+            Float64, Float64, Float64),
+            mesh, grid, z,
+            dim_x, dim_y, dim_z,
+            stride_x, stride_y, stride_z,
+            step_x, step_y, step_z,
+            offset_x, offset_y, offset_z)
+        _check_error()
+        _mesh_z = mesh[1]
+    else
+        _mesh_z = nothing
+    end
+
+    return(_mesh_x, _mesh_y, _mesh_z)
+end
+export createslicemeshes
+
+function createxslicemesh(grid, x::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing)
+    return createslicemeshes(grid, x=x, step=step, offset=offset)[1]
+end
+export createxslicemesh
+
+function createyslicemesh(grid, y::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing)
+    return createslicemeshes(grid, y=y, step=step, offset=offset)[2]
+end
+export createyslicemesh
+
+function createzslicemesh(grid, z::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing)
+    return createslicemeshes(grid, z=z, step=step, offset=offset)[3]
+end
+export createzslicemesh
+
+function drawxslicemesh(grid, x::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
+    mesh = createxslicemesh(grid, x, step=step, offset=offset)
+    drawmesh(mesh, 1, position, direction, up, color, scale)
+    deletemesh(mesh)
+end
+export drawxslicemesh
+
+function drawyslicemesh(grid, y::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
+    mesh = createxslicemesh(grid, y, step=step, offset=offset)
+    drawmesh(mesh, 1, position, direction, up, color, scale)
+    deletemesh(mesh)
+end
+export drawyslicemesh
+
+function drawzslicemesh(grid, z::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
+    mesh = createxslicemesh(grid, z, step=step, offset=offset)
+    drawmesh(mesh, 1, position, direction, up, color, scale)
+    deletemesh(mesh)
+end
+export drawzslicemesh
+
+function drawslicemeshes(data; x::Union{Real, Void}=nothing, y::Union{Real, Void}=nothing, z::Union{Real, Void}=nothing, step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
+    meshes = createslicemeshes(data, x=x, y=y, z=z, step=step, offset=offset)
+    for mesh in meshes
+        if mesh != nothing
+            drawmesh(mesh, 1, position, direction, up, color, scale)
+            deletemesh(mesh)
+        end
+    end
+end
+export drawslicemeshes
+
 IA_END_OF_LIST = 0
 IA_FRAMEBUFFER_WIDTH = 1
 IA_FRAMEBUFFER_HEIGHT = 2
