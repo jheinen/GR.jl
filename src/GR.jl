@@ -2906,7 +2906,7 @@ end
 Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
 function _readfile(path)
-    data = Array(UInt8, filesize(path))
+    data = Array{UInt8}(filesize(path))
     s = open(path, "r")
     read!(s, data)
 end
@@ -3088,7 +3088,7 @@ function delaunay(x, y)
   npoints = length(x)
   ntri = Cint[0]
   dim = Cint[3]
-  triangles = Array(Ptr{Int32}, 1)
+  triangles = Array{Ptr{Int32}}(1)
   ccall( (:gr_delaunay, libGR),
         Void,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}, Ptr{Ptr{Int32}}),
