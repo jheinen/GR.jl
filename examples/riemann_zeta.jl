@@ -3,16 +3,17 @@
 # A view of the Riemann Zeta function using the domain coloring method
 
 import GR
+import SpecialFunctions
 
 
 function domain_colors(w, n)
-    H = mod(angle(w[:]) / 2pi + 1, 1)
+    H = mod.(angle.(w[:]) / 2pi + 1, 1)
     m = 0.7
     M = 1
-    isol = m + (M - m) * (H[:] * n - floor(H[:] * n))
-    modul = abs(w[:])
-    Logm = log(modul[:])
-    modc = m + (M - m) * (Logm[:] - floor(Logm[:]))
+    isol = m + (M - m) * (H[:] * n - floor.(H[:] * n))
+    modul = abs.(w[:])
+    Logm = log.(modul[:])
+    modc = m + (M - m) * (Logm[:] - floor.(Logm[:]))
 
     V = [modc[i] * isol[i] for i = 1:length(modc)]
     S = 0.9 * ones(H)
@@ -33,8 +34,8 @@ function func_vals(f, re, im,  N)
     x = linspace(re[1], re[2], resL)
     y = linspace(im[1], im[2], resH)
     x, y = GR.meshgrid(x, y)
-    z = complex(x, y)
-    w = f(z)
+    z = complex.(x, y)
+    w = f.(z)
     return w
 end
 
@@ -42,12 +43,12 @@ end
 function plot_domain(color_func, f; re=[-1, 1], im=[-1, 1], N=100, n=15)
     w = func_vals(f, re, im, N)
     domc = color_func(w, n) * 255
-    h = round(domc[:,1])
-    s = round(domc[:,2])
-    v = round(domc[:,3])
+    h = round.(domc[:,1])
+    s = round.(domc[:,2])
+    v = round.(domc[:,3])
     alpha = 255
     width, height = size(w)
-    c = Array(UInt32, width * height)
+    c = Array{UInt32}(width * height)
     c[:] = h + 256 * (s + 256 * (v + 256 * alpha))
     c = rotr90(reshape(c, width, height))
 
@@ -67,7 +68,7 @@ function plot_domain(color_func, f; re=[-1, 1], im=[-1, 1], N=100, n=15)
     GR.updatews()
 end
 
-f = zeta
+f = SpecialFunctions.zeta
 
 for n = 5:30
     plot_domain(domain_colors, f, re=(-6, 6), im=(-20, 20), N=15, n=n)

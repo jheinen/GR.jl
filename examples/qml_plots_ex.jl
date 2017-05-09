@@ -16,8 +16,8 @@ end
 parameters = Parameters(30)
 w, h = (600, 450)
 
-# Called from QQuickPaintedItem::paint with the QPainter as an argument
-function paint(p::QPainter, item::JuliaPaintedItem)
+# Called from QQuickPaintedItem::paint with the QPainterRef as an argument
+function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
   global w, h
 
   ENV["GKS_WSTYPE"] = 381
@@ -46,7 +46,7 @@ function mousePosition(eventx, eventy)
 end
 
 # Convert to cfunction, passing the painter as void*
-paint_cfunction = safe_cfunction(paint, Void, (QPainter,JuliaPaintedItem))
+paint_cfunction = safe_cfunction(paint, Void, (QML.QPainterRef, QML.JuliaPaintedItemRef))
 
 # paint_cfunction becomes a context property
 @qmlapp qmlfile paint_cfunction parameters
