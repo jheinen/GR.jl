@@ -57,5 +57,21 @@ if !have_dir
   if os == :Darwin
     app = joinpath("gr", "Applications", "GKSTerm.app")
     run(`/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f $app`)
+    try
+      @eval import Homebrew
+      if Pkg.installed("Homebrew") != nothing
+        qt = Homebrew.prefix("qt")
+        path = joinpath(qt, "Frameworks")
+        if isdir(path)
+          for d in ("QtCore.framework", "QtGui.framework", "QtWidgets.framework")
+            target = joinpath(path, d)
+            link = joinpath(pwd(), "gr", "lib", d)
+            rm(link, force=true)
+            symlink(target, link)
+          end
+          println("Using Qt ", splitdir(qt)[end], " at ", qt)
+        end
+      end
+    end
   end
 end
