@@ -58,17 +58,13 @@ if !have_dir
     app = joinpath("gr", "Applications", "GKSTerm.app")
     run(`/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f $app`)
     try
-      @eval import Homebrew
-      if Pkg.installed("Homebrew") != nothing
-        qt = Homebrew.prefix("qt")
+      @eval import QML
+      if Pkg.installed("QML") != nothing
+        qt = QML.qt_prefix_path()
         path = joinpath(qt, "Frameworks")
         if isdir(path)
-          for d in ("QtCore.framework", "QtGui.framework", "QtWidgets.framework")
-            target = joinpath(path, d)
-            link = joinpath(pwd(), "gr", "lib", d)
-            rm(link, force=true)
-            symlink(target, link)
-          end
+          qt5plugin = joinpath(pwd(), "gr", "lib", "qt5plugin.so")
+          run(`install_name_tool -add_rpath $path $qt5plugin`)
           println("Using Qt ", splitdir(qt)[end], " at ", qt)
         end
       end
