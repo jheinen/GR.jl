@@ -1150,32 +1150,26 @@ end
 
 function title(s)
     plt.kvs[:title] = s
-    plot_data(false)
 end
 
 function xlabel(s)
     plt.kvs[:xlabel] = s
-    plot_data(false)
 end
 
 function ylabel(s)
     plt.kvs[:ylabel] = s
-    plot_data(false)
 end
 
 function legend(args::AbstractString...; kv...)
     plt.kvs[:labels] = args
-    plot_data(false)
 end
 
 function xlim(a)
     plt.kvs[:xlim] = a
-    plot_data(false)
 end
 
 function ylim(a)
     plt.kvs[:ylim] = a
-    plot_data(false)
 end
 
 function savefig(filename)
