@@ -1049,19 +1049,17 @@ function stem(args...; kv...)
 end
 
 function hist(x, nbins::Integer=0)
-    xmin, xmax = minimum(x), maximum(x)
     if nbins <= 1
         nbins = round(Int, 3.3 * log10(length(x))) + 1
     end
 
+    xmin, xmax = extrema(x) 
     edges = linspace(xmin, xmax, nbins + 1)
     counts = zeros(nbins)
-
-    for v in x
-        idx = round(Int, (v - xmin) / (xmax - xmin) * (nbins - 1)) + 1
-        counts[idx] += 1
+    buckets = Int[max(2, min(searchsortedfirst(edges, xᵢ), length(edges)))-1 for xᵢ in x]
+    for b in buckets
+        counts[b] += 1
     end
-
     collect(edges), counts
 end
 
