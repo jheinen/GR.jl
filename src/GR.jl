@@ -158,7 +158,9 @@ export
   libGR3,
   gr3,
   isinline,
-  inline
+  inline,
+  displayname,
+  mainloop
 
 
 mime_type = None
@@ -166,9 +168,11 @@ figure_count = None
 msgs = None
 have_clear_output = isinteractive() && isdefined(Main, :IJulia) &&
                     isdefined(Main.IJulia, :clear_output)
+display_name = None
+
 
 function __init__()
-    global libGR, libGR3
+    global libGR, libGR3, display_name
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
         if grdir == ""
@@ -205,6 +209,9 @@ function __init__()
     end
     const libGR3 = replace(libGR, "libGR", "libGR3")
     ENV["GKS_USE_CAIRO_PNG"] = "true"
+    if "GRDISPLAY" in keys(ENV)
+        display_name = ENV["GRDISPLAY"]
+    end
 end
 
 function opengks()
@@ -2889,6 +2896,7 @@ sph2cart(θ, ϕ, r) = jlgr.sph2cart(θ, ϕ, r)
 polar(args...; kwargs...) = jlgr.polar(args...; kwargs...)
 trisurf(args...; kwargs...) = jlgr.trisurf(args...; kwargs...)
 tricont(args...; kwargs...) = jlgr.tricont(args...; kwargs...)
+mainloop() = jlgr.mainloop()
 
 type SVG
    s::Array{UInt8}
@@ -2914,6 +2922,11 @@ end
 function isinline()
     global mime_type
     return !(mime_type in (None, "mov"))
+end
+
+function displayname()
+    global display_name
+    return display_name
 end
 
 function startserver()
