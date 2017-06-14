@@ -686,10 +686,9 @@ function plot_data(flag=true)
     end
 
     if flag && GR.displayname() != None
-        @eval import JSON
         handle = connect(GR.displayname(), 8001)
         io = IOBuffer()
-        JSON.print(io, Dict("kvs" => plt.kvs, "args" => plt.args))
+        serialize(io, Dict("kvs" => plt.kvs, "args" => plt.args))
         write(handle, io.data)
         close(handle)
         return
@@ -1273,18 +1272,21 @@ function tricont(args...; kv...)
 end
 
 function mainloop()
-    @eval import JSON
-
     server = listen(8001)
-    while true
-        sock = accept(server)
-        while isopen(sock)
-            obj = JSON.parse(String(read(sock)); dicttype=Dict)
+    try
+        while true
+            sock = accept(server)
+            while isopen(sock)
+                io = IOBuffer()
+                write(io, read(sock))
+                seekstart(io)
 
-            merge!(plt.kvs, obj["kvs"])
-            plt.args = obj["args"]
+                obj = deserialize(io)
+                merge!(plt.kvs, obj["kvs"])
+                plt.args = obj["args"]
 
-            plot_data(false)
+                plot_data(false)
+            end
         end
     end
 end
