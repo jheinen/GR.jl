@@ -806,12 +806,11 @@ function plot_data(flag=true)
                 colorbar()
             end
         elseif kind == :heatmap
-            xmin, xmax, ymin, ymax = plt.kvs[:window]
-            width, height = size(z)
+            w, h = size(z)
             cmap = colormap()
             data = (float(z) - minimum(z)) / (maximum(z) - minimum(z))
             rgba = [to_rgba(value, cmap) for value = data]
-            GR.drawimage(xmin, xmax, ymax, ymin, width, height, rgba)
+            GR.drawimage(0.5, w + 0.5, h + 0.5, 0.5, w, h, rgba)
             colorbar()
         elseif kind == :wireframe
             if length(x) == length(y) == length(z)
