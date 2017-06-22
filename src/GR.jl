@@ -203,9 +203,12 @@ function __init__()
         const libGR = joinpath(grdir, "libGR.dll")
     end
     if !isfile(libGR)
-        println("Unable to load GR framework runtime environment")
-        println("$(libGR): No such file")
-        exit(-1)
+        error("""
+            Unable to load GR framework runtime environment
+            $(libGR): No such file
+            Please restart Julia then run
+            rm(Pkg.dir("GR","deps","downloads"),recursive=true,force=true); Pkg.build("GR")
+            """)
     end
     const libGR3 = replace(libGR, "libGR", "libGR3")
     ENV["GKS_USE_CAIRO_PNG"] = "true"
