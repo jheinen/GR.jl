@@ -42,7 +42,7 @@ if !have_dir
   if !isfile("downloads/$tarball")
     info("Downloading pre-compiled GR $version $os binary")
     mkpath("downloads")
-    download("http://gr-framework.org/downloads/$tarball", "downloads/$tarball")
+    download("https://gr-framework.org/downloads/$tarball", "downloads/$tarball")
     if os == :Windows
       success(`$JULIA_HOME/7z x downloads/$tarball -y`)
       rm("downloads/$tarball")
