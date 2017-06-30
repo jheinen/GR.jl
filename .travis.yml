@@ -1,4 +1,5 @@
 language: julia
+dist: trusty
 os:
   - linux
   - osx
