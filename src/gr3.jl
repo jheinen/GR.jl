@@ -12,14 +12,19 @@ macro ArrayToVector(ctype, data)
     return :( convert(Vector{$(esc(ctype))}, vec($(esc(data)))) )
 end
 
-type PNG
-   s::Array{UInt8}
+@static if VERSION < v"0.7-"
+  include_string("""
+    type PNG s::Array{UInt8} end
+    type HTML s::AbstractString end
+    """)
+else
+  include_string(GR3, """
+    mutable struct PNG s::Array{UInt8} end
+    mutable struct HTML s::AbstractString end
+    """)
 end
-Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 
-type HTML
-   s::AbstractString
-end
+Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
 function _readfile(path)
@@ -28,8 +33,18 @@ function _readfile(path)
     read!(s, data)
 end
 
-type GR3Exception <: Exception
-    msg::AbstractString
+@static if VERSION < v"0.7-"
+  include_string("""
+    type GR3Exception <: Exception
+      msg::AbstractString
+    end
+    """)
+else
+  include_string(GR3, """
+    mutable struct GR3Exception <: Exception
+      msg::AbstractString
+    end
+    """)
 end
 Base.showerror(io::IO, e::GR3Exception) = print(io, e.msg);
 

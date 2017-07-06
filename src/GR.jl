@@ -2901,19 +2901,22 @@ trisurf(args...; kwargs...) = jlgr.trisurf(args...; kwargs...)
 tricont(args...; kwargs...) = jlgr.tricont(args...; kwargs...)
 mainloop() = jlgr.mainloop()
 
-type SVG
-   s::Array{UInt8}
+@static if VERSION < v"0.7-"
+  include_string("""
+    type SVG s::Array{UInt8} end
+    type PNG s::Array{UInt8} end
+    type HTML s::AbstractString end
+    """)
+else
+  include_string(GR, """
+    mutable struct SVG s::Array{UInt8} end
+    mutable struct PNG s::Array{UInt8} end
+    mutable struct HTML s::AbstractString end
+    """)
 end
+
 Base.show(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
-
-type PNG
-   s::Array{UInt8}
-end
 Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
-
-type HTML
-   s::AbstractString
-end
 Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
 function _readfile(path)

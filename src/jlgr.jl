@@ -24,10 +24,22 @@ const colors = [
 
 const distinct_cmap = [ 0, 1, 984, 987, 989, 983, 994, 988 ]
 
-type PlotObject
-    obj
-    args
-    kvs
+@static if VERSION < v"0.7-"
+  include_string("""
+    type PlotObject
+      obj
+      args
+      kvs
+    end
+    """)
+else
+  include_string(jlgr, """
+    mutable struct PlotObject
+      obj
+      args
+      kvs
+    end
+    """)
 end
 
 function Figure(width=600, height=450)
@@ -1213,7 +1225,7 @@ function peaks(n=49)
     x = linspace(-2.5, 2.5, n)
     y = x
     x, y = meshgrid(x, y)
-    3*(1-x).^2.*exp.(-(x.^2) - (y+1).^2) - 10*(x/5 - x.^3 - y.^5).*exp.(-x.^2-y.^2) - 1/3*exp.(-(x+1).^2 - y.^2)
+    3*(1-x).^2 .* exp.(-(x.^2) - (y+1).^2) - 10*(x/5 - x.^3 - y.^5) .* exp.(-x.^2-y.^2) - 1/3 * exp.(-(x+1).^2 - y.^2)
 end
 
 function imshow(I; kv...)
