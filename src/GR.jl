@@ -2965,25 +2965,25 @@ function startserver()
         symlink(joinpath(dirname(@__FILE__), "gr.js"), "gr.js")
     end
 
-    return HTML("""\
-<canvas id="canvas" width="600" height="450"></canvas>\
-<script type="text/javascript" src="gr.js"></script>\
-<script>GR.ready(\
-  function() {\
-    var ws = new WebSocket("ws://localhost:8889/");\
-    ws.onopen = function() {\
-      ws.send("ready");\
-    };\
-    ws.onmessage = function(ev) {\
-      if (ev.data == "busy") {\
-        setTimeout(function() {ws.send("ready");}, 10);\
-      } else {\
-        gr_clearws();\
-        gr_drawgraphics(window.atob(ev.data));\
-        ws.send("ready");\
-      };\
-    };\
-  }\
+    return HTML("""
+<canvas id="canvas" width="600" height="450"></canvas>
+<script type="text/javascript" src="gr.js"></script>
+<script>GR.ready(
+  function() {
+    var ws = new WebSocket("ws://localhost:8889/");
+    ws.onopen = function() {
+      ws.send("ready");
+    };
+    ws.onmessage = function(ev) {
+      if (ev.data == "busy") {
+        setTimeout(function() {ws.send("ready");}, 10);
+      } else {
+        gr_clearws();
+        gr_drawgraphics(window.atob(ev.data));
+        ws.send("ready");
+      };
+    };
+  }
 );</script>""")
 end
 
