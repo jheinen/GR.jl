@@ -18,9 +18,9 @@ function display()
 end
 
 function spherical_to_cartesian(r, theta, phi)
-  x = r * sin(theta) * cos(phi)
-  y = r * sin(theta) * sin(phi)
-  z = r * cos(theta)
+  x = r * sin.(theta) * cos.(phi)
+  y = r * sin.(theta) * sin.(phi)
+  z = r * cos.(theta)
   return (x, y, z)
 end
 
