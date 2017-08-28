@@ -456,20 +456,15 @@ function polymarker(x, y)
 end
 
 function latin1(string)
-  b = convert(Array{UInt8}, string)
   s = zeros(UInt8, length(string))
   len = 0
-  mask = 0
-  for c in b
-    if c != 0xc2 && c != 0xc3
-      len += 1
-      s[len] = c | mask
-    end
-    if c == 0xc3
-      mask = 0x40
-    else
-      mask = 0
-    end
+  for c in string
+    len += 1
+    s[len] = try
+        convert(UInt8, c)
+      catch
+        0x3f
+      end
   end
   return s
 end
