@@ -457,10 +457,20 @@ end
 
 function latin1(string)
   b = convert(Array{UInt8}, string)
-  s = zeros(UInt8, length(string))
+  s = zeros(UInt8, length(string) * 2)
   len = 0
   mask = 0
   for c in b
+    if mask == -1
+      mask = 0
+      continue
+    end
+    if c == 0xce || c == 0xcf
+      len += 1
+      s[len] = 0x3f
+      mask = -1
+      continue
+    end
     if c != 0xc2 && c != 0xc3
       len += 1
       s[len] = c | mask
@@ -471,7 +481,7 @@ function latin1(string)
       mask = 0
     end
   end
-  return s
+  return s[1:len]
 end
 
 """
