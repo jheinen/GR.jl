@@ -395,7 +395,7 @@ function createslicemeshes(grid; x::Union{Real, Void}=nothing, y::Union{Real, Vo
         return(nothing)
     end
     scaling_factor = typemax(UInt16) / input_max
-    grid = convert(Array{UInt16, 3}, floor.(grid * scaling_factor))
+    grid = Array{UInt16, 3}(floor.(grid * scaling_factor))
     nx, ny, nz = size(grid)
     if step == nothing && offset == nothing
         step = (2.0/(nx-1), 2.0/(ny-1), 2.0/(nz-1))

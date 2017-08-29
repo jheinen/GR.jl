@@ -456,7 +456,7 @@ function polymarker(x, y)
 end
 
 function latin1(string)
-  b = convert(Array{UInt8}, string)
+  b = Vector{UInt8}(string)
   s = zeros(UInt8, length(string) * 2)
   len = 0
   mask = 0

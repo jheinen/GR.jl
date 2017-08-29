@@ -38,7 +38,7 @@ function cursor(motion, x, y)
 end
  
 f = open("brain.bin", "r")
-data = reshape(read(f, UInt16, 5120000), 200, 160, 160)
+data = reshape(read!(f, Vector{UInt16}(5120000)), 200, 160, 160)
 close(f)
 
 width = height = 500
