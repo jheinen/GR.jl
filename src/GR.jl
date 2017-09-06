@@ -166,8 +166,7 @@ export
 mime_type = None
 figure_count = None
 msgs = None
-have_clear_output = isinteractive() && isdefined(Main, :IJulia) &&
-                    isdefined(Main.IJulia, :clear_output)
+have_clear_output = None
 display_name = None
 
 
@@ -374,10 +373,16 @@ function deactivatews(workstation_id::Int)
 end
 
 function clearws()
-  global msgs
+  global msgs, have_clear_output
   try
-    if isinline() && have_clear_output
-      IJulia.clear_output(true)
+    if isinline()
+      if have_clear_output == None
+        have_clear_output = isinteractive() && isdefined(Main, :IJulia) &&
+                            isdefined(Main.IJulia, :clear_output)
+      end
+      if have_clear_output
+        IJulia.clear_output(true)
+      end
     end
   catch
     have_clear_output = false
