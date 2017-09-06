@@ -163,15 +163,15 @@ export
   mainloop
 
 
+display_name = None
 mime_type = None
 figure_count = None
 msgs = None
 have_clear_output = None
-display_name = None
 
 
 function __init__()
-    global libGR, libGR3, display_name
+    global libGR, libGR3, display_name, mime_type
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
         if grdir == ""
@@ -213,6 +213,14 @@ function __init__()
     ENV["GKS_USE_CAIRO_PNG"] = "true"
     if "GRDISPLAY" in keys(ENV)
         display_name = ENV["GRDISPLAY"]
+    elseif isdefined(:IJulia)
+        mime_type = "svg"
+        ENV["GKS_WSTYPE"] = "svg"
+    elseif isdefined(:Atom)
+        mime_type = "atom"
+        ENV["GKS_WSTYPE"] = "svg"
+        @eval using Atom
+        @eval import Atom: Media, PlotPane
     end
 end
 
@@ -379,6 +387,7 @@ function clearws()
       if have_clear_output == None
         have_clear_output = isinteractive() && isdefined(Main, :IJulia) &&
                             isdefined(Main.IJulia, :clear_output)
+        @eval import IJulia
       end
       if have_clear_output
         IJulia.clear_output(true)
