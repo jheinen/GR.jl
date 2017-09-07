@@ -10,6 +10,7 @@ end
 
 const None = Union{}
 
+
 export
   opengks,
   closegks,
@@ -170,6 +171,22 @@ msgs = None
 have_clear_output = None
 
 
+function isijulia()
+  @static if VERSION < v"0.7-"
+    isdefined(Main, :IJulia) && Main.IJulia.inited
+  else
+    ( @isdefined IJulia ) && Main.IJulia.inited
+  end
+end
+
+function isatom()
+  @static if VERSION < v"0.7-"
+    isdefined(Main, :Atom) && Main.Atom.isconnected()
+  else
+    ( @isdefined Atom ) && Main.Atom.isconnected()
+  end
+end
+
 function __init__()
     global libGR, libGR3, display_name, mime_type
     if "GRDIR" in keys(ENV)
@@ -213,10 +230,10 @@ function __init__()
     ENV["GKS_USE_CAIRO_PNG"] = "true"
     if "GRDISPLAY" in keys(ENV)
         display_name = ENV["GRDISPLAY"]
-    elseif isdefined(:IJulia)
+    elseif isijulia()
         mime_type = "svg"
         ENV["GKS_WSTYPE"] = "svg"
-    elseif isdefined(:Atom)
+    elseif isatom()
         mime_type = "atom"
         ENV["GKS_WSTYPE"] = "svg"
         @eval using Atom
@@ -385,8 +402,7 @@ function clearws()
   try
     if isinline()
       if have_clear_output == None
-        have_clear_output = isinteractive() && isdefined(Main, :IJulia) &&
-                            isdefined(Main.IJulia, :clear_output)
+        have_clear_output = isijulia()
         @eval import IJulia
       end
       if have_clear_output
