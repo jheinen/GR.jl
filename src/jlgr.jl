@@ -580,7 +580,10 @@ function subplot(nr, nc, p)
 end
 
 function plot_img(I)
-    viewport = plt.kvs[:viewport]
+    viewport = plt.kvs[:vp][:]
+    if haskey(plt.kvs, :title)
+        viewport[4] -= 0.05
+    end
     vp = plt.kvs[:vp]
 
     if isa(I, AbstractString)
@@ -607,6 +610,13 @@ function plot_img(I)
     end
 
     GR.selntran(0)
+    GR.setscale(0)
+    if get(plt.kvs, :xflip, false)
+        tmp = xmax; xmax = xmin; xmin = tmp;
+    end
+    if get(plt.kvs, :yflip, false)
+        tmp = ymax; ymax = ymin; ymin = tmp;
+    end
     if isa(I, AbstractString)
         GR.drawimage(xmin, xmax, ymin, ymax, width, height, data)
     else
