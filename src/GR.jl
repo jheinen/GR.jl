@@ -171,21 +171,9 @@ msgs = None
 have_clear_output = None
 
 
-function isijulia()
-  @static if VERSION < v"0.7-"
-    isdefined(Main, :IJulia) && Main.IJulia.inited
-  else
-    ( @isdefined IJulia ) && Main.IJulia.inited
-  end
-end
+isijulia() = isdefined(Main, :IJulia) && Main.IJulia.inited && isdefined(Main.IJulia, :clear_output)
+isatom() = isdefined(Main, :Atom) && Main.Atom.isconnected()
 
-function isatom()
-  @static if VERSION < v"0.7-"
-    isdefined(Main, :Atom) && Main.Atom.isconnected()
-  else
-    ( @isdefined Atom ) && Main.Atom.isconnected()
-  end
-end
 
 function __init__()
     global libGR, libGR3, display_name, mime_type
