@@ -10,6 +10,7 @@ for t in tests
     println("running $(tp) ...")
     inline("pdf")
     include(tp)
-    @test isfile("gks.pdf")
-    rm("gks.pdf")
+    file_path = ENV["GKS_FILEPATH"]
+    @test isfile(file_path)
+    rm(file_path)
 end

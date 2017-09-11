@@ -166,17 +166,18 @@ export
 
 display_name = None
 mime_type = None
+file_path = None
 figure_count = None
 msgs = None
 have_clear_output = None
 
 
-isijulia() = isdefined(Main, :IJulia) && Main.IJulia.inited && isdefined(Main.IJulia, :clear_output)
+isijulia() = isdefined(Main, :IJulia) && isdefined(Main.IJulia, :clear_output)
 isatom() = isdefined(Main, :Atom) && Main.Atom.isconnected()
 
 
 function __init__()
-    global libGR, libGR3, display_name, mime_type
+    global libGR, libGR3, display_name, mime_type, file_path
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
         if grdir == ""
@@ -220,10 +221,14 @@ function __init__()
         display_name = ENV["GRDISPLAY"]
     elseif isijulia()
         mime_type = "svg"
+        file_path = tempname() * ".svg"
         ENV["GKS_WSTYPE"] = "svg"
+        ENV["GKS_FILEPATH"] = file_path
     elseif isatom()
         mime_type = "atom"
+        file_path = tempname() * ".svg"
         ENV["GKS_WSTYPE"] = "svg"
+        ENV["GKS_FILEPATH"] = file_path
         @eval using Atom
         @eval import Atom: Media, PlotPane
     end
@@ -3016,20 +3021,28 @@ function startserver()
 end
 
 function inline(mime="svg", scroll=true)
-    global mime_type, figure_count, msgs
+    global mime_type, file_path, figure_count, msgs
     if mime_type != mime
         if mime == "iterm"
+            file_path = tempname() * ".pdf"
             ENV["GKS_WSTYPE"] = "pdf"
         elseif mime == "mlterm"
+            file_path = tempname() * ".six"
             ENV["GKS_WSTYPE"] = "six"
         elseif mime == "atom"
+            file_path = tempname() * ".svg"
             ENV["GKS_WSTYPE"] = "svg"
             @eval using Atom
             @eval import Atom: Media, PlotPane
         elseif mime == "js"
+            file_path = None
             ENV["GKS_WSTYPE"] = "nul"
         else
+            file_path = tempname() * "." * mime
             ENV["GKS_WSTYPE"] = mime
+        end
+        if file_path != None
+            ENV["GKS_FILEPATH"] = file_path
         end
         emergencyclosegks()
         mime_type = mime
@@ -3042,20 +3055,20 @@ function inline(mime="svg", scroll=true)
 end
 
 function show()
-    global mime_type, figure_count, msgs
+    global mime_type, file_path, figure_count, msgs
 
     emergencyclosegks()
     if mime_type == "svg"
-        content = SVG(_readfile("gks.svg"))
+        content = SVG(_readfile(file_path))
         return content
     elseif mime_type == "png"
-        content = PNG(_readfile("gks.png"))
+        content = PNG(_readfile(file_path))
         return content
     elseif mime_type == "mov"
-        content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64encode(open(read,"gks.mov")),""""></video>"""))
+        content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64encode(open(read,file_path)),""""></video>"""))
         return content
     elseif mime_type == "iterm"
-        content = string("\033]1337;File=inline=1;height=24;preserveAspectRatio=0:", base64encode(open(read,"gks.pdf")), "\a")
+        content = string("\033]1337;File=inline=1;height=24;preserveAspectRatio=0:", base64encode(open(read,file_path)), "\a")
         if figure_count != None
             figure_count += 1
             (figure_count > 1) && print("\e[24A")
@@ -3063,12 +3076,12 @@ function show()
         println(content)
         return nothing
     elseif mime_type == "mlterm"
-        content = read("gks.six")
+        content = read(file_path)
         write(content)
         return nothing
     elseif mime_type == "atom"
         bg = jlgr.background
-        content = Base.HTML(string("""<div style="display: inline-block; background: #""", hex(bg, 6), """;">""", readstring("gks.svg"), """</div>"""))
+        content = Base.HTML(string("""<div style="display: inline-block; background: #""", hex(bg, 6), """;">""", readstring(file_path), """</div>"""))
         Atom.render(Atom.PlotPane(), content)
         return nothing
     elseif mime_type == "js"
