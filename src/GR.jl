@@ -169,7 +169,6 @@ mime_type = None
 file_path = None
 figure_count = None
 msgs = None
-have_clear_output = None
 
 
 isijulia() = isdefined(Main, :IJulia) && isdefined(Main.IJulia, :clear_output)
@@ -224,6 +223,8 @@ function __init__()
         file_path = tempname() * ".svg"
         ENV["GKS_WSTYPE"] = "svg"
         ENV["GKS_FILEPATH"] = file_path
+        @eval import IJulia
+        IJulia.clear_output(true)
     elseif isatom()
         mime_type = "atom"
         file_path = tempname() * ".svg"
@@ -391,20 +392,7 @@ function deactivatews(workstation_id::Int)
 end
 
 function clearws()
-  global msgs, have_clear_output
-  try
-    if isinline()
-      if have_clear_output == None
-        have_clear_output = isijulia()
-        @eval import IJulia
-      end
-      if have_clear_output
-        IJulia.clear_output(true)
-      end
-    end
-  catch
-    have_clear_output = false
-  end
+  global msgs
   if msgs != None
     begingraphics("")
   end
@@ -3060,12 +3048,15 @@ function show()
     emergencyclosegks()
     if mime_type == "svg"
         content = SVG(_readfile(file_path))
+        rm(file_path)
         return content
     elseif mime_type == "png"
         content = PNG(_readfile(file_path))
+        rm(file_path)
         return content
     elseif mime_type == "mov"
         content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64encode(open(read,file_path)),""""></video>"""))
+        rm(file_path)
         return content
     elseif mime_type == "iterm"
         content = string("\033]1337;File=inline=1;height=24;preserveAspectRatio=0:", base64encode(open(read,file_path)), "\a")
@@ -3074,15 +3065,18 @@ function show()
             (figure_count > 1) && print("\e[24A")
         end
         println(content)
+        rm(file_path)
         return nothing
     elseif mime_type == "mlterm"
         content = read(file_path)
         write(content)
+        rm(file_path)
         return nothing
     elseif mime_type == "atom"
         bg = jlgr.background
         content = Base.HTML(string("""<div style="display: inline-block; background: #""", hex(bg, 6), """;">""", readstring(file_path), """</div>"""))
         Atom.render(Atom.PlotPane(), content)
+        rm(file_path)
         return nothing
     elseif mime_type == "js"
         if msgs != None
