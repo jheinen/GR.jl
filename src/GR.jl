@@ -2372,7 +2372,7 @@ The following path codes are recognized:
 
 """
 function drawpath(points, codes, fill::Int)
-  len = length(points)
+  len = length(codes)
   ccall( (:gr_drawpath, libGR),
         Void,
         (Int32, Ptr{Float64}, Ptr{UInt8}, Int32),
