@@ -221,14 +221,14 @@ function __init__()
     elseif isijulia()
         mime_type = "svg"
         file_path = tempname() * ".svg"
-        ENV["GKS_WSTYPE"] = "svg"
+        ENV["GKSwstype"] = "svg"
         ENV["GKS_FILEPATH"] = file_path
         @eval import IJulia
         IJulia.clear_output(true)
     elseif isatom()
         mime_type = "atom"
         file_path = tempname() * ".svg"
-        ENV["GKS_WSTYPE"] = "svg"
+        ENV["GKSwstype"] = "svg"
         ENV["GKS_FILEPATH"] = file_path
         @eval using Atom
         @eval import Atom: Media, PlotPane
