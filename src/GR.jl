@@ -27,6 +27,7 @@ export
   inqtext,
   fillarea,
   cellarray,
+  gdp,
   spline,
   gridit,
   setlinetype,
@@ -587,6 +588,36 @@ function cellarray(xmin::Real, xmax::Real, ymin::Real, ymax::Real, dimx::Int, di
         Void,
         (Float64, Float64, Float64, Float64, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
         xmin, xmax, ymin, ymax, dimx, dimy, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
+end
+
+"""
+    gdp(x, y, primid, datrec)
+
+Generates a generalized drawing primitive (GDP) of the type you specify,
+using specified points and any additional information contained in a data
+record.
+
+**Parameters:**
+
+`x` :
+    A list containing the X coordinates
+`y` :
+    A list containing the Y coordinates
+`primid` :
+    Primitive identifier
+`datrec` :
+    Primitive data record
+
+"""
+function gdp(x, y, primid, datrec)
+  assert(length(x) == length(y))
+  n = length(x)
+  ldr = length(datrec)
+  ccall( (:gr_gdp, libGR),
+        Void,
+        (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Ptr{Int32}),
+        n, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
+        primid, ldr, convert(Vector{Int32}, datrec))
 end
 
 """
