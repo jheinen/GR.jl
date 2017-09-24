@@ -41,8 +41,15 @@ if !have_dir
   tarball = "gr-$version-$os-$arch.tar.gz"
   if !isfile("downloads/$tarball")
     info("Downloading pre-compiled GR $version $os binary")
+    url = "gr-framework.org/downloads/$tarball"
+    file = "downloads/$tarball"
     mkpath("downloads")
-    download("https://gr-framework.org/downloads/$tarball", "downloads/$tarball")
+    try
+      download("https://$url", file)
+    catch
+      info("Using insecure connection")
+      download("http://$url", file)
+    end
     if os == :Windows
       success(`$JULIA_HOME/7z x downloads/$tarball -y`)
       rm("downloads/$tarball")
