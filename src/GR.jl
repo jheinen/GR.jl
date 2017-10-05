@@ -120,6 +120,7 @@ export
   tricontour,
 # gradient, # deprecated, but still in Base
   quiver,
+  version,
   # Convenience functions
   jlgr,
   colormap,
@@ -3332,6 +3333,14 @@ function quiver(x, y, u, v, color::Bool=false)
   else
     println("Arrays have incorrect length or dimension.")
   end
+end
+
+function version()
+  info = ccall( (:gr_version, libGR),
+               Cstring,
+               ()
+               )
+  unsafe_string(info)
 end
 
 end # module
