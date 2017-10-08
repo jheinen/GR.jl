@@ -474,14 +474,15 @@ function latin1(string)
   len = 0
   mask = 0
   for c in b
-    if mask == -1
+    if mask == 0xce || mask == 0xcf ## was mask == -1
+      len += greek!(mask,c,len,s)   ## new function
       mask = 0
       continue
     end
     if c == 0xce || c == 0xcf
       len += 1
       s[len] = 0x3f
-      mask = -1
+      mask = c ## was mask = -1
       continue
     end
     if c != 0xc2 && c != 0xc3
@@ -495,6 +496,90 @@ function latin1(string)
     end
   end
   return s[1:len]
+end
+
+function greek!(mask,c,len,s)
+  if mask == 0xce && haskey(greek_ce, c)
+    v = Vector{UInt8}(greek_ce[c])
+    lenv = length(v)-1
+    append!(s, zeros(UInt8,lenv))
+    s[len:len+lenv] = v
+    return lenv
+  end
+  if mask == 0xcf && haskey(greek_cf, c)
+    v = Vector{UInt8}(greek_cf[c])
+    lenv = length(v)-1
+    append!(s, zeros(UInt8,lenv))
+    s[len:len+lenv] = v
+    return lenv
+  end
+  return 0
+end
+
+greek_ce = Dict(
+## [ (0xb1 + UInt8(i) , String([0xce, 0xb1 + UInt8(i)]) ) for i=0:24] ## => "\\", #
+  0xb1 => "\\alpha", #, "α")
+  0xb2 => "\\beta",  #, "β")
+  0xb3 => "\\gamma", #, "γ")
+  0xb4 => "\\delta", #, "δ")
+  0xb5 => "\\epsilon", #, "ε")
+  0xb6 => "\\zeta", #, "ζ")
+  0xb7 => "\\eta", #, "η")
+  0xb8 => "\\theta", #, "θ")
+  0xb9 => "\\iota", #, "ι")
+  0xba => "\\kappa", #, "κ")
+  0xbb => "\\lambda", #, "λ")
+  0xbc => "\\mu", #, "μ")
+  0xbd => "\\nu", #, "ν")
+  0xbe => "\\xi", #, "ξ")
+  0xbf => "\\omicron", #, "ο")
+  0xc0 => "\\pi", #, "π")
+  0xc1 => "\\rho", #, "ρ")
+  0xc2 => "\\varsigma", #, "ς") ## not on list below
+  0xc3 => "\\sigma", #, "σ")
+  0xc4 => "\\tau", #, "τ")
+  0xc5 => "\\upsilon", #, "υ")
+  0xc6 => "\\phi", #, "φ")
+  0xc7 => "\\chi", #, "χ")
+  0xc8 => "\\psi", #, "ψ")
+  0xc9 => "\\omega", #, "ω")
+)
+greek_cf = Dict(
+  0x95 => "\\phi",      ## Vector{UInt8}("ϕ") \phi
+#  0x86 => "\\varphi",   ## Vector{UInt8}("φ") \varphi
+  0x91 => "\\vartheta", ## Vector{UInt8}("ϑ") \vartheta
+## [ (0x51 + UInt8(i) , String([0xcf, 0x51 + UInt8(i)]) ) for i=0:24] ## => "\\", #
+  0x51 => "A", #, "Α")
+  0x52 => "B", #, "Β")
+  0x53 => "\\Gamma", #, "Γ")
+  0x54 => "\\Delta", #, "Δ")
+  0x55 => "E", #, "Ε")
+  0x56 => "Z", #, "Ζ")
+  0x57 => "H", #, "Η")
+  0x58 => "\\Theta", #, "Θ")
+  0x59 => "I", #, "Ι")
+  0x5a => "K", #, "Κ")
+  0x5b => "\\Lambda", #, "Λ")
+  0x5c => "M", #, "Μ")
+  0x5d => "N", #, "Ν")
+  0x5e => "\\Xi", #, "Ξ")
+  0x5f => "O", #, "Ο")
+  0x60 => "\\Pi", #, "Π")
+  0x61 => "P", #, "Ρ")
+  0x62 => "?", #, "\u3a2")
+  0x63 => "\\Sigma", #, "Σ")
+  0x64 => "T", #, "Τ")
+  0x65 => "Y", #, "Υ")
+  0x66 => "\\Phi", #, "Φ")
+  0x67 => "X", #, "Χ")
+  0x68 => "\\Psi", #, "Ψ")
+  0x69 => "\\Omega", #, "Ω")
+)
+## [ (0x71 + UInt8(i) , String([0xcf, 0x71 + UInt8(i)]) ) for i=0:24]
+## differ by 0x40:
+for i=0:24
+  j = 0x71 + UInt8(i)
+  greek_cf[j] = greek_ce[j + 0x40]
 end
 
 """

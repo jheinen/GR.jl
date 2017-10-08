@@ -394,7 +394,7 @@ end
 function inqtext(x, y, s)
     if length(s) >= 2 && s[1] == '$' && s[end] == '$'
         GR.inqtextext(x, y, s[2:end-1])
-    elseif search(s, '\\') != 0 || search(s, '_') != 0 || search(s, '^') != 0
+    elseif search(s, '\\') != 0 || search(s, '_') != 0 || search(s, '^') != 0 || search(s, 0xce) != 0 || search(s, 0xcf) != 0
         GR.inqtextext(x, y, s)
     else
         GR.inqtext(x, y, s)
@@ -404,7 +404,7 @@ end
 function text(x, y, s)
     if length(s) >= 2 && s[1] == '$' && s[end] == '$'
         GR.mathtex(x, y, s[2:end-1])
-    elseif search(s, '\\') != 0 || search(s, '_') != 0 || search(s, '^') != 0
+    elseif search(s, '\\') != 0 || search(s, '_') != 0 || search(s, '^') != 0 || search(s, 0xce) != 0 || search(s, 0xcf) != 0
         GR.textext(x, y, s)
     else
         GR.text(x, y, s)
