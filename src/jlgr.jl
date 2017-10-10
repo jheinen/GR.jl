@@ -469,6 +469,13 @@ function colorbar(off=0, colors=256)
     GR.savestate()
     viewport = plt.kvs[:viewport]
     zmin, zmax = plt.kvs[:zrange]
+    if get(plt.kvs, :zflip, false)
+        options = (GR.inqscale() | GR.OPTION_FLIP_Y) & ~GR.OPTION_FLIP_X
+        GR.setscale(options)
+    elseif get(plt.kvs, :yflip, false)
+        options = GR.inqscale() & ~GR.OPTION_FLIP_Y & ~GR.OPTION_FLIP_X
+        GR.setscale(options)
+    end
     GR.setwindow(0, 1, zmin, zmax)
     GR.setviewport(viewport[2] + 0.02 + off, viewport[2] + 0.05 + off,
                    viewport[3], viewport[4])
@@ -479,10 +486,6 @@ function colorbar(off=0, colors=256)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     charheight = max(0.016 * diag, 0.012)
     GR.setcharheight(charheight)
-    if get(plt.kvs, :zflip, false)
-        options = (GR.inqscale() | GR.OPTION_FLIP_Y) & ~GR.OPTION_FLIP_X
-        GR.setscale(options)
-    end
     if plt.kvs[:scale] & GR.OPTION_Z_LOG == 0
         ztick = 0.5 * GR.tick(zmin, zmax)
         GR.axes(0, ztick, 1, zmin, 0, 1, 0.005)
