@@ -19,7 +19,33 @@ The Julia package manager will download and install a pre-compiled
 run-time (for your hardware architecture), if the GR software is not
 already installed in the recommended locations.
 
-If you don't want those binaries to be copied to your Julia run-time,
+In Julia simply type ``using GR`` and begin calling functions
+in the [GR framework](http://gr-framework.org/gr.html) API.
+
+Let's start with a simple example. We generate 10,000 random numbers and
+create a histogram. The histogram function automatically chooses an appropriate
+number of bins to cover the range of values in x and show the shape of the
+underlying distribution.
+
+```julia
+using GR
+histogram(randn(10000))
+```
+
+### Using GR as backend for Plots.jl
+
+``Plots`` is a powerful wrapper around other Julia visualization
+"backends", where ``GR`` seems to be one of the favorite ones.
+To get an impression how complex visualizations may become
+easier with [Plots](https://juliaplots.github.io), take a look at
+[these](http://docs.juliaplots.org/latest/examples/gr/)  examples.
+
+``Plots`` is great on its own, but the real power comes from the ecosystem surrounding it. You can find more information
+[here](http://docs.juliaplots.org/latest/ecosystem/).
+
+### Installing GR from source
+
+If you don't want the pre-built binaries to be copied to your Julia run-time,
 you will have to install the GR framework before using the Julia
 GR package. Clone the main source using:
 
@@ -43,11 +69,4 @@ you should install the GR framework in your home folder:
 Once the GR framework is installed you can use ``Pkg.add("GR")``
 in Julia to install the GR module. You are now ready tu use GR.
 
-In Julia simply type ``using GR`` and begin calling functions
-in the [GR framework](http://gr-framework.org/gr.html) API.
-
-You may also set the ``GRDIR`` environment to the GR Python module path
-of an existing Anaconda (or Miniconda) installation, e.g.:
-
-    export GRDIR=${HOME}/anaconda/lib/python2.7/site-packages/gr
 
