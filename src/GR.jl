@@ -2975,7 +2975,9 @@ Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 function _readfile(path)
     data = Array{UInt8}(filesize(path))
     s = open(path, "r")
-    read!(s, data)
+    content = read!(s, data)
+    close(s)
+    content
 end
 
 function isinline()
