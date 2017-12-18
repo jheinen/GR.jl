@@ -3115,7 +3115,7 @@ function show()
     elseif mime_type == "js"
         if msgs != None
             endgraphics()
-            push!(msgs, Base.base64encode(getgraphics()))
+            push!(msgs, base64encode(getgraphics()))
         end
     end
     return None

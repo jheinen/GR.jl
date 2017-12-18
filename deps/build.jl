@@ -1,24 +1,32 @@
-if "GRDIR" in keys(ENV)
-    have_dir = length(ENV["GRDIR"]) > 0
-elseif isdir(joinpath(homedir(), "gr"), "fonts")
-    have_dir = true
-else
-    have_dir = false
-    for d in ("/opt", "/usr/local", "/usr")
-        if isdir(joinpath(d, "gr", "fonts"))
-            have_dir = true
-            break
+function check_grdir()
+    if "GRDIR" in keys(ENV)
+        have_dir = length(ENV["GRDIR"]) > 0
+    elseif isdir(joinpath(homedir(), "gr"), "fonts")
+        have_dir = true
+    else
+        have_dir = false
+        for d in ("/opt", "/usr/local", "/usr")
+            if isdir(joinpath(d, "gr", "fonts"))
+                have_dir = true
+                break
+            end
         end
     end
+    have_dir
 end
-if !have_dir
-  version = v"0.28.0"
-  try
-    v = Pkg.installed("GR")
-    if string(v)[end:end] == "+"
-      version = "latest"
+
+function get_version()
+    version = v"0.28.0"
+    try
+        v = Pkg.installed("GR")
+        if string(v)[end:end] == "+"
+            version = "latest"
+        end
     end
-  end
+    version
+end
+
+if !check_grdir()
   if Sys.KERNEL == :NT
     os = :Windows
   else
@@ -33,11 +41,14 @@ if !have_dir
       end
     elseif isfile("/etc/os-release")
       id = String(read(pipeline(`cat /etc/os-release`, `grep ^ID=`, `cut -d= -f2`)))[1:end-1]
-      if id in ("debian", "ubuntu")
-        os = ucfirst(id)
+      if id == "debian"
+        os = "Debian"
+      elseif id == "ubuntu"
+        os = "Ubuntu"
       end
     end
   end
+  version = get_version()
   tarball = "gr-$version-$os-$arch.tar.gz"
   if !isfile("downloads/$tarball")
     info("Downloading pre-compiled GR $version $os binary")
