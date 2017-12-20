@@ -7,16 +7,16 @@ import SpecialFunctions
 
 
 function domain_colors(w, n)
-    H = mod.(angle.(w[:]) / 2pi + 1, 1)
+    H = mod.(angle.(w[:]) / 2pi .+ 1, 1)
     m = 0.7
     M = 1
-    isol = m + (M - m) * (H[:] * n - floor.(H[:] * n))
+    isol = m .+ (M - m) * (H[:] * n - floor.(H[:] * n))
     modul = abs.(w[:])
     Logm = log.(modul[:])
-    modc = m + (M - m) * (Logm[:] - floor.(Logm[:]))
+    modc = m .+ (M - m) * (Logm[:] - floor.(Logm[:]))
 
     V = [modc[i] * isol[i] for i = 1:length(modc)]
-    S = 0.9 * ones(H)
+    S = 0.9 .* fill!(similar(H), 1)
     HSV = cat(2, H, S, V)
 
     return HSV
