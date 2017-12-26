@@ -27,6 +27,7 @@ function get_version()
 end
 
 if !check_grdir()
+  version = get_version()
   if Sys.KERNEL == :NT
     os = :Windows
   else
@@ -37,7 +38,13 @@ if !check_grdir()
     if isfile("/etc/redhat-release")
       rel = String(read(pipeline(`cat /etc/redhat-release`, `sed s/.\*release\ //`, `sed s/\ .\*//`)))[1:end-1]
       if rel > "7.0"
-        os = "Redhat"
+        # Files listed on http://gr-framework.org/downloads/ for CentOS and RedHat are the same since v0.27.0
+        # but since v0.28.0 RedHat file is not listed for download.
+        if isa(version, VersionNumber) && version >= v"0.27.0"
+          os = "CentOS"
+        else
+          os = "Redhat"
+        end
       end
     elseif isfile("/etc/os-release")
       id = String(read(pipeline(`cat /etc/os-release`, `grep ^ID=`, `cut -d= -f2`)))[1:end-1]
@@ -48,7 +55,6 @@ if !check_grdir()
       end
     end
   end
-  version = get_version()
   tarball = "gr-$version-$os-$arch.tar.gz"
   if !isfile("downloads/$tarball")
     info("Downloading pre-compiled GR $version $os binary")
