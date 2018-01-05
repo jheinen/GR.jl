@@ -9,7 +9,12 @@ else
 end
 
 const None = Union{}
-
+@static if VERSION < v"0.7.0-DEV.3137"
+  const Nothing = Void
+end
+@static if VERSION < v"0.7.0-DEV.3155"
+    const popfirst! = shift!
+end
 
 export
   opengks,
@@ -216,7 +221,11 @@ function __init__()
             rm(Pkg.dir("GR","deps","downloads"),recursive=true,force=true); Pkg.build("GR")
             """)
     end
-    const libGR3 = replace(libGR, "libGR", "libGR3")
+    @static if VERSION >= v"0.7.0-DEV.3172"
+        const libGR3 = replace(libGR, "libGR" => "libGR3")
+    else
+        const libGR3 = replace(libGR, "libGR", "libGR3")
+    end
     ENV["GKS_USE_CAIRO_PNG"] = "true"
     if "GRDISPLAY" in keys(ENV)
         display_name = ENV["GRDISPLAY"]
@@ -239,14 +248,14 @@ end
 
 function opengks()
   ccall( (:gr_opengks, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
 
 function closegks()
   ccall( (:gr_closegks, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
@@ -257,7 +266,7 @@ function inqdspsize()
   width = Cint[0]
   height = Cint[0]
   ccall( (:gr_inqdspsize, libGR),
-        Void,
+        Nothing,
         (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Ptr{Cint}),
         mwidth, mheight, width, height)
   return mwidth[1], mheight[1], width[1], height[1]
@@ -334,7 +343,7 @@ Available workstation types:
 """
 function openws(workstation_id::Int, connection, workstation_type::Int)
   ccall( (:gr_openws, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Cchar}, Int32),
         workstation_id, connection, workstation_type)
 end
@@ -352,7 +361,7 @@ Close the specified workstation.
 """
 function closews(workstation_id::Int)
   ccall( (:gr_closews, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         workstation_id)
 end
@@ -370,7 +379,7 @@ Activate the specified workstation.
 """
 function activatews(workstation_id::Int)
   ccall( (:gr_activatews, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         workstation_id)
 end
@@ -388,7 +397,7 @@ Deactivate the specified workstation.
 """
 function deactivatews(workstation_id::Int)
   ccall( (:gr_deactivatews, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         workstation_id)
 end
@@ -399,7 +408,7 @@ function clearws()
     begingraphics("")
   end
   ccall( (:gr_clearws, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
@@ -410,7 +419,7 @@ function updatews()
     endgraphics()
   end
   ccall( (:gr_updatews, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
@@ -437,7 +446,7 @@ function polyline(x, y)
   assert(length(x) == length(y))
   n = length(x)
   ccall( (:gr_polyline, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y))
 end
@@ -463,7 +472,7 @@ function polymarker(x, y)
   assert(length(x) == length(y))
   n = length(x)
   ccall( (:gr_polymarker, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y))
 end
@@ -519,7 +528,7 @@ height, character up vector, text path and text alignment.
 """
 function text(x::Real, y::Real, string)
   ccall( (:gr_text, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Ptr{UInt8}),
         x, y, latin1(string))
 end
@@ -528,7 +537,7 @@ function inqtext(x, y, string)
   tbx = Cdouble[0, 0, 0, 0]
   tby = Cdouble[0, 0, 0, 0]
   ccall( (:gr_inqtext, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Ptr{UInt8}, Ptr{Cdouble}, Ptr{Cdouble}),
         x, y, latin1(string), tbx, tby)
   return tbx, tby
@@ -554,7 +563,7 @@ function fillarea(x, y)
   assert(length(x) == length(y))
   n = length(x)
   ccall( (:gr_fillarea, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y))
 end
@@ -586,7 +595,7 @@ function cellarray(xmin::Real, xmax::Real, ymin::Real, ymax::Real, dimx::Int, di
     color = reshape(color, dimx * dimy)
   end
   ccall( (:gr_cellarray, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
         xmin, xmax, ymin, ymax, dimx, dimy, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
 end
@@ -615,7 +624,7 @@ function gdp(x, y, primid, datrec)
   n = length(x)
   ldr = length(datrec)
   ccall( (:gr_gdp, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Ptr{Int32}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
         primid, ldr, convert(Vector{Int32}, datrec))
@@ -651,7 +660,7 @@ function spline(x, y, m, method)
   assert(length(x) == length(y))
   n = length(x)
   ccall( (:gr_spline, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), m, method)
 end
@@ -663,7 +672,7 @@ function gridit(xd, yd, zd, nx, ny)
   y = Cdouble[1 : ny ;]
   z = Cdouble[1 : nx*ny ;]
   ccall( (:gr_gridit, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
         nd, convert(Vector{Float64}, xd), convert(Vector{Float64}, yd), convert(Vector{Float64}, zd), nx, ny, x, y, z)
   return x, y, z
@@ -710,7 +719,7 @@ The available line types are:
 """
 function setlinetype(style::Int)
   ccall( (:gr_setlinetype, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         style)
 end
@@ -733,7 +742,7 @@ The default line width is 1.0, or 1 times the line width generated on the graphi
 """
 function setlinewidth(width::Real)
   ccall( (:gr_setlinewidth, libGR),
-        Void,
+        Nothing,
         (Float64, ),
         width)
 end
@@ -751,7 +760,7 @@ Define the color of subsequent polyline output primitives.
 """
 function setlinecolorind(color::Int)
   ccall( (:gr_setlinecolorind, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         color)
 end
@@ -849,7 +858,7 @@ Polymarkers appear centered over their specified coordinates.
 """
 function setmarkertype(mtype::Int)
   ccall( (:gr_setmarkertype, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         mtype)
 end
@@ -870,7 +879,7 @@ multiplied by the marker size scale factor.
 """
 function setmarkersize(mtype::Real)
   ccall( (:gr_setmarkersize, libGR),
-        Void,
+        Nothing,
         (Float64, ),
         mtype)
 end
@@ -888,7 +897,7 @@ Define the color of subsequent polymarker output primitives.
 """
 function setmarkercolorind(color::Int)
   ccall( (:gr_setmarkercolorind, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         color)
 end
@@ -989,7 +998,7 @@ precision for GR and produces the highest quality output.
 """
 function settextfontprec(font::Int, precision::Int)
   ccall( (:gr_settextfontprec, libGR),
-        Void,
+        Nothing,
         (Int32, Int32),
         font, precision)
 end
@@ -1011,14 +1020,14 @@ text expansion factor is 1, or one times the normal width-to-height ratio of the
 """
 function setcharexpan(factor::Real)
   ccall( (:gr_setcharexpan, libGR),
-        Void,
+        Nothing,
         (Float64, ),
         factor)
 end
 
 function setcharspace(spacing::Real)
   ccall( (:gr_setcharspace, libGR),
-        Void,
+        Nothing,
         (Float64, ),
         spacing)
 end
@@ -1039,7 +1048,7 @@ GR uses the default foreground color (black=1) for the default text color index.
 """
 function settextcolorind(color::Int)
   ccall( (:gr_settextcolorind, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         color)
 end
@@ -1061,7 +1070,7 @@ is defined as a percentage of the default window. GR uses the default text heigh
 """
 function setcharheight(height::Real)
   ccall( (:gr_setcharheight, libGR),
-        Void,
+        Nothing,
         (Float64, ),
         height)
 end
@@ -1082,7 +1091,7 @@ The text up vector is initially set to (0, 1), horizontal to the baseline.
 """
 function setcharup(ux::Real, uy::Real)
   ccall( (:gr_setcharup, libGR),
-        Void,
+        Nothing,
         (Float64, Float64),
         ux, uy)
 end
@@ -1110,7 +1119,7 @@ Define the current direction in which subsequent text will be drawn.
 """
 function settextpath(path::Int)
   ccall( (:gr_settextpath, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         path)
 end
@@ -1158,7 +1167,7 @@ alignment and vertical baseline alignment.
 """
 function settextalign(horizontal::Int, vertical::Int)
   ccall( (:gr_settextalign, libGR),
-        Void,
+        Nothing,
         (Int32, Int32),
         horizontal, vertical)
 end
@@ -1189,7 +1198,7 @@ primitives. The default interior style is HOLLOW.
 """
 function setfillintstyle(style::Int)
   ccall( (:gr_setfillintstyle, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         style)
 end
@@ -1213,7 +1222,7 @@ for the interior style, the fill style index is unused.
 """
 function setfillstyle(index::Int)
   ccall( (:gr_setfillstyle, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         index)
 end
@@ -1234,7 +1243,7 @@ GR uses the default foreground color (black=1) for the default fill area color i
 """
 function setfillcolorind(color::Int)
   ccall( (:gr_setfillcolorind, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         color)
 end
@@ -1259,7 +1268,7 @@ an RGB color triplet.
 """
 function setcolorrep(index::Int, red::Real, green::Real, blue::Real)
   ccall( (:gr_setcolorrep, libGR),
-        Void,
+        Nothing,
         (Int32, Float64, Float64, Float64),
         index, red, green, blue)
 end
@@ -1302,7 +1311,7 @@ assumes that the axes limits are greater than zero.
 """
 function setscale(options::Int)
   ccall( (:gr_setscale, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         options)
 end
@@ -1310,7 +1319,7 @@ end
 function inqscale()
   _options = Cint[0]
    ccall( (:gr_inqscale, libGR),
-         Void,
+         Nothing,
          (Ptr{Int32}, ),
          _options)
   return _options[1]
@@ -1344,7 +1353,7 @@ open and active workstation, in device coordinates. By default, GR uses the rang
 """
 function setwindow(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
   ccall( (:gr_setwindow, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
 end
@@ -1375,7 +1384,7 @@ workstation, in device coordinates.
 """
 function setviewport(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
   ccall( (:gr_setviewport, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
 end
@@ -1400,7 +1409,7 @@ device coordinates.
 """
 function selntran(transform::Int)
   ccall( (:gr_selntran, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         transform)
 end
@@ -1431,7 +1440,7 @@ By default, clipping is on.
 """
 function setclip(indicator::Int)
   ccall( (:gr_setclip, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         indicator)
 end
@@ -1460,7 +1469,7 @@ surface. The aspect ratio of the workstation window is maintained at 1 to 1.
 """
 function setwswindow(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
   ccall( (:gr_setwswindow, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
 end
@@ -1489,56 +1498,56 @@ publishing applications.
 """
 function setwsviewport(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
   ccall( (:gr_setwsviewport, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
 end
 
 function createseg(segment::Int)
   ccall( (:gr_createseg, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         segment)
 end
 
 function copyseg(segment::Int)
   ccall( (:gr_copyseg, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         segment)
 end
 
 function redrawsegws()
   ccall( (:gr_redrawsegws, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
 
 function setsegtran(segment::Int, fx::Real, fy::Real, transx::Real, transy::Real, phi::Real, scalex::Real, scaley::Real)
   ccall( (:gr_setsegtran, libGR),
-        Void,
+        Nothing,
         (Int32, Float64, Float64, Float64, Float64, Float64, Float64, Float64),
         segment, fx, fy, transx, transy, phi, scalex, scaley)
 end
 
 function closeseg()
   ccall( (:gr_closeseg, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
 
 function emergencyclosegks()
   ccall( (:gr_emergencyclosegks, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
 
 function updategks()
   ccall( (:gr_updategks, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
@@ -1570,7 +1579,7 @@ between 0° and 90°.
 """
 function setspace(zmin::Real, zmax::Real, rotation::Int, tilt::Int)
   ccall( (:gr_setspace, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Int32, Int32),
         zmin, zmax, rotation, tilt)
 end
@@ -1667,7 +1676,7 @@ function.
 """
 function textext(x::Real, y::Real, string)
   ccall( (:gr_textext, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Ptr{UInt8}),
         x, y, latin1(string))
 end
@@ -1676,7 +1685,7 @@ function inqtextext(x::Real, y::Real, string)
   tbx = Cdouble[0, 0, 0, 0]
   tby = Cdouble[0, 0, 0, 0]
   ccall( (:gr_inqtextext, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Ptr{UInt8}, Ptr{Cdouble}, Ptr{Cdouble}),
         x, y, latin1(string), tbx, tby)
   return tbx, tby
@@ -1714,7 +1723,7 @@ the linear or logarithmic transformation established by the `setscale` function.
 """
 function axes(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real)
   ccall( (:gr_axes, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32, Float64),
         x_tick, y_tick, x_org, y_org, major_x, major_y, tick_size)
 end
@@ -1742,14 +1751,14 @@ lines are drawn using black lines and minor grid lines are drawn using gray line
 """
 function grid(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int)
   ccall( (:gr_grid, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32),
         x_tick, y_tick, x_org, y_org, major_x, major_y)
 end
 
 function grid3d(x_tick::Real, y_tick::Real, z_tick::Real, x_org::Real, y_org::Real, z_org::Real, major_x::Int, major_y::Int, major_z::Int)
   ccall( (:gr_grid3d, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64, Int32, Int32, Int32),
         x_tick, y_tick, z_tick, x_org, y_org, z_org, major_x, major_y, major_z)
 end
@@ -1775,7 +1784,7 @@ function verrorbars(px, py, e1, e2)
   assert(length(px) == length(py) == length(e1) == length(e2))
   n = length(px)
   ccall( (:gr_verrorbars, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, e1), convert(Vector{Float64}, e2))
 end
@@ -1801,7 +1810,7 @@ function herrorbars(px, py, e1, e2)
   assert(length(px) == length(py) == length(e1) == length(e2))
   n = length(px)
   ccall( (:gr_herrorbars, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, e1), convert(Vector{Float64}, e2))
 end
@@ -1830,7 +1839,7 @@ function polyline3d(px, py, pz)
   assert(length(px) == length(py) == length(pz))
   n = length(px)
   ccall( (:gr_polyline3d, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz))
 end
@@ -1858,14 +1867,14 @@ function polymarker3d(px, py, pz)
   assert(length(px) == length(py) == length(pz))
   n = length(px)
   ccall( (:gr_polymarker3d, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz))
 end
 
 function axes3d(x_tick::Real, y_tick::Real, z_tick::Real, x_org::Real, y_org::Real, z_org::Real, major_x::Int, major_y::Int, major_z::Int, tick_size::Real)
   ccall( (:gr_axes3d, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64, Int32, Int32, Int32, Float64),
         x_tick, y_tick, z_tick, x_org, y_org, z_org, major_x, major_y, major_z, tick_size)
 end
@@ -1883,7 +1892,7 @@ Display axis titles just outside of their respective axes.
 """
 function titles3d(x_title, y_title, z_title)
   ccall( (:gr_titles3d, libGR),
-        Void,
+        Nothing,
         (Ptr{UInt8}, Ptr{UInt8}, Ptr{UInt8}),
         latin1(x_title), latin1(y_title), latin1(z_title))
 end
@@ -1946,7 +1955,7 @@ function surface(px, py, pz, option::Int)
       pz = reshape(pz, nx * ny)
     end
     ccall( (:gr_surface, libGR),
-          Void,
+          Nothing,
           (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
           nx, ny, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz), option)
   else
@@ -1999,7 +2008,7 @@ function contour(px, py, h, pz, major_h::Int)
       pz = reshape(pz, nx * ny)
     end
     ccall( (:gr_contour, libGR),
-          Void,
+          Nothing,
           (Int32, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
           nx, ny, nh, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, h), convert(Vector{Float64}, pz), major_h)
   else
@@ -2019,14 +2028,14 @@ end
 
 function setcolormap(index::Int)
   ccall( (:gr_setcolormap, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         index)
 end
 
 function colorbar()
   ccall( (:gr_colorbar, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
@@ -2034,7 +2043,7 @@ end
 function inqcolor(color::Int)
   rgb = Cint[0]
   ccall( (:gr_inqcolor, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Int32}),
         color, rgb)
   return rgb[1]
@@ -2053,7 +2062,7 @@ function hsvtorgb(h::Real, s::Real, v::Real)
   g = Cdouble[0]
   b = Cdouble[0]
   ccall( (:gr_hsvtorgb, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         h, s, v, r, g, b)
   return r[1], g[1], b[1]
@@ -2077,7 +2086,7 @@ function adjustlimits(amin::Real, amax::Real)
   _amin = Cdouble[amin]
   _amax = Cdouble[amax]
   ccall( (:gr_adjustlimits, libGR),
-        Void,
+        Nothing,
         (Ptr{Float64}, Ptr{Float64}),
         _amin, _amax)
   return _amin[1], _amax[1]
@@ -2087,7 +2096,7 @@ function adjustrange(amin::Real, amax::Real)
   _amin = Cdouble[amin]
   _amax = Cdouble[amax]
   ccall( (:gr_adjustrange, libGR),
-        Void,
+        Nothing,
         (Ptr{Float64}, Ptr{Float64}),
         _amin, _amax)
   return _amin[1], _amax[1]
@@ -2129,7 +2138,7 @@ from the given file extension. The following file types are supported:
 """
 function beginprint(pathname)
   ccall( (:gr_beginprint, libGR),
-        Void,
+        Nothing,
         (Ptr{Cchar}, ),
         pathname)
 end
@@ -2217,14 +2226,14 @@ The available formats are:
 """
 function beginprintext(pathname, mode, fmt, orientation)
   ccall( (:gr_beginprintext, libGR),
-        Void,
+        Nothing,
         (Ptr{Cchar}, Ptr{Cchar}, Ptr{Cchar}, Ptr{Cchar}),
         pathname, mode, fmt, orientation)
 end
 
 function endprint()
   ccall( (:gr_endprint, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
@@ -2233,7 +2242,7 @@ function ndctowc(x::Real, y::Real)
   _x = Cdouble[x]
   _y = Cdouble[y]
   ccall( (:gr_ndctowc, libGR),
-        Void,
+        Nothing,
         (Ptr{Float64}, Ptr{Float64}),
         _x, _y)
   return _x[1], _y[1]
@@ -2243,7 +2252,7 @@ function wctondc(x::Real, y::Real)
   _x = Cdouble[x]
   _y = Cdouble[y]
   ccall( (:gr_wctondc, libGR),
-        Void,
+        Nothing,
         (Ptr{Float64}, Ptr{Float64}),
         _x, _y)
   return _x[1], _y[1]
@@ -2254,7 +2263,7 @@ function wc3towc(x::Real, y::Real, z::Real)
   _y = Cdouble[y]
   _z = Cdouble[z]
   ccall( (:gr_wc3towc, libGR),
-        Void,
+        Nothing,
         (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         _x, _y, _z)
   return _x[1], _y[1], _z[1]
@@ -2279,7 +2288,7 @@ Draw a rectangle using the current line attributes.
 """
 function drawrect(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
   ccall( (:gr_drawrect, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
 end
@@ -2303,7 +2312,7 @@ Draw a filled rectangle using the current fill attributes.
 """
 function fillrect(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
   ccall( (:gr_fillrect, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
 end
@@ -2335,7 +2344,7 @@ of the given rectangle.
 """
 function drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
   ccall( (:gr_drawarc, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32),
         xmin, xmax, ymin, ymax, a1, a2)
 end
@@ -2367,7 +2376,7 @@ of the given rectangle.
 """
 function fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
   ccall( (:gr_fillarc, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32),
         xmin, xmax, ymin, ymax, a1, a2)
 end
@@ -2406,7 +2415,7 @@ The following path codes are recognized:
 function drawpath(points, codes, fill::Int)
   len = length(codes)
   ccall( (:gr_drawpath, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{UInt8}, Int32),
         len, convert(Vector{Float64}, points), convert(Vector{UInt8}, codes), fill)
 end
@@ -2465,7 +2474,7 @@ The default arrow style is 1.
 """
 function setarrowstyle(style::Int)
   ccall( (:gr_setarrowstyle, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         style)
 end
@@ -2486,7 +2495,7 @@ The default arrow size is 1.
 """
 function setarrowsize(size::Real)
   ccall( (:gr_setarrowsize, libGR),
-        Void,
+        Nothing,
         (Float64, ),
         size)
 end
@@ -2510,7 +2519,7 @@ function.
 """
 function drawarrow(x1::Real, y1::Real, x2::Real, y2::Real)
   ccall( (:gr_drawarrow, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64),
         x1, y1, x2, y2)
 end
@@ -2520,7 +2529,7 @@ function readimage(path)
   height = Cint[0]
   data = Array{Ptr{UInt32}}(1)
   ccall( (:gr_readimage, libGR),
-        Void,
+        Nothing,
         (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{UInt32}}),
         path, width, height, data)
   if width[1] > 0 && height[1] > 0
@@ -2569,14 +2578,14 @@ function drawimage(xmin::Real, xmax::Real, ymin::Real, ymax::Real, width::Int, h
     data = reshape(data, width * height)
   end
   ccall( (:gr_drawimage, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32, Ptr{UInt32}, Int32),
         xmin, xmax, ymin, ymax, width, height, convert(Vector{UInt32}, data), model)
 end
 
 function importgraphics(path)
   ccall( (:gr_importgraphics, libGR),
-        Void,
+        Nothing,
         (Ptr{Cchar}, ),
         path)
 end
@@ -2603,7 +2612,7 @@ source cast on the graphics objects.
 """
 function setshadow(offsetx::Real, offsety::Real, blur::Real)
   ccall( (:gr_setshadow, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Float64),
         offsetx, offsety, blur)
 end
@@ -2621,7 +2630,7 @@ Set the value of the alpha component associated with GR colors
 """
 function settransparency(alpha::Real)
   ccall( (:gr_settransparency, libGR),
-        Void,
+        Nothing,
         (Float64, ),
         alpha)
 end
@@ -2640,7 +2649,7 @@ Change the coordinate transformation according to the given matrix.
 function setcoordxform(mat)
   assert(length(mat) == 6)
   ccall( (:gr_setcoordxform, libGR),
-        Void,
+        Nothing,
         (Ptr{Float64}, ),
         convert(Vector{Float64}, mat))
 end
@@ -2662,14 +2671,14 @@ the `importgraphics` function.
 """
 function begingraphics(path)
   ccall( (:gr_begingraphics, libGR),
-        Void,
+        Nothing,
         (Ptr{Cchar}, ),
         path)
 end
 
 function endgraphics()
   ccall( (:gr_endgraphics, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
@@ -2706,7 +2715,7 @@ to create mathematical symbols and Greek letters using LaTeX syntax.
 """
 function mathtex(x::Real, y::Real, string)
   ccall( (:gr_mathtex, libGR),
-        Void,
+        Nothing,
         (Float64, Float64, Ptr{Cchar}),
         x, y, string)
 end
@@ -3003,7 +3012,7 @@ function startserver()
             if startswith(unsafe_string(msg), "ready")
                 if length(msgs) != 0
                     WebSockets.write(client, msgs[1])
-                    shift!(msgs)
+                    popfirst!!(msgs)
                 else
                     WebSockets.write(client, "busy")
                 end
@@ -3089,11 +3098,11 @@ function show()
         rm(file_path)
         return content
     elseif mime_type == "mov"
-        content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", base64encode(open(read,file_path)),""""></video>"""))
+        content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", Base.Base64.base64encode(open(read,file_path)),""""></video>"""))
         rm(file_path)
         return content
     elseif mime_type == "iterm"
-        content = string("\033]1337;File=inline=1;height=24;preserveAspectRatio=0:", base64encode(open(read,file_path)), "\a")
+        content = string("\033]1337;File=inline=1;height=24;preserveAspectRatio=0:", Base.Base64.base64encode(open(read,file_path)), "\a")
         if figure_count != None
             figure_count += 1
             (figure_count > 1) && print("\e[24A")
@@ -3115,7 +3124,7 @@ function show()
     elseif mime_type == "js"
         if msgs != None
             endgraphics()
-            push!(msgs, base64encode(getgraphics()))
+            push!(msgs, Base.Base64.base64encode(getgraphics()))
         end
     end
     return None
@@ -3123,7 +3132,7 @@ end
 
 function setregenflags(flags=0)
   ccall( (:gr_setregenflags, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         flags)
 end
@@ -3138,28 +3147,28 @@ end
 
 function savestate()
   ccall( (:gr_savestate, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
 
 function restorestate()
   ccall( (:gr_restorestate, libGR),
-        Void,
+        Nothing,
         ()
         )
 end
 
 function selectcontext(context::Int)
   ccall( (:gr_selectcontext, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         context)
 end
 
 function destroycontext(context::Int)
   ccall( (:gr_destroycontext, libGR),
-        Void,
+        Nothing,
         (Int32, ),
         context)
 end
@@ -3178,7 +3187,7 @@ function delaunay(x, y)
   dim = Cint[3]
   triangles = Array{Ptr{Int32}}(1)
   ccall( (:gr_delaunay, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}, Ptr{Ptr{Int32}}),
         npoints, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
         ntri, triangles)
@@ -3214,7 +3223,7 @@ function interp2(X, Y, Z, Xq, Yq, method::Int=0, extrapval=0)
     nyq = length(Yq)
     Zq = Cdouble[1 : nxq * nyq; ]
     ccall( (:gr_interp2, libGR),
-          Void,
+          Nothing,
           (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Cdouble}, Int32, Float64),
           nx, ny, convert(Vector{Float64}, X), convert(Vector{Float64}, Y), convert(Vector{Float64}, Z), nxq, nyq, convert(Vector{Float64}, Xq), convert(Vector{Float64}, Yq), Zq, method, extrapval)
   end
@@ -3242,7 +3251,7 @@ function trisurface(x, y, z)
   nz = length(z)
   n = min(nx, ny, nz)
   ccall( (:gr_trisurface, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, z))
 end
@@ -3268,7 +3277,7 @@ function tricontour(x, y, z, levels)
   npoints = length(x)
   nlevels = length(levels)
   ccall( (:gr_tricontour, libGR),
-        Void,
+        Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Ptr{Float64}),
         npoints, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, z), nlevels, convert(Vector{Float64}, levels))
 end
@@ -3291,7 +3300,7 @@ function gradient(x, y, z)
     u = Cdouble[1 : nx*ny ;]
     v = Cdouble[1 : nx*ny ;]
     ccall( (:gr_gradient, libGR),
-          Void,
+          Nothing,
           (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Cdouble}, Ptr{Cdouble}),
           nx, ny, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, z), u, v)
     return u, v
@@ -3329,7 +3338,7 @@ function quiver(x, y, u, v, color::Bool=false)
       v = reshape(v, nx * ny)
     end
     ccall( (:gr_quiver, libGR),
-          Void,
+          Nothing,
           (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
           nx, ny, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, u), convert(Vector{Float64}, v), convert(Int32, color))
   else

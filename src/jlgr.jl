@@ -3,6 +3,12 @@ module jlgr
 import GR
 
 const None = Union{}
+@static if VERSION < v"0.7.0-DEV.3137"
+  const Nothing = Void
+end
+@static if VERSION < v"0.7.0-DEV.3155"
+    const popfirst! = shift!
+end
 
 macro _tuple(t)
     :( Tuple{$t} )
@@ -155,7 +161,7 @@ function fix_minmax(a, b)
 end
 
 function given(a)
-    a != Void && a != "Void"
+    a != Nothing && a != "Nothing"
 end
 
 function minmax()
@@ -903,22 +909,22 @@ function plot_args(args; fmt=:xys)
 
     while length(args) > 0
         local x, y, z, c
-        a = shift!(args)
+        a = popfirst!(args)
         if isa(a, AbstractVecOrMat) || isa(a, Function)
             elt = eltype(a)
             if elt <: Complex
                 x = real(a)
                 y = imag(a)
-                z = Void
-                c = Void
+                z = Nothing
+                c = Nothing
             elseif elt <: Real || isa(a, Function)
                 if fmt == :xys
                     if length(args) >= 1 &&
                        (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || isa(args[1], Function))
                         x = a
-                        y = shift!(args)
-                        z = Void
-                        c = Void
+                        y = popfirst!(args)
+                        z = Nothing
+                        c = Nothing
                     else
                         y = a
                         n = isrowvec(y) ? size(y, 2) : size(y, 1)
@@ -928,8 +934,8 @@ function plot_args(args; fmt=:xys)
                         else
                             x = linspace(1, n, n)
                         end
-                        z = Void
-                        c = Void
+                        z = Nothing
+                        c = Nothing
                     end
                 elseif fmt == :xyac || fmt == :xyzc
                     if length(args) >= 3 &&
@@ -937,22 +943,22 @@ function plot_args(args; fmt=:xys)
                        (isa(args[2], AbstractVecOrMat) && eltype(args[2]) <: Real || isa(args[2], Function)) &&
                        (isa(args[3], AbstractVecOrMat) && eltype(args[3]) <: Real || isa(args[3], Function))
                         x = a
-                        y = shift!(args)
-                        z = shift!(args)
-                        c = shift!(args)
+                        y = popfirst!(args)
+                        z = popfirst!(args)
+                        c = popfirst!(args)
                     elseif length(args) >= 2 &&
                         isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real &&
                        (isa(args[2], AbstractVecOrMat) && eltype(args[2]) <: Real || isa(args[2], Function))
                         x = a
-                        y = shift!(args)
-                        z = shift!(args)
-                        c = Void
+                        y = popfirst!(args)
+                        z = popfirst!(args)
+                        c = Nothing
                     elseif fmt == :xyac && length(args) >= 1 &&
                        (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || isa(args[1], Function))
                         x = a
-                        y = shift!(args)
-                        z = Void
-                        c = Void
+                        y = popfirst!(args)
+                        z = Nothing
+                        c = Nothing
                     elseif fmt == :xyzc && length(args) == 0
                         z = a
                         nx, ny = size(z)
@@ -968,7 +974,7 @@ function plot_args(args; fmt=:xys)
                         else
                             y = linspace(1, ny, ny)
                         end
-                        c = Void
+                        c = Nothing
                     end
                 end
             else
@@ -987,7 +993,7 @@ function plot_args(args; fmt=:xys)
         end
         spec = ""
         if fmt == :xys && length(args) > 0 && isa(args[1], AbstractString)
-            spec = shift!(args)
+            spec = popfirst!(args)
         end
         push!(parsed_args, (x, y, z, c, spec))
     end
@@ -1107,7 +1113,7 @@ function histogram(x; kv...)
 
     nbins = get(plt.kvs, :nbins, 0)
     x, y = hist(x, nbins)
-    plt.args = [(x, y, Void, Void, "")]
+    plt.args = [(x, y, Nothing, Nothing, "")]
 
     plot_data()
 end
@@ -1145,7 +1151,7 @@ function heatmap(D; kv...)
         if !haskey(plt.kvs, :xlim) plt.kvs[:xlim] = (0.5, width + 0.5) end
         if !haskey(plt.kvs, :ylim) plt.kvs[:ylim] = (0.5, height + 0.5) end
 
-        plt.args = [(1:width, 1:height, z, Void, "")]
+        plt.args = [(1:width, 1:height, z, Nothing, "")]
 
         plot_data()
     else
@@ -1243,7 +1249,7 @@ end
 function imshow(I; kv...)
     create_context(:imshow, Dict(kv))
 
-    plt.args = [(Void, Void, I, Void, "")]
+    plt.args = [(Nothing, Nothing, I, Nothing, "")]
 
     plot_data()
 end
@@ -1251,7 +1257,7 @@ end
 function isosurface(V; kv...)
     create_context(:isosurface, Dict(kv))
 
-    plt.args = [(Void, Void, V, Void, "")]
+    plt.args = [(Nothing, Nothing, V, Nothing, "")]
 
     plot_data()
 end

@@ -3,6 +3,9 @@ module GR3
 import GR
 
 const None = Union{}
+@static if VERSION < v"0.7.0-DEV.3137"
+  const Nothing = Void
+end
 
 macro triplet(t)
     :( Tuple{$t, $t, $t} )
@@ -78,25 +81,25 @@ end
 export init
 
 function free(pointer)
-  ccall((:gr3_free, GR.libGR3), Void, (Ptr{Void}, ), pointer)
+  ccall((:gr3_free, GR.libGR3), Nothing, (Ptr{Nothing}, ), pointer)
   _check_error()
 end
 export free
 
 function terminate()
-  ccall((:gr3_terminate, GR.libGR3), Void, ())
+  ccall((:gr3_terminate, GR.libGR3), Nothing, ())
   _check_error()
 end
 export terminate
 
 function useframebuffer(framebuffer)
-  ccall((:gr3_useframebuffer, GR.libGR3), Void, (UInt32, ), framebuffer)
+  ccall((:gr3_useframebuffer, GR.libGR3), Nothing, (UInt32, ), framebuffer)
   _check_error()
 end
 export useframebuffer
 
 function usecurrentframebuffer()
-  ccall((:gr3_usecurrentframebuffer, GR.libGR3), Void, ())
+  ccall((:gr3_usecurrentframebuffer, GR.libGR3), Nothing, ())
   _check_error()
 end
 export usecurrentframebuffer
@@ -184,7 +187,7 @@ function drawmesh(mesh::Int32, n, positions::@triplet(Real), directions::@triple
   _colors = [ Float32(x) for x in colors ]
   _scales = [ Float32(x) for x in scales ]
   ccall((:gr3_drawmesh, GR.libGR3),
-        Void,
+        Nothing,
         (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         mesh, n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _ups), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _scales))
   _check_error()
@@ -197,7 +200,7 @@ function createheightmapmesh(heightmap, num_columns, num_rows)
       heightmap = reshape(heightmap, num_columns * num_rows)
     end
     ccall((:gr3_createheightmapmesh, GR.libGR3),
-          Void,
+          Nothing,
           (Ptr{Float32}, Int32, Int32),
           @ArrayToVector(Float32, heightmap), num_columns, num_rows)
     _check_error()
@@ -215,7 +218,7 @@ function drawheightmap(heightmap, num_columns, num_rows, positions, scales)
     _positions = [ Float32(x) for x in positions ]
     _scales = [ Float32(x) for x in scales ]
     ccall((:gr3_drawheightmap, GR.libGR3),
-          Void,
+          Nothing,
           (Ptr{Float32}, Int32, Int32, Ptr{Float32}, Ptr{Float32}),
           @ArrayToVector(Float32, heightmap), num_columns, num_rows, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _scales))
     _check_error()
@@ -226,19 +229,19 @@ end
 export drawheightmap
 
 function deletemesh(mesh)
-  ccall((:gr3_deletemesh, GR.libGR3), Void, (Int32, ), mesh)
+  ccall((:gr3_deletemesh, GR.libGR3), Nothing, (Int32, ), mesh)
   _check_error()
 end
 export deletemesh
 
 function setquality(quality)
-  ccall((:gr3_setquality, GR.libGR3), Void, (Int32, ), quality)
+  ccall((:gr3_setquality, GR.libGR3), Nothing, (Int32, ), quality)
   _check_error()
 end
 export setquality
 
 function clear()
-  ccall((:gr3_clear, GR.libGR3), Void, ())
+  ccall((:gr3_clear, GR.libGR3), Nothing, ())
   _check_error()
 end
 export clear
@@ -247,7 +250,7 @@ function cameralookat(camera_x, camera_y, camera_z,
                       center_x, center_y, center_z,
                       up_x, up_y, up_z)
   ccall((:gr3_cameralookat, GR.libGR3),
-        Void,
+        Nothing,
         (Float32, Float32, Float32, Float32, Float32, Float32, Float32, Float32, Float32),
         camera_x, camera_y, camera_z, center_x, center_y, center_z, up_x, up_y, up_z)
   _check_error()
@@ -256,7 +259,7 @@ export cameralookat
 
 function setcameraprojectionparameters(vertical_field_of_view, zNear, zFar)
   ccall((:gr3_setcameraprojectionparameters, GR.libGR3),
-        Void,
+        Nothing,
         (Float32, Float32, Float32),
         vertical_field_of_view, zNear, zFar)
   _check_error()
@@ -265,7 +268,7 @@ export setcameraprojectionparameters
 
 function setlightdirection(x, y, z)
   ccall((:gr3_setlightdirection, GR.libGR3),
-        Void,
+        Nothing,
         (Float32, Float32, Float32),
         x, y, z)
   _check_error()
@@ -279,7 +282,7 @@ function drawcylindermesh(n, positions, directions, colors, radii, lengths)
   _radii = [ Float32(x) for x in radii ]
   _lengths = [ Float32(x) for x in lengths ]
   ccall((:gr3_drawcylindermesh, GR.libGR3),
-        Void,
+        Nothing,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _radii), @ArrayToVector(Float32, _lengths))
   _check_error()
@@ -293,7 +296,7 @@ function drawconemesh(n, positions, directions, colors, radii, lengths)
   _radii = [ Float32(x) for x in radii ]
   _lengths = [ Float32(x) for x in lengths ]
   ccall((:gr3_drawconemesh, GR.libGR3),
-        Void,
+        Nothing,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _radii), @ArrayToVector(Float32, _lengths))
   _check_error()
@@ -305,7 +308,7 @@ function drawspheremesh(n, positions, colors, radii)
   _colors = [ Float32(x) for x in colors ]
   _radii = [ Float32(x) for x in radii ]
   ccall((:gr3_drawspheremesh, GR.libGR3),
-        Void,
+        Nothing,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _radii))
   _check_error()
@@ -319,7 +322,7 @@ function drawcubemesh(n, positions, directions, ups, colors, scales)
   _colors = [ Float32(x) for x in colors ]
   _scales = [ Float32(x) for x in scales ]
   ccall((:gr3_drawcubemesh, GR.libGR3),
-        Void,
+        Nothing,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _ups), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _scales))
   _check_error()
@@ -328,7 +331,7 @@ export drawcubemesh
 
 function setbackgroundcolor(red, green, blue, alpha)
   ccall((:gr3_setbackgroundcolor, GR.libGR3),
-        Void,
+        Nothing,
         (Float32, Float32, Float32, Float32),
         red, green, blue, alpha)
   _check_error()
@@ -370,7 +373,7 @@ function surface(px, py, pz, option::Int)
     _py = [ Float32(y) for y in py ]
     _pz = [ Float32(z) for z in pz ]
     ccall((:gr3_surface, GR.libGR3),
-          Void,
+          Nothing,
           (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32),
           nx, ny, @ArrayToVector(Float32, _px), @ArrayToVector(Float32, _py), @ArrayToVector(Float32, _pz), option)
     _check_error()
@@ -379,7 +382,7 @@ function surface(px, py, pz, option::Int)
   end
 end
 
-function createslicemeshes(grid; x::Union{Real, Void}=nothing, y::Union{Real, Void}=nothing, z::Union{Real, Void}=nothing, step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing)
+function createslicemeshes(grid; x::Union{Real, Nothing}=nothing, y::Union{Real, Nothing}=nothing, z::Union{Real, Nothing}=nothing, step::Union{Tuple{Real, Real, Real}, Nothing}=nothing, offset::Union{Tuple{Real, Real, Real}, Nothing}=nothing)
     if x == nothing && y == nothing && z == nothing
         x = 0.5
         y = 0.5
@@ -418,7 +421,7 @@ function createslicemeshes(grid; x::Union{Real, Void}=nothing, y::Union{Real, Vo
         x = convert(UInt32, floor(clamp(x, 0, 1) * nx))
         mesh = Cint[0]
         ccall((:gr3_createxslicemesh, GR.libGR3),
-            Void,
+            Nothing,
             (Ptr{UInt32}, Ptr{UInt16}, UInt32,
             UInt32, UInt32, UInt32,
             UInt32, UInt32, UInt32,
@@ -439,7 +442,7 @@ function createslicemeshes(grid; x::Union{Real, Void}=nothing, y::Union{Real, Vo
         y = convert(UInt32, floor(clamp(y, 0, 1) * ny))
         mesh = Cint[0]
         ccall((:gr3_createyslicemesh, GR.libGR3),
-            Void,
+            Nothing,
             (Ptr{UInt32}, Ptr{UInt16}, UInt32,
             UInt32, UInt32, UInt32,
             UInt32, UInt32, UInt32,
@@ -460,7 +463,7 @@ function createslicemeshes(grid; x::Union{Real, Void}=nothing, y::Union{Real, Vo
         z = convert(UInt32, floor(clamp(z, 0, 1) * nz))
         mesh = Cint[0]
         ccall((:gr3_createzslicemesh, GR.libGR3),
-            Void,
+            Nothing,
             (Ptr{UInt32}, Ptr{UInt16}, UInt32,
             UInt32, UInt32, UInt32,
             UInt32, UInt32, UInt32,
@@ -481,43 +484,43 @@ function createslicemeshes(grid; x::Union{Real, Void}=nothing, y::Union{Real, Vo
 end
 export createslicemeshes
 
-function createxslicemesh(grid, x::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing)
+function createxslicemesh(grid, x::Real=0.5; step::Union{Tuple{Real, Real, Real}, Nothing}=nothing, offset::Union{Tuple{Real, Real, Real}, Nothing}=nothing)
     return createslicemeshes(grid, x=x, step=step, offset=offset)[1]
 end
 export createxslicemesh
 
-function createyslicemesh(grid, y::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing)
+function createyslicemesh(grid, y::Real=0.5; step::Union{Tuple{Real, Real, Real}, Nothing}=nothing, offset::Union{Tuple{Real, Real, Real}, Nothing}=nothing)
     return createslicemeshes(grid, y=y, step=step, offset=offset)[2]
 end
 export createyslicemesh
 
-function createzslicemesh(grid, z::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing)
+function createzslicemesh(grid, z::Real=0.5; step::Union{Tuple{Real, Real, Real}, Nothing}=nothing, offset::Union{Tuple{Real, Real, Real}, Nothing}=nothing)
     return createslicemeshes(grid, z=z, step=step, offset=offset)[3]
 end
 export createzslicemesh
 
-function drawxslicemesh(grid, x::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
+function drawxslicemesh(grid, x::Real=0.5; step::Union{Tuple{Real, Real, Real}, Nothing}=nothing, offset::Union{Tuple{Real, Real, Real}, Nothing}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
     mesh = createxslicemesh(grid, x, step=step, offset=offset)
     drawmesh(mesh, 1, position, direction, up, color, scale)
     deletemesh(mesh)
 end
 export drawxslicemesh
 
-function drawyslicemesh(grid, y::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
+function drawyslicemesh(grid, y::Real=0.5; step::Union{Tuple{Real, Real, Real}, Nothing}=nothing, offset::Union{Tuple{Real, Real, Real}, Nothing}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
     mesh = createxslicemesh(grid, y, step=step, offset=offset)
     drawmesh(mesh, 1, position, direction, up, color, scale)
     deletemesh(mesh)
 end
 export drawyslicemesh
 
-function drawzslicemesh(grid, z::Real=0.5; step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
+function drawzslicemesh(grid, z::Real=0.5; step::Union{Tuple{Real, Real, Real}, Nothing}=nothing, offset::Union{Tuple{Real, Real, Real}, Nothing}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
     mesh = createxslicemesh(grid, z, step=step, offset=offset)
     drawmesh(mesh, 1, position, direction, up, color, scale)
     deletemesh(mesh)
 end
 export drawzslicemesh
 
-function drawslicemeshes(data; x::Union{Real, Void}=nothing, y::Union{Real, Void}=nothing, z::Union{Real, Void}=nothing, step::Union{Tuple{Real, Real, Real}, Void}=nothing, offset::Union{Tuple{Real, Real, Real}, Void}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
+function drawslicemeshes(data; x::Union{Real, Nothing}=nothing, y::Union{Real, Nothing}=nothing, z::Union{Real, Nothing}=nothing, step::Union{Tuple{Real, Real, Real}, Nothing}=nothing, offset::Union{Tuple{Real, Real, Real}, Nothing}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
     meshes = createslicemeshes(data, x=x, y=y, z=z, step=step, offset=offset)
     for mesh in meshes
         if mesh != nothing
