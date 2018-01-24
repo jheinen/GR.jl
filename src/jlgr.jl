@@ -2,9 +2,13 @@ module jlgr
 
 import GR
 
+@static if VERSION >= v"0.7.0-DEV.3406"
+    using Serialization
+end
+
 const None = Union{}
 @static if VERSION < v"0.7.0-DEV.3137"
-  const Nothing = Void
+    const Nothing = Void
 end
 @static if VERSION < v"0.7.0-DEV.3155"
     const popfirst! = shift!
