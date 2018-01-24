@@ -177,13 +177,16 @@ file_path = None
 figure_count = None
 msgs = None
 
+const libGR = "libGR.so"
+const libGR3 = "libGR3.so"
+
 
 isijulia() = isdefined(Main, :IJulia) && isdefined(Main.IJulia, :clear_output)
 isatom() = isdefined(Main, :Atom) && Main.Atom.isconnected()
 
 
 function __init__()
-    global libGR, libGR3, display_name, mime_type, file_path
+    global display_name, mime_type, file_path
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
         if grdir == ""
@@ -206,26 +209,11 @@ function __init__()
     ENV["GRDIR"] = grdir
     ENV["GKS_FONTPATH"] = grdir
     if contains(grdir, "site-packages")
-        const libGR = joinpath(grdir, "libGR.so")
         ENV["GKS_FONTPATH"] = grdir
     elseif os != :Windows
-        const libGR = joinpath(grdir, "lib", "libGR.so")
-    else
-        const libGR = joinpath(grdir, "libGR.dll")
+        grdir = joinpath(grdir, "lib")
     end
-    if !isfile(libGR)
-        error("""
-            Unable to load GR framework runtime environment
-            $(libGR): No such file
-            Please restart Julia then run
-            rm(Pkg.dir("GR","deps","downloads"),recursive=true,force=true); Pkg.build("GR")
-            """)
-    end
-    @static if VERSION >= v"0.7.0-DEV.3172"
-        const libGR3 = replace(libGR, "libGR" => "libGR3")
-    else
-        const libGR3 = replace(libGR, "libGR", "libGR3")
-    end
+    push!(Base.DL_LOAD_PATH, grdir)
     ENV["GKS_USE_CAIRO_PNG"] = "true"
     if "GRDISPLAY" in keys(ENV)
         display_name = ENV["GRDISPLAY"]
