@@ -13,7 +13,7 @@ const None = Union{}
   const Nothing = Void
 end
 @static if VERSION < v"0.7.0-DEV.3155"
-    const popfirst! = shift!
+  const popfirst! = shift!
 end
 
 export
@@ -177,8 +177,13 @@ file_path = None
 figure_count = None
 msgs = None
 
-const libGR = "libGR.so"
-const libGR3 = "libGR3.so"
+@static if os == :Windows
+  const libGR = "libGR.dll"
+  const libGR3 = "libGR3.dll"
+else
+  const libGR = "libGR.so"
+  const libGR3 = "libGR3.so"
+end
 
 
 isijulia() = isdefined(Main, :IJulia) && isdefined(Main.IJulia, :clear_output)
