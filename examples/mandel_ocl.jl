@@ -82,19 +82,17 @@ end
 
 x = -0.9223327810370947027656057193752719757635
 y = 0.3102598350874576432708737495917724836010
-
 f = 0.5
-for i in 1:200
-    tic()
-    image = create_fractal(x-f, x+f, y-f, y+f, 500, 500, 400)
-    dt = toq()
 
-    @printf("Mandelbrot created in %f s\n", dt)
+for i in 1:200
+
+    dt = @elapsed image = create_fractal(x-f, x+f, y-f, y+f, 500, 500, 400)
+    println("Mandelbrot created in $dt s")
 
     GR.clearws()
     GR.setviewport(0, 1, 0, 1)
     GR.setcolormap(13)
-    GR.cellarray(0, 1, 0, 1, 500, 500, image + 1000)
+    GR.cellarray(0, 1, 0, 1, 500, 500, image .+ 1000)
     GR.updatews()
 
     f *= 0.9

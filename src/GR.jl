@@ -2520,7 +2520,11 @@ end
 function readimage(path)
   width = Cint[0]
   height = Cint[0]
-  data = Array{Ptr{UInt32}}(1)
+  if VERSION > v"0.7.0-"
+    data = Array{Ptr{UInt32}}(uninitialized, 1)
+  else
+    data = Array{Ptr{UInt32}}(1)
+  end
   ccall( (:gr_readimage, libGR),
         Nothing,
         (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{UInt32}}),
@@ -3178,7 +3182,11 @@ function delaunay(x, y)
   npoints = length(x)
   ntri = Cint[0]
   dim = Cint[3]
-  triangles = Array{Ptr{Int32}}(1)
+  if VERSION > v"0.7.0-"
+    triangles = Array{Ptr{Int32}}(uninitialized, 1)
+  else
+    triangles = Array{Ptr{Int32}}(1)
+  end
   ccall( (:gr_delaunay, libGR),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}, Ptr{Ptr{Int32}}),
@@ -3186,7 +3194,7 @@ function delaunay(x, y)
         ntri, triangles)
   if ntri[1] > 0
     tri = unsafe_wrap(Array{Int32}, triangles[1], (dim[1], ntri[1]))
-    return Int(ntri[1]), tri'+1
+    return Int(ntri[1]), tri' .+ 1
   else
     return 0, zeros(Int32, 0)
   end

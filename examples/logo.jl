@@ -149,7 +149,7 @@ GR.setwindow(0, 1, 0, 1)
 GR.setfillintstyle(GR.INTSTYLE_SOLID)
 GR.updatews()
 
-for s in linspace(0.1, 0.5)
+for s in linspace(0.1, 0.5, 50)
   GR.clearws()
   GR.setviewport(0.5 - s, 0.5 + s, 0.5 - s, 0.5 + s)
   GR.setlinewidth(s * 8)
