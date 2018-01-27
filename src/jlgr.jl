@@ -403,7 +403,7 @@ end
 
 function inqtext(x, y, s)
     if length(s) >= 2 && s[1] == '$' && s[end] == '$'
-        GR.inqtextext(x, y, s[2:end-1])
+        GR.inqmathtex(x, y, s[2:end-1])
     elseif search(s, '\\') != 0 || search(s, '_') != 0 || search(s, '^') != 0
         GR.inqtextext(x, y, s)
     else
