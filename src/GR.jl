@@ -2717,6 +2717,16 @@ function mathtex(x::Real, y::Real, string)
         x, y, string)
 end
 
+function inqmathtex(x, y, string)
+  tbx = Cdouble[0, 0, 0, 0]
+  tby = Cdouble[0, 0, 0, 0]
+  ccall( (:gr_inqmathtex, libGR),
+        Nothing,
+        (Float64, Float64, Ptr{UInt8}, Ptr{Cdouble}, Ptr{Cdouble}),
+        x, y, string, tbx, tby)
+  return tbx, tby
+end
+
 ASF_BUNDLED = 0
 ASF_INDIVIDUAL = 1
 
