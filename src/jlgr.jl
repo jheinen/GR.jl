@@ -2,7 +2,7 @@ module jlgr
 
 import GR
 
-@static if VERSION >= v"0.7.0-DEV.3406"
+@static if VERSION >= v"0.7.0-DEV.3476"
     using Serialization
 end
 
