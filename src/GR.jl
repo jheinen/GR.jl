@@ -472,7 +472,7 @@ function polymarker(x, y)
 end
 
 function latin1(string)
-  b = unsafe_wrap(Array{UInt8,1}, pointer(string), length(string))
+  b = unsafe_wrap(Array{UInt8,1}, pointer(string), sizeof(string))
   s = zeros(UInt8, length(string) * 2)
   len = 0
   mask = 0
