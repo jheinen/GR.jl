@@ -472,7 +472,7 @@ function polymarker(x, y)
 end
 
 function latin1(string)
-  b = unsafe_wrap(Array{UInt8,1}, pointer(string), length(string))
+  b = unsafe_wrap(Array{UInt8,1}, pointer(string), sizeof(string))
   s = zeros(UInt8, length(string) * 2)
   len = 0
   mask = 0
@@ -2712,6 +2712,9 @@ to create mathematical symbols and Greek letters using LaTeX syntax.
 
 """
 function mathtex(x::Real, y::Real, string)
+  if length(string) >= 2 && string[1] == '$' && string[end] == '$'
+    string = string[2:end-1]
+  end
   ccall( (:gr_mathtex, libGR),
         Nothing,
         (Float64, Float64, Ptr{Cchar}),
@@ -2719,6 +2722,9 @@ function mathtex(x::Real, y::Real, string)
 end
 
 function inqmathtex(x, y, string)
+  if length(string) >= 2 && string[1] == '$' && string[end] == '$'
+    string = string[2:end-1]
+  end
   tbx = Cdouble[0, 0, 0, 0]
   tby = Cdouble[0, 0, 0, 0]
   ccall( (:gr_inqmathtex, libGR),
