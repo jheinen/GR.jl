@@ -3126,7 +3126,7 @@ function show()
         return nothing
     elseif mime_type == "mlterm"
         content = read(file_path)
-        write(content)
+        write(STDOUT, content)
         rm(file_path)
         return nothing
     elseif mime_type == "atom"
