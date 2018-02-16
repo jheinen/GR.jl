@@ -45,4 +45,4 @@ for i in 1:n
   end
   fillarea(x[tri[i,:]], y[tri[i,:]])
 end
-
+updatews()
