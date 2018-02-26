@@ -7,5 +7,9 @@ julia:
   - 0.5
   - 0.6
   - nightly
+matrix:
+  exclude:
+  - os: linux
+    julia: 0.5
 notifications:
   email: false
