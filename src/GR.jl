@@ -218,6 +218,8 @@ function __init__()
         ENV["GKS_FONTPATH"] = grdir
     elseif os != :Windows
         grdir = joinpath(grdir, "lib")
+    else
+        grdir = joinpath(grdir, "bin")
     end
     push!(Base.DL_LOAD_PATH, grdir)
     ENV["GKS_USE_CAIRO_PNG"] = "true"
