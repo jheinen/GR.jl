@@ -1,10 +1,10 @@
 import PortAudio, LibSndFile
-import GR
+using GR
 
-function play()
+function play(c::Channel)
   data = LibSndFile.load("Monty_Python.wav")
   stream = PortAudio.PortAudioStream(0, 1, blocksize=1024)
-  spectrum = zeros(Int32, 250, 250)
+  spectrum = zeros(Int32, 300, 225)
 
   start = 1
   while start + 1024 < length(data)
@@ -13,29 +13,26 @@ function play()
 
     PortAudio.write(stream, amplitudes)
 
-    power = log(abs(fft(float(amplitudes))) + 1) * 50
-    spectrum[:, 1] = round(Int, power[1:250]) + 1000
-    spectrum = circshift(spectrum, [0, -1])
+    power = log.(abs.(fft(float(amplitudes))) + 1) * 50
+    spectrum[1, :] = round.(Int, power[1:225])
+    spectrum = circshift(spectrum, [-1, 0])
 
-    produce(spectrum)
+    put!(c, spectrum)
   end
+  put!(c, nothing)
 end
 
-t = Task(play)
+c = Channel(play)
 start = time_ns()
 
-while !istaskdone(t)
-  spectrum = consume(t)
+while isopen(c)
+  spectrum = take!(c)
   if spectrum == nothing
-     break
+    break
   end
 
   if time_ns() - start > 20 * 1000000   # 20ms
-    GR.clearws()
-    GR.setcolormap(-113)
-    GR.setviewport(0, 1, 0, 1)
-    GR.cellarray(0, 1, 0, 1, 250, 250, reshape(rotr90(spectrum), 250 * 250))
-    GR.updatews()
+    imshow(spectrum, colormap=-13, yflip=true)
 
     start = time_ns()
   end

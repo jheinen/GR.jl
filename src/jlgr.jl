@@ -665,11 +665,7 @@ function plot_iso(V)
     end
 
     GR.selntran(0)
-if VERSION > v"0.6-"
     values = round.(UInt16, (V-minimum(V)) / (maximum(V)-minimum(V)) * (2^16-1))
-else
-    values = round(UInt16, (V-minimum(V)) / (maximum(V)-minimum(V)) * (2^16-1))
-end
     nx, ny, nz = size(V)
     isovalue = get(plt.kvs, :isovalue, 0.5)
     rotation = get(plt.kvs, :rotation, 40) * π / 180.0
