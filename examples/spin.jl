@@ -9,18 +9,19 @@ rate = 100
 η = 0.1
 ΔT = 0.001
 
-function calcualate_magnetic_moment()
+function calcualate_magnetic_moment(c::Channel)
   μ = μ0
   while true
-    produce(μ)
+    put!(c, μ)
     P = - γ * μ × Β            # precession
     G = η * (μ / norm(μ)) × P  # Gilbert damping
     dμ = (P + G) * ΔT
     if norm(dμ) < 1e-6
-      return
+      break
     end
     μ += dμ
   end
+  put!(c, nothing)
 end
 
 function calculate_cone_length(radius, cone_angle)
@@ -40,14 +41,17 @@ function drawarrowmesh(start, end_, color, radius, cone_angle=20)
   GR3.drawconemesh(1, cone_start, direction, color, [2 * radius], [cone_length])
 end
 
-t = Task(calcualate_magnetic_moment)
+c = Channel(calcualate_magnetic_moment)
 i = 0
 
 GR.setviewport(0, 1, 0, 1)
 GR3.setbackgroundcolor(1, 1, 1, 1)
 
-while !istaskdone(t)
-  magmom = consume(t)
+while isopen(c)
+  magmom = take!(c)
+  if magmom == nothing
+    break
+  end
 
   i += 1
   if i % rate != 0

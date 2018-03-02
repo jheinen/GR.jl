@@ -3,10 +3,6 @@
 # Calculate Mandelbrot set using OpenCL
 
 using OpenCL
-if VERSION < v"0.5-"
-  const cl = OpenCL
-end
-
 import GR
 
 const mandel_kernel = "
