@@ -15,6 +15,9 @@ end
 @static if VERSION < v"0.7.0-DEV.3155"
   const popfirst! = shift!
 end
+@static if VERSION > v"0.7-"
+  const STDOUT = stdout
+end
 
 export
   opengks,
@@ -439,7 +442,7 @@ index.
 
 """
 function polyline(x, y)
-  assert(length(x) == length(y))
+  @assert length(x) == length(y)
   n = length(x)
   ccall( (:gr_polyline, libGR),
         Nothing,
@@ -465,7 +468,7 @@ scale factor and color index.
 
 """
 function polymarker(x, y)
-  assert(length(x) == length(y))
+  @assert length(x) == length(y)
   n = length(x)
   ccall( (:gr_polymarker, libGR),
         Nothing,
@@ -556,7 +559,7 @@ style, fill area style index and fill area color index.
 
 """
 function fillarea(x, y)
-  assert(length(x) == length(y))
+  @assert length(x) == length(y)
   n = length(x)
   ccall( (:gr_fillarea, libGR),
         Nothing,
@@ -616,7 +619,7 @@ record.
 
 """
 function gdp(x, y, primid, datrec)
-  assert(length(x) == length(y))
+  @assert length(x) == length(y)
   n = length(x)
   ldr = length(datrec)
   ccall( (:gr_gdp, libGR),
@@ -653,7 +656,7 @@ If `method` is < -1, then a cubic B-spline is calculated.
 
 """
 function spline(x, y, m, method)
-  assert(length(x) == length(y))
+  @assert length(x) == length(y)
   n = length(x)
   ccall( (:gr_spline, libGR),
         Nothing,
@@ -662,7 +665,7 @@ function spline(x, y, m, method)
 end
 
 function gridit(xd, yd, zd, nx, ny)
-  assert(length(xd) == length(yd) == length(zd))
+  @assert length(xd) == length(yd) == length(zd)
   nd = length(xd)
   x = Cdouble[1 : nx ;]
   y = Cdouble[1 : ny ;]
@@ -1777,7 +1780,7 @@ Draw a standard vertical error bar graph.
 
 """
 function verrorbars(px, py, e1, e2)
-  assert(length(px) == length(py) == length(e1) == length(e2))
+  @assert length(px) == length(py) == length(e1) == length(e2)
   n = length(px)
   ccall( (:gr_verrorbars, libGR),
         Nothing,
@@ -1803,7 +1806,7 @@ Draw a standard horizontal error bar graph.
 
 """
 function herrorbars(px, py, e1, e2)
-  assert(length(px) == length(py) == length(e1) == length(e2))
+  @assert length(px) == length(py) == length(e1) == length(e2)
   n = length(px)
   ccall( (:gr_herrorbars, libGR),
         Nothing,
@@ -1832,7 +1835,7 @@ index.
 
 """
 function polyline3d(px, py, pz)
-  assert(length(px) == length(py) == length(pz))
+  @assert length(px) == length(py) == length(pz)
   n = length(px)
   ccall( (:gr_polyline3d, libGR),
         Nothing,
@@ -1860,7 +1863,7 @@ scale factor and color index.
 
 """
 function polymarker3d(px, py, pz)
-  assert(length(px) == length(py) == length(pz))
+  @assert length(px) == length(py) == length(pz)
   n = length(px)
   ccall( (:gr_polymarker3d, libGR),
         Nothing,
@@ -2013,7 +2016,7 @@ function contour(px, py, h, pz, major_h::Int)
 end
 
 function hexbin(x, y, nbins)
-  assert(length(x) == length(y))
+  @assert length(x) == length(y)
   n = length(x)
   cntmax = ccall( (:gr_hexbin, libGR),
                  Int32,
@@ -2647,7 +2650,7 @@ Change the coordinate transformation according to the given matrix.
 
 """
 function setcoordxform(mat)
-  assert(length(mat) == 6)
+  @assert length(mat) == 6
   ccall( (:gr_setcoordxform, libGR),
         Nothing,
         (Ptr{Float64}, ),
@@ -3197,7 +3200,7 @@ function uselinespec(linespec)
 end
 
 function delaunay(x, y)
-  assert(length(x) == length(y))
+  @assert length(x) == length(y)
   npoints = length(x)
   ntri = Cint[0]
   dim = Cint[3]
