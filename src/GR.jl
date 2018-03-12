@@ -2527,7 +2527,7 @@ function readimage(path)
   width = Cint[0]
   height = Cint[0]
   if VERSION > v"0.7.0-"
-    data = Array{Ptr{UInt32}}(uninitialized, 1)
+    data = Array{Ptr{UInt32}}(undef, 1)
   else
     data = Array{Ptr{UInt32}}(1)
   end
@@ -3205,7 +3205,7 @@ function delaunay(x, y)
   ntri = Cint[0]
   dim = Cint[3]
   if VERSION > v"0.7.0-"
-    triangles = Array{Ptr{Int32}}(uninitialized, 1)
+    triangles = Array{Ptr{Int32}}(undef, 1)
   else
     triangles = Array{Ptr{Int32}}(1)
   end
