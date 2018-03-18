@@ -4,6 +4,7 @@ import GR
 
 @static if VERSION >= v"0.7.0-DEV.3476"
     using Serialization
+    using Sockets
 end
 
 const None = Union{}
@@ -34,22 +35,17 @@ const colors = [
 
 const distinct_cmap = [ 0, 1, 984, 987, 989, 983, 994, 988 ]
 
-@static if VERSION < v"0.7-"
-  include_string("""
-    type PlotObject
-      obj
-      args
-      kvs
-    end
-    """)
-else
-  include_string(jlgr, """
-    mutable struct PlotObject
-      obj
-      args
-      kvs
-    end
-    """)
+@static if VERSION > v"0.7-"
+  function linspace(start, stop, length)
+    range(start, stop=stop, length=length)
+  end
+  repmat(A::AbstractArray, m::Int, n::Int) = repeat(A::AbstractArray, m::Int, n::Int)
+end
+
+mutable struct PlotObject
+  obj
+  args
+  kvs
 end
 
 function Figure(width=600, height=450)
@@ -1243,7 +1239,7 @@ function peaks(n=49)
     x = linspace(-2.5, 2.5, n)
     y = x
     x, y = meshgrid(x, y)
-    3*(1-x).^2 .* exp.(-(x.^2) - (y+1).^2) - 10*(x/5 - x.^3 - y.^5) .* exp.(-x.^2-y.^2) - 1/3 * exp.(-(x+1).^2 - y.^2)
+    3 * (1 .- x).^2 .* exp.(-(x.^2) .- (y.+1).^2) .- 10*(x/5 .- x.^3 .- y.^5) .* exp.(-x.^2 .- y.^2) .- 1/3 * exp.(-(x.+1).^2 .- y.^2)
 end
 
 function imshow(I; kv...)
