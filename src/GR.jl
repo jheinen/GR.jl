@@ -217,7 +217,12 @@ function __init__()
     end
     ENV["GRDIR"] = grdir
     ENV["GKS_FONTPATH"] = grdir
-    if contains(grdir, "site-packages")
+    if VERSION < v"0.7.0-DEV.4639"
+        flag = contains(grdir, "site-packages")
+    else
+        flag = occursin("site-packages", grdir)
+    end
+    if flag
         ENV["GKS_FONTPATH"] = grdir
     elseif os != :Windows
         grdir = joinpath(grdir, "lib")
