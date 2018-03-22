@@ -129,6 +129,7 @@ export
   tricontour,
 # gradient, # deprecated, but still in Base
   quiver,
+  reducepoints,
   version,
   # Convenience functions
   jlgr,
@@ -3372,6 +3373,18 @@ function quiver(x, y, u, v, color::Bool=false)
   else
     println("Arrays have incorrect length or dimension.")
   end
+end
+
+function reducepoints(xd, yd, n)
+  @assert length(xd) == length(yd)
+  nd = length(xd)
+  x = Cdouble[1 : n ;]
+  y = Cdouble[1 : n ;]
+  ccall( (:gr_reducepoints, libGR),
+        Nothing,
+        (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Ptr{Cdouble}, Ptr{Cdouble}),
+        nd, convert(Vector{Float64}, xd), convert(Vector{Float64}, yd), n, x, y)
+  return x, y
 end
 
 function version()
