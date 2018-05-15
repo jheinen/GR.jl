@@ -19,7 +19,7 @@ run-time (for your hardware architecture), if the GR software is not
 already installed in the recommended locations.
 
 In Julia simply type ``using GR`` and begin calling functions
-in the [GR framework](http://gr-framework.org/gr.html) API.
+in the [GR framework](http://gr-framework.org/julia-gr.html) API.
 
 Let's start with a simple example. We generate 10,000 random numbers and
 create a histogram. The histogram function automatically chooses an appropriate
