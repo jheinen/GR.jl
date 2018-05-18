@@ -3420,18 +3420,25 @@ function sendmeta(handle, string::AbstractString)
 end
 
 function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=0)
-    if len == 0
-        len = length(data)
-    end
-    if len > 1
-        ref = Ref(data, 1)
+    if typeof(data) <: String
+        ccall((:gr_sendmeta_ref, libGR),
+              Nothing,
+              (Ptr{Nothing}, Cstring, Cchar, Cstring, Int32),
+              handle, key, fmt, data, len)
     else
-        ref = Ref(data)
+        if len == 0
+            len = length(data)
+        end
+        if typeof(data) <: Array
+            ref = Ref(data, 1)
+        else
+            ref = Ref(data)
+        end
+        ccall((:gr_sendmeta_ref, libGR),
+              Nothing,
+              (Ptr{Nothing}, Cstring, Cchar, Ptr{Nothing}, Int32),
+              handle, key, fmt, ref, len)
     end
-    ccall((:gr_sendmeta_ref, libGR),
-          Nothing,
-          (Ptr{Nothing}, Cstring, Cchar, Ptr{Nothing}, Int32),
-          handle, key, fmt, ref, len)
 end
 
 function closemeta(handle)

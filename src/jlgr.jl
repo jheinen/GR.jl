@@ -705,6 +705,36 @@ function RGB(color)
     rgb
 end
 
+to_double(a) = Float64[float(el) for el in a]
+to_int(a) = Int32[el for el in a]
+
+function send_meta()
+    handle = GR.openmeta()
+    if handle != C_NULL
+        GR.sendmeta(handle, "s(")
+        for (k, v) in plt.kvs
+            GR.sendmetaref(handle, string(k), 'C', string(v))
+        end
+        for (x, y, z, c, spec) in plt.args
+            given(x) && GR.sendmetaref(handle, "x", 'D', to_double(x))
+            given(y) && GR.sendmetaref(handle, "y", 'D', to_double(y))
+            given(z) && GR.sendmetaref(handle, "z", 'D', to_double(z))
+            given(c) && GR.sendmetaref(handle, "c", 'I', to_int(c))
+            given(spec) && GR.sendmetaref(handle, "spec", 'C', spec)
+        end
+        GR.sendmeta(handle, ")")
+        GR.closemeta(handle)
+    end
+end
+
+function send_serialized(target)
+    handle = connect(target, 8001)
+    io = IOBuffer()
+    serialize(io, Dict("kvs" => plt.kvs, "args" => plt.args))
+    write(handle, io.data)
+    close(handle)
+end
+
 function plot_data(flag=true)
     global scheme, background
 
@@ -712,12 +742,13 @@ function plot_data(flag=true)
         return
     end
 
-    if flag && GR.displayname() != None
-        handle = connect(GR.displayname(), 8001)
-        io = IOBuffer()
-        serialize(io, Dict("kvs" => plt.kvs, "args" => plt.args))
-        write(handle, io.data)
-        close(handle)
+    target = GR.displayname()
+    if flag && target != None
+        if target != "meta"
+            send_serialized()
+        else
+            send_meta()
+        end
         return
     end
 
