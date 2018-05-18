@@ -3404,7 +3404,7 @@ function version()
   unsafe_string(info)
 end
 
-function openmeta(target=TARGET_SOCKET, device="localhost", port=8001)
+function openmeta(target=TARGET_SOCKET, device="localhost", port=8002)
     handle = ccall((:gr_openmeta, libGR),
                    Ptr{Nothing},
                    (Int32, Cstring, Int32),
