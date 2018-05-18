@@ -19,6 +19,9 @@ end
   const STDOUT = stdout
 end
 
+const TARGET_JUPYTER = 2
+const TARGET_SOCKET = 3
+
 export
   opengks,
   closegks,
@@ -131,6 +134,12 @@ export
   quiver,
   reducepoints,
   version,
+  TARGET_JUPYTER,
+  TARGET_SOCKET,
+  openmeta,
+  sendmeta,
+  sendmetaref,
+  closemeta,
   # Convenience functions
   jlgr,
   colormap,
@@ -3393,6 +3402,43 @@ function version()
                ()
                )
   unsafe_string(info)
+end
+
+function openmeta(target=TARGET_SOCKET, device="localhost", port=8001)
+    handle = ccall((:gr_openmeta, libGR),
+                   Ptr{Nothing},
+                   (Int32, Cstring, Int32),
+                   target, device, port)
+    return handle
+end
+
+function sendmeta(handle, string::AbstractString)
+    ccall((:gr_sendmeta, libGR),
+          Nothing,
+          (Ptr{Nothing}, Cstring),
+          handle, string)
+end
+
+function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=0)
+    if len == 0
+        len = length(data)
+    end
+    if len > 1
+        ref = Ref(data, 1)
+    else
+        ref = Ref(data)
+    end
+    ccall((:gr_sendmeta_ref, libGR),
+          Nothing,
+          (Ptr{Nothing}, Cstring, Cchar, Ptr{Nothing}, Int32),
+          handle, key, fmt, ref, len)
+end
+
+function closemeta(handle)
+    ccall((:gr_closemeta, libGR),
+          Nothing,
+          (Ptr{Nothing}, ),
+          handle)
 end
 
 end # module
