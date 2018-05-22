@@ -3421,6 +3421,9 @@ end
 
 function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=0)
     if typeof(data) <: String
+        if len == 0
+            len = sizeof(data)
+        end
         ccall((:gr_sendmeta_ref, libGR),
               Nothing,
               (Ptr{Nothing}, Cstring, Cchar, Cstring, Int32),

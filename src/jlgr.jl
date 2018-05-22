@@ -711,16 +711,16 @@ to_int(a) = Int32[el for el in a]
 function send_meta()
     handle = GR.openmeta()
     if handle != C_NULL
-        GR.sendmeta(handle, "s(")
+        GR.sendmeta(handle, "o(")
         for (k, v) in plt.kvs
-            GR.sendmetaref(handle, string(k), 'C', string(v))
+            GR.sendmetaref(handle, string(k), 's', string(v))
         end
         for (x, y, z, c, spec) in plt.args
             given(x) && GR.sendmetaref(handle, "x", 'D', to_double(x))
             given(y) && GR.sendmetaref(handle, "y", 'D', to_double(y))
             given(z) && GR.sendmetaref(handle, "z", 'D', to_double(z))
             given(c) && GR.sendmetaref(handle, "c", 'I', to_int(c))
-            given(spec) && GR.sendmetaref(handle, "spec", 'C', spec)
+            given(spec) && GR.sendmetaref(handle, "spec", 's', spec)
         end
         GR.sendmeta(handle, ")")
         GR.closemeta(handle)
