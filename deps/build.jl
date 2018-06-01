@@ -62,10 +62,11 @@ if !check_grdir()
       download("http://$url", file)
     end
     if os == :Windows
-      success(`$JULIA_HOME/7z x downloads/$tarball -y`)
+      home = (VERSION < v"0.7") ? JULIA_HOME : Sys.BINDIR
+      success(`$home/7z x downloads/$tarball -y`)
       rm("downloads/$tarball")
       tarball = tarball[1:end-3]
-      success(`$JULIA_HOME/7z x $tarball -y -ttar`)
+      success(`$home/7z x $tarball -y -ttar`)
       rm("$tarball")
     else
       run(`tar xzf downloads/$tarball`)
