@@ -15,6 +15,11 @@ end
     const popfirst! = shift!
 end
 
+@static if VERSION < v"0.7.0-DEV.4534"
+    reverse(a::AbstractArray; dims=nothing) =
+        dims===nothing ? Base.reverse(a) : Base.flipdim(a, dims)
+end
+
 macro _tuple(t)
     :( Tuple{$t} )
 end
@@ -602,7 +607,7 @@ function plot_img(I)
         width, height, data = GR.readimage(I)
     else
         width, height = size(I)
-        data = (float(I) - minimum(I)) / (maximum(I) - minimum(I))
+        data = (float(I) .- minimum(I)) ./ (maximum(I) .- minimum(I))
         data = Int32[round(Int32, 1000 + _i * 255) for _i in data]
     end
 
@@ -664,7 +669,7 @@ function plot_iso(V)
     end
 
     GR.selntran(0)
-    values = round.(UInt16, (V-minimum(V)) / (maximum(V)-minimum(V)) * (2^16-1))
+    values = round.(UInt16, (V .- minimum(V)) ./ (maximum(V) .- minimum(V)) .* (2^16-1))
     nx, ny, nz = size(V)
     isovalue = get(plt.kvs, :isovalue, 0.5)
     rotation = get(plt.kvs, :rotation, 40) * π / 180.0
@@ -869,7 +874,13 @@ function plot_data(flag=true)
         elseif kind == :heatmap
             w, h = size(z)
             cmap = colormap()
-            data = (float(z) - minimum(z)) / (maximum(z) - minimum(z))
+            data = (float(z) .- minimum(z)) ./ (maximum(z) .- minimum(z))
+            if get(plt.kvs, :xflip, false)
+                data = reverse(data, dims=1)
+            end
+            if get(plt.kvs, :yflip, false)
+                data = reverse(data, dims=2)
+            end
             rgba = [to_rgba(value, cmap) for value = data]
             GR.drawimage(0.5, w + 0.5, h + 0.5, 0.5, w, h, rgba)
             colorbar()
