@@ -481,6 +481,9 @@ function colorbar(off=0, colors=256)
     elseif get(plt.kvs, :yflip, false)
         options = GR.inqscale() & ~GR.OPTION_FLIP_Y & ~GR.OPTION_FLIP_X
         GR.setscale(options)
+    else
+        options = GR.inqscale() & ~GR.OPTION_FLIP_X
+        GR.setscale(options)
     end
     GR.setwindow(0, 1, zmin, zmax)
     GR.setviewport(viewport[2] + 0.02 + off, viewport[2] + 0.05 + off,
