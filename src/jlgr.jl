@@ -1358,6 +1358,8 @@ function mainloop()
                 plot_data(false)
             end
         end
+    catch
+        true
     end
 end
 
