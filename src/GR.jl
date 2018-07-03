@@ -19,6 +19,8 @@ end
   const STDOUT = stdout
 end
 
+const SOURCE_JUPYTER = 0
+const SOURCE_SOCKET = 1
 const TARGET_JUPYTER = 2
 const TARGET_SOCKET = 3
 
@@ -3442,6 +3444,28 @@ function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=0)
               (Ptr{Nothing}, Cstring, Cchar, Ptr{Nothing}, Int32),
               handle, key, fmt, ref, len)
     end
+end
+
+function recvmeta(handle, args=C_NULL)
+    args = ccall((:gr_recvmeta, libGR),
+                 Ptr{Nothing},
+                 (Ptr{Nothing}, Ptr{Nothing}),
+                 handle, args)
+    return args
+end
+
+function plotmeta(args)
+    ccall((:gr_plotmeta, libGR),
+          Nothing,
+          (Ptr{Nothing}, ),
+          args)
+end
+
+function deletemeta(args)
+    ccall((:gr_deletemeta, libGR),
+          Nothing,
+          (Ptr{Nothing}, ),
+          args)
 end
 
 function closemeta(handle)
