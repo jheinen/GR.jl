@@ -22,6 +22,7 @@ function get_version()
         if string(v)[end:end] == "+"
             version = "latest"
         end
+    catch
     end
     version
 end
@@ -87,6 +88,7 @@ if !check_grdir()
           println("Using Qt ", splitdir(qt)[end], " at ", qt)
         end
       end
+    catch
     end
   end
 end
