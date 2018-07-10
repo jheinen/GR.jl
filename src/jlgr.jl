@@ -528,8 +528,8 @@ function to_rgba(value, cmap)
     else
         r, g, b, a = zeros(4)
     end
-    round(Int, a * 255) << 24 + round(Int, b * 255) << 16 +
-    round(Int, g * 255) << 8  + round(Int, r * 255)
+    round(UInt32, a * 255) << 24 + round(UInt32, b * 255) << 16 +
+    round(UInt32, g * 255) << 8  + round(UInt32, r * 255)
 end
 
 function create_context(kind, dict)
