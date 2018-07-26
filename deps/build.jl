@@ -63,7 +63,7 @@ if !check_grdir()
       download("http://$url", file)
     end
     if os == :Windows
-      home = (VERSION < v"0.7") ? JULIA_HOME : Sys.BINDIR
+      home = (VERSION < v"0.7-") ? JULIA_HOME : Sys.BINDIR
       success(`$home/7z x downloads/$tarball -y`)
       rm("downloads/$tarball")
       tarball = tarball[1:end-3]
