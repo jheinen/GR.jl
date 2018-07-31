@@ -431,7 +431,7 @@ function draw_legend()
     GR.setscale(0)
     w = 0
     for label in plt.kvs[:labels]
-        tbx, tby = GR.inqtextext(0, 0, label)
+        tbx, tby = inqtext(0, 0, label)
         w = max(w, tbx[3])
     end
     num_lines = length(plt.args)
