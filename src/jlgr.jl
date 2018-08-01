@@ -430,12 +430,12 @@ function draw_legend()
     GR.selntran(0)
     GR.setscale(0)
     w = 0
+    h = 0
     for label in plt.kvs[:labels]
         tbx, tby = inqtext(0, 0, label)
-        w = max(w, tbx[3])
+        w  = max(w, tbx[3])
+        h += max(tby[3] - tby[1], 0.03)
     end
-    num_lines = length(plt.args)
-    h = (num_lines + 1) * 0.03
     if location in (8, 9, 10)
         px = 0.5 * (viewport[1] + viewport[2] - w)
     elseif location in (2, 3, 6)
@@ -452,23 +452,30 @@ function draw_legend()
     end
     GR.setfillintstyle(GR.INTSTYLE_SOLID)
     GR.setfillcolorind(0)
-    GR.fillrect(px - 0.08, px + w + 0.02, py + 0.03, py - 0.03 * num_lines)
+    GR.fillrect(px - 0.08, px + w + 0.02, py + 0.03, py - h)
     GR.setlinetype(GR.LINETYPE_SOLID)
     GR.setlinecolorind(1)
     GR.setlinewidth(1)
-    GR.drawrect(px - 0.08, px + w + 0.02, py + 0.03, py - 0.03 * num_lines)
-    i = 0
+    GR.drawrect(px - 0.08, px + w + 0.02, py + 0.03, py - h)
+    i = 1
     GR.uselinespec(" ")
     for (x, y, z, c, spec) in plt.args
+        if i <= num_labels
+            label = plt.kvs[:labels][i]
+            tbx, tby = inqtext(0, 0, label)
+            dy = max((tby[3] - tby[1]) - 0.03, 0)
+            py -= 0.5 * dy
+        end
         GR.savestate()
         mask = GR.uselinespec(spec)
         mask in (0, 1, 3, 4, 5) && GR.polyline([px - 0.07, px - 0.01], [py, py])
         mask & 0x02 != 0 && GR.polymarker([px - 0.06, px - 0.02], [py, py])
         GR.restorestate()
         GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
-        if i < num_labels
+        if i <= num_labels
+            text(px, py, label)
+            py -= 0.5 * dy
             i += 1
-            text(px, py, plt.kvs[:labels][i])
         end
         py -= 0.03
     end
