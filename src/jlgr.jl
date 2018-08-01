@@ -8,11 +8,20 @@ import GR
 end
 
 const None = Union{}
+
 @static if VERSION < v"0.7.0-DEV.3137"
     const Nothing = Void
 end
+
 @static if VERSION < v"0.7.0-DEV.3155"
     const popfirst! = shift!
+end
+
+@static if VERSION >= v"0.7.0-DEV.3272"
+    function search(s::AbstractString, c::Char)
+        result = findfirst(isequal(c), s)
+        result != nothing ? result : 0
+    end
 end
 
 @static if VERSION < v"0.7.0-DEV.4534"
