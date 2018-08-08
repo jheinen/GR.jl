@@ -18,6 +18,11 @@ end
 @static if VERSION > v"0.7-"
   const STDOUT = stdout
 end
+@static if VERSION >= v"0.7.0-DEV.2338"
+    import Base64
+else
+    import Base.Base64
+end
 
 const SOURCE_JUPYTER = 0
 const SOURCE_SOCKET = 1
@@ -3134,11 +3139,11 @@ function show()
         rm(file_path)
         return content
     elseif mime_type == "mov"
-        content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", Base.Base64.base64encode(open(read,file_path)),""""></video>"""))
+        content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", Base64.base64encode(open(read,file_path)),""""></video>"""))
         rm(file_path)
         return content
     elseif mime_type == "iterm"
-        content = string("\033]1337;File=inline=1;height=24;preserveAspectRatio=0:", Base.Base64.base64encode(open(read,file_path)), "\a")
+        content = string("\033]1337;File=inline=1;height=24;preserveAspectRatio=0:", Base64.base64encode(open(read,file_path)), "\a")
         if figure_count != None
             figure_count += 1
             (figure_count > 1) && print("\e[24A")
@@ -3160,7 +3165,7 @@ function show()
     elseif mime_type == "js"
         if msgs != None
             endgraphics()
-            push!(msgs, Base.Base64.base64encode(getgraphics()))
+            push!(msgs, Base64.base64encode(getgraphics()))
         end
     end
     return None
