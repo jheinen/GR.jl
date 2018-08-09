@@ -52,14 +52,14 @@ if !check_grdir()
   version = get_version()
   tarball = "gr-$version-$os-$arch.tar.gz"
   if !isfile("downloads/$tarball")
-    info("Downloading pre-compiled GR $version $os binary")
+    @info("Downloading pre-compiled GR $version $os binary")
     url = "gr-framework.org/downloads/$tarball"
     file = "downloads/$tarball"
     mkpath("downloads")
     try
       download("https://$url", file)
     catch
-      info("Using insecure connection")
+      @info("Using insecure connection")
       download("http://$url", file)
     end
     if os == :Windows
