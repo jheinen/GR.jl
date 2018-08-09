@@ -1,3 +1,9 @@
+@static if !isdefined(Base, Symbol("@info"))
+    macro info(msg)
+        return :(info($(esc(msg))))
+    end
+end
+
 function check_grdir()
     if "GRDIR" in keys(ENV)
         have_dir = length(ENV["GRDIR"]) > 0
