@@ -1,15 +1,16 @@
 #!/usr/bin/env julia
 
 @static if VERSION >= v"0.7.0-DEV.3406"
-    using Random
+    import Random
+    srand(seed) = Random.seed!(seed)
 end
 
 import GR
 
 function main()
-    srand(0)
-    xd = -2 + 4 * rand(100)
-    yd = -2 + 4 * rand(100)
+    srand(0);
+    xd = -2 .+ 4 * rand(100)
+    yd = -2 .+ 4 * rand(100)
     zd = [xd[i] * exp(-xd[i]^2 - yd[i]^2) for i = 1:100]
 
     GR.setviewport(0.1, 0.95, 0.1, 0.95)
@@ -22,7 +23,7 @@ function main()
     GR.settextfontprec(3, 0)
 
     x, y, z = GR.gridit(xd, yd, zd, 200, 200)
-    h = linspace(-0.5, 0.5, 20)
+    h = -0.5:0.05:0.5
     GR.surface(x, y, z, 5)
     GR.contour(x, y, h, z, 0)
     GR.polymarker(xd, yd)
