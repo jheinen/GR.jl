@@ -207,8 +207,13 @@ else
 end
 
 
-isijulia() = isdefined(Main, :IJulia) && isdefined(Main.IJulia, :clear_output)
-isatom() = isdefined(Main, :Atom) && Main.Atom.isconnected()
+@static if VERSION > v"0.7-"
+  isijulia() = :IJulia in nameof.(collect(values(Base.loaded_modules)))
+  isatom() = :Atom in nameof.(collect(values(Base.loaded_modules)))
+else
+  isijulia() = isdefined(Main, :IJulia) && isdefined(Main.IJulia, :clear_output)
+  isatom() = isdefined(Main, :Atom) && Main.Atom.isconnected()
+end
 
 
 function __init__()
@@ -255,8 +260,6 @@ function __init__()
         file_path = tempname() * ".svg"
         ENV["GKSwstype"] = "svg"
         ENV["GKS_FILEPATH"] = file_path
-        @eval import IJulia
-        IJulia.clear_output(true)
     elseif isatom()
         mime_type = "atom"
         file_path = tempname() * ".svg"
