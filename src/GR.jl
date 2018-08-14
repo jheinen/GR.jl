@@ -3023,7 +3023,11 @@ Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
 function _readfile(path)
-    data = Array{UInt8}(filesize(path))
+    if VERSION > v"0.7.0-"
+        data = Array{UInt8}(undef, filesize(path))
+    else
+        data = Array{UInt8}(filesize(path))
+    end
     s = open(path, "r")
     content = read!(s, data)
     close(s)
