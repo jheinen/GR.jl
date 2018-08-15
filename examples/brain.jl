@@ -28,17 +28,22 @@ function cursor(motion, x, y)
   global center, up
   global isolevel
 
-  if GLFW.GetMouseButton(window, 0) == GLFW.PRESS
+  if GLFW.GetMouseButton(window, 0)
     center = spherical_to_cartesian(-2, pi * y / height + pi/2, pi * x / width)
     up = spherical_to_cartesian(1, pi * y / height + pi, pi * x / width)
-  elseif GLFW.GetMouseButton(window, 1) == GLFW.PRESS
+  elseif GLFW.GetMouseButton(window, 1)
     isolevel = round(Int, 255 * y / height)
   end
   display()
 end
  
 f = open("brain.bin", "r")
-data = reshape(read!(f, Vector{UInt16}(5120000)), 200, 160, 160)
+if VERSION > v"0.7.0-"
+  data = Vector{UInt16}(undef, 5120000)
+else
+  data = Vector{UInt16}(5120000)
+end
+data = reshape(read!(f, data), 200, 160, 160)
 close(f)
 
 width = height = 500
@@ -46,7 +51,6 @@ isolevel = 128
 center = (0., 0., 2.)
 up = (-1., 0., 0.)
 
-GLFW.Init()
 window = GLFW.CreateWindow(width, height, "MRI example")
 GLFW.MakeContextCurrent(window)
 GLFW.SetCursorPosCallback(window, cursor)
@@ -58,4 +62,3 @@ while !GLFW.WindowShouldClose(window)
 end
 
 GLFW.DestroyWindow(window)
-GLFW.Terminate()
