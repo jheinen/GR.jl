@@ -3162,9 +3162,13 @@ function show()
     elseif mime_type == "atom"
         bg = jlgr.background
         content = Base.HTML(string("""<div style="display: inline-block; background: #""", Base.hex(UInt64(bg), 6, false), """;">""", String(read(file_path)), """</div>"""))
-        Main.Atom.render(Main.Atom.PlotPane(), content)
         rm(file_path)
-        return nothing
+        if Main.Atom.PlotPaneEnabled[] == true
+            Main.Atom.render(Main.Atom.PlotPane(), content)
+            return nothing
+        else
+            return content
+        end
     elseif mime_type == "js"
         if msgs != None
             endgraphics()
