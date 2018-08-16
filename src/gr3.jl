@@ -126,7 +126,7 @@ function save(filename, width, height)
   if ext == ".png"
     content = PNG(_readfile(filename))
   elseif ext == ".html"
-    content = HTML("<iframe src=\"$filename\" width=$width height=$height></iframe>")
+    content = HTML("<iframe src=\"files/$filename\" width=$width height=$height></iframe>")
   else
     content = None
   end
