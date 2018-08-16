@@ -265,8 +265,6 @@ function __init__()
         file_path = tempname() * ".svg"
         ENV["GKSwstype"] = "svg"
         ENV["GKS_FILEPATH"] = file_path
-        @eval using Atom
-        @eval import Atom: Media, PlotPane
     end
 end
 
@@ -3111,8 +3109,6 @@ function inline(mime="svg", scroll=true)
         elseif mime == "atom"
             file_path = tempname() * ".svg"
             ENV["GKS_WSTYPE"] = "svg"
-            @eval using Atom
-            @eval import Atom: Media, PlotPane
         elseif mime == "js"
             file_path = None
             ENV["GKS_WSTYPE"] = "nul"
@@ -3166,7 +3162,7 @@ function show()
     elseif mime_type == "atom"
         bg = jlgr.background
         content = Base.HTML(string("""<div style="display: inline-block; background: #""", Base.hex(UInt64(bg), 6, false), """;">""", String(read(file_path)), """</div>"""))
-        Atom.render(Atom.PlotPane(), content)
+        Main.Atom.render(Main.Atom.PlotPane(), content)
         rm(file_path)
         return nothing
     elseif mime_type == "js"
