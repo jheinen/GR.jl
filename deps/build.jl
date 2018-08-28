@@ -33,6 +33,15 @@ function get_version()
     version
 end
 
+function get_os_release(key)
+    value = String(read(pipeline(`cat /etc/os-release`, `grep ^$key=`, `cut -d= -f2`)))[1:end-1]
+    if VERSION < v"0.7-"
+        replace(value, "\"", "")
+    else
+        replace(value, "\"" => "")
+    end
+end
+
 if !check_grdir()
   if Sys.KERNEL == :NT
     os = :Windows
@@ -47,11 +56,12 @@ if !check_grdir()
         os = "Redhat"
       end
     elseif isfile("/etc/os-release")
-      id = String(read(pipeline(`cat /etc/os-release`, `grep ^ID=`, `cut -d= -f2`)))[1:end-1]
-      if id == "debian"
-        os = "Debian"
-      elseif id == "ubuntu" || id == "\"elementary\""
+      id = get_os_release("ID")
+      id_like = get_os_release("ID_LIKE")
+      if id == "ubuntu" || id_like == "ubuntu"
         os = "Ubuntu"
+      elseif id == "debian" || id_like == "debian"
+        os = "Debian"
       end
     end
   end
