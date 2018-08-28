@@ -50,7 +50,7 @@ if !check_grdir()
       id = String(read(pipeline(`cat /etc/os-release`, `grep ^ID=`, `cut -d= -f2`)))[1:end-1]
       if id == "debian"
         os = "Debian"
-      elseif id == "ubuntu"
+      elseif id == "ubuntu" || id == "\"elementary\""
         os = "Ubuntu"
       end
     end
