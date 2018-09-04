@@ -34,10 +34,10 @@ function get_version()
 end
 
 function get_os_release(key)
-    try
-        value = String(read(pipeline(`cat /etc/os-release`, `grep ^$key=`, `cut -d= -f2`)))[1:end-1]
+    value = try
+        String(read(pipeline(`cat /etc/os-release`, `grep ^$key=`, `cut -d= -f2`)))[1:end-1]
     catch
-        value = ""
+        ""
     end
     if VERSION < v"0.7-"
         replace(value, "\"", "")
