@@ -14,8 +14,8 @@ RUN echo "push!(Libdl.DL_LOAD_PATH, \"$CONDA_DIR/lib\")" >> /usr/etc/julia/julia
     mkdir $JULIA_PKGDIR && \
     chown -R $NB_USER:users $JULIA_PKGDIR
 RUN apt-get install -my libnlopt0
-# GR dependencies
-RUN apt-get install -my libxt6 libxrender1 libgl1-mesa-glx libqt5widgets5
+# GR3 dependencies
+#RUN apt-get install -my libxt6 libxrender1 libgl1-mesa-glx libqt5widgets5
 USER $NB_USER
 # Julia packages
 RUN julia -e 'import Pkg; Pkg.add("GR")' && \
