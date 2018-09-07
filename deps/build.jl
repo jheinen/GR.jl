@@ -22,7 +22,7 @@ function check_grdir()
 end
 
 function get_version()
-    version = v"0.33.0"
+    version = v"0.34.0"
     try
         v = Pkg.installed("GR")
         if string(v)[end:end] == "+"
