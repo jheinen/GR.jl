@@ -4,7 +4,9 @@
     end
 end
 
-using Pkg
+if VERSION >= v"0.7.0"
+  using Pkg
+end
 
 @info "Building GR"
 
