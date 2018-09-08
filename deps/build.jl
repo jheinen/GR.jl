@@ -4,21 +4,37 @@
     end
 end
 
+using Pkg
+
+@info "Building GR"
+
 function check_grdir()
     if "GRDIR" in keys(ENV)
-        have_dir = length(ENV["GRDIR"]) > 0
-    elseif isdir(joinpath(homedir(), "gr"), "fonts")
-        have_dir = true
-    else
-        have_dir = false
-        for d in ("/opt", "/usr/local", "/usr")
-            if isdir(joinpath(d, "gr", "fonts"))
-                have_dir = true
-                break
-            end
+        GRDIR = ENV["GRDIR"]
+        have_dir = length(GRDIR) > 0
+        if have_dir
+          @info "Found GRDIR in environment [$GRDIR]"
+        else
+          @info "Found GRDIR in environment, as empty string, will use a local one."
+        end
+        return have_dir
+    end
+    GRDIR = joinpath(homedir(), "gr")
+    if isdir(GRDIR, "fonts")
+        return true
+    end
+
+    for d in (homedir(), "/opt", "/usr/local", "/usr")
+        GRDIR = joinpath(d, "gr")
+        if isdir(GRDIR, "fonts")
+          @info "Found GRDIR in homedir [$GRDIR]"
+          return true
         end
     end
-    have_dir
+
+    @info "No existing gr found.  Will download one."
+    
+    return false
 end
 
 function get_version()
@@ -47,6 +63,7 @@ function get_os_release(key)
 end
 
 if !check_grdir()
+  # Download GR
   if Sys.KERNEL == :NT
     os = :Windows
   else
@@ -71,29 +88,50 @@ if !check_grdir()
   end
   version = get_version()
   tarball = "gr-$version-$os-$arch.tar.gz"
-  if !isfile("downloads/$tarball")
-    @info("Downloading pre-compiled GR $version $os binary")
+  file = "downloads/$tarball"
+  if !isfile(file)
+    @info("Downloading pre-compiled GR $version $os binary to $file")
     url = "gr-framework.org/downloads/$tarball"
-    file = "downloads/$tarball"
     mkpath("downloads")
-    try
-      download("https://$url", file)
-    catch
-      @info("Using insecure connection")
-      download("http://$url", file)
+    function get(http_url)
+       try
+        tmp = "$file.tmp"
+        @info "Downloading $http_url"
+        download(http_url, tmp)
+        @info "Download succeeded from $http_url"
+        mv(tmp, file)
+        if !isfile(file)
+          throw("!!!")
+        end
+        true
+      catch e
+        @info("Download failed[$(e.msg)].")
+        false
+      end
     end
+    if !get("https://$url")
+      @info "Trying non-https download"
+      if !get("http://$url")
+        throw("Cannot download GR.  Check internet connection.")
+      end
+    end
+
     if os == :Windows
       home = (VERSION < v"0.7-") ? JULIA_HOME : Sys.BINDIR
-      success(`$home/7z x downloads/$tarball -y`)
-      rm("downloads/$tarball")
+      @info "Unpack $file"
+      success(`$home/7z x $file -y`)
+      rm(file)
       tarball = tarball[1:end-3]
+      @info "Unpack $tarball"
       success(`$home/7z x $tarball -y -ttar`)
-      rm("$tarball")
+      rm(tarball)
     else
-      run(`tar xzf downloads/$tarball`)
-      rm("downloads/$tarball")
+      @info "Unpack $tarball"
+      run(`tar xzf $file`)
+      rm(file)
     end
   end
+
   if os == :Darwin
     app = joinpath("gr", "Applications", "GKSTerm.app")
     run(`/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f $app`)
