@@ -84,7 +84,7 @@ export
   setspace,
   textext,
   inqtextext,
-  axes,
+  axes2d, # to avoid WARNING: both GR and Base export "axes"
   grid,
   grid3d,
   verrorbars,
@@ -1714,7 +1714,7 @@ function inqtextext(x::Real, y::Real, string)
 end
 
 """
-    axes(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real)
+    axes2d(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real)
 
 Draw X and Y coordinate axes with linearly and/or logarithmically spaced tick marks.
 
@@ -1743,12 +1743,14 @@ are drawn using solid lines; line color and width can be modified using the
 the linear or logarithmic transformation established by the `setscale` function.
 
 """
-function axes(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real)
+function axes2d(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real)
   ccall( (:gr_axes, libGR),
         Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32, Float64),
         x_tick, y_tick, x_org, y_org, major_x, major_y, tick_size)
 end
+
+axes(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real) = axes2d(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real)
 
 """
     grid(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int)
