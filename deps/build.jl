@@ -60,7 +60,7 @@ if !check_grdir()
   else
     os = Sys.KERNEL
   end
-  const arch = Sys.ARCH
+  arch = Sys.ARCH
   if os == :Linux && arch == :x86_64
     if isfile("/etc/redhat-release")
       rel = String(read(pipeline(`cat /etc/redhat-release`, `sed s/.\*release\ //`, `sed s/\ .\*//`)))[1:end-1]
@@ -76,6 +76,8 @@ if !check_grdir()
         os = "Debian"
       end
     end
+  elseif os == :Linux && arch in [:i386, :i686]
+    arch = :i386
   end
   version = get_version()
   tarball = "gr-$version-$os-$arch.tar.gz"
