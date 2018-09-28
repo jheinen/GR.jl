@@ -102,7 +102,7 @@ function set_viewport(kind, subplot)
         end
     end
     viewport = zeros(4)
-    vp = float(subplot)
+    vp = copy(float(subplot))
     if w > h
         ratio = float(h) / w
         msize = mwidth * w / width
