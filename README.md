@@ -1,22 +1,32 @@
 # The GR module for Julia
 
-[![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
+[![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE.md)
+[![GitHub tag](https://img.shields.io/github/tag/jheinen/GR.jl.svg)](https://github.com/jheinen/GR.jl/releases)
 [![Build Status](https://travis-ci.org/jheinen/GR.jl.svg?branch=master)](https://travis-ci.org/jheinen/GR.jl)
 [![GR](http://pkg.julialang.org/badges/GR_0.6.svg)](http://pkg.julialang.org/?pkg=GR&ver=0.6)
-
 [![Join the chat at https://gitter.im/jheinen/GR.jl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jheinen/GR.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+[![Screenshots](https://gr-framework.org/_images/screenshots.png)](https://gr-framework.org)
 
 This module provides a Julia interface to
 [GR](http://gr-framework.org/), a framework for
 visualisation applications.
 
+## Installation
+
 From the Julia REPL an up to date version can be installed with:
 
     Pkg.add("GR")
 
+or in the [Pkg REPL-mode](https://docs.julialang.org/en/v1/stdlib/Pkg/index.html#Getting-Started-1):
+
+    add GR
+
 The Julia package manager will download and install a pre-compiled
 run-time (for your hardware architecture), if the GR software is not
 already installed in the recommended locations.
+
+## Getting started
 
 In Julia simply type ``using GR`` and begin calling functions
 in the [GR framework](http://gr-framework.org/julia-gr.html) API.
@@ -31,7 +41,7 @@ using GR
 histogram(randn(10000))
 ```
 
-### Using GR as backend for Plots.jl
+## Using GR as backend for Plots.jl
 
 ``Plots`` is a powerful wrapper around other Julia visualization
 "backends", where ``GR`` seems to be one of the favorite ones.
