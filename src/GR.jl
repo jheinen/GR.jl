@@ -206,15 +206,8 @@ else
   const libGR3 = "libGR3.so"
 end
 
-
-@static if VERSION > v"0.7-"
-  isijulia() = :IJulia in nameof.(collect(values(Base.loaded_modules)))
-  isatom() = :Atom in nameof.(collect(values(Base.loaded_modules)))
-else
-  isijulia() = isdefined(Main, :IJulia) && isdefined(Main.IJulia, :clear_output)
-  isatom() = isdefined(Main, :Atom) && Main.Atom.isconnected()
-end
-
+isijulia() = isdefined(Main, :IJulia) && isdefined(Main.IJulia, :clear_output)
+isatom() = isdefined(Main, :Atom) && Main.Atom.isconnected()
 
 function __init__()
     global display_name, mime_type, file_path
