@@ -2,6 +2,8 @@
 
 # A view of the Riemann Zeta function using the domain coloring method
 
+using Compat
+
 import GR
 import SpecialFunctions
 
@@ -17,7 +19,7 @@ function domain_colors(w, n)
 
     V = [modc[i] * isol[i] for i = 1:length(modc)]
     S = 0.9 .* fill!(similar(H), 1)
-    HSV = cat(2, H, S, V)
+    HSV = Compat.cat(H, S, V, dims=2)
 
     return HSV
 end
@@ -31,8 +33,8 @@ function func_vals(f, re, im,  N)
     h = im[2] - im[1]
     resL = N * l  # horizontal resolution
     resH = N * h  # vertical resolution
-    x = linspace(re[1], re[2], resL)
-    y = linspace(im[1], im[2], resH)
+    x = LinRange(re[1], re[2], resL)
+    y = LinRange(im[1], im[2], resH)
     x, y = GR.meshgrid(x, y)
     z = complex.(x, y)
     w = f.(z)
@@ -48,8 +50,8 @@ function plot_domain(color_func, f; re=[-1, 1], im=[-1, 1], N=100, n=15)
     v = round.(domc[:,3])
     alpha = 255
     width, height = size(w)
-    c = Array{UInt32}(width * height)
-    c[:] = h + 256 * (s + 256 * (v + 256 * alpha))
+    c = Array{UInt32, 1}(undef, width * height)
+    c = h .+ 256 * (s .+ 256 * (v .+ 256 * alpha))
     c = rotr90(reshape(c, width, height))
 
     GR.clearws()

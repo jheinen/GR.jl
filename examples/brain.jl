@@ -28,10 +28,10 @@ function cursor(motion, x, y)
   global center, up
   global isolevel
 
-  if GLFW.GetMouseButton(window, 0)
+  if GLFW.GetMouseButton(window, GLFW.MOUSE_BUTTON_1)
     center = spherical_to_cartesian(-2, pi * y / height + pi/2, pi * x / width)
     up = spherical_to_cartesian(1, pi * y / height + pi, pi * x / width)
-  elseif GLFW.GetMouseButton(window, 1)
+  elseif GLFW.GetMouseButton(window, GLFW.MOUSE_BUTTON_2)
     isolevel = round(Int, 255 * y / height)
   end
   display()

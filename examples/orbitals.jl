@@ -3,6 +3,8 @@
 # (see https://albi3ro.github.io/M4/prerequisites/Atomic-Orbitals.html)
 #
 
+using Compat
+
 using GSL    # GSL holds the special functions
 using GR
 
@@ -13,12 +15,12 @@ a0 = 5.291772109217e-11
 
 # The θ and ϕ dependence
 function Yml(m::Int,l::Int,θ::Real,ϕ::Real)
-    (-1.0)^m*sf_legendre_Plm(l,abs(m),cos(θ))*e^(im*m*ϕ)
+    (-1.0)^m*sf_legendre_Plm(l,abs(m),cos(θ))*ℯ^(im*m*ϕ)
 end
 
 # The Radial dependence
 function R(n::Int,l::Int,ρ::Real)
-    sf_laguerre_n(n-l-1,2*l+1,ρ)*e^(-ρ/2)*ρ^l
+    sf_laguerre_n(n-l-1,2*l+1,ρ)*ℯ^(-ρ/2)*ρ^l
 end
 
 # A normalization: This is dependent on the choice of polynomial representation
@@ -46,7 +48,7 @@ end
 function calculate_electronic_density(n,l,m)
     N = 50
     r = 1e-9
-    s = linspace(-r,r,N)
+    s = LinRange(-r,r,N)
     x,y,z = meshgrid(s,s,s)
     
     r,θ,ϕ = CarttoSph(x,y,z)
@@ -61,7 +63,7 @@ function calculate_electronic_density(n,l,m)
         end
     end
 
-    (Ψv-minimum(Ψv))/(maximum(Ψv)-minimum(Ψv))
+    (Ψv.-minimum(Ψv))./(maximum(Ψv).-minimum(Ψv))
 end
 
 Ψv = calculate_electronic_density(3,2,0)

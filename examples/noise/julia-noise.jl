@@ -25,8 +25,8 @@ function main()
     settextalign(2, 3)
     setcharheight(0.036)
 
-    for time in linspace(0, 1, 250)
-        P[:,:] = 0xffffffff
+    for time in 0:0.004:1
+        P .= 0xffffffff
         cos_t = 1.5 * cos(2pi * time)
         sin_t = 1.5 * sin(2pi * time)
         for i in 1:n
