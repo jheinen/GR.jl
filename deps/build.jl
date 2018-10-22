@@ -10,17 +10,23 @@ end
 
 function check_grdir()
     if "GRDIR" in keys(ENV)
-        have_dir = length(ENV["GRDIR"]) > 0
-    elseif isdir(joinpath(homedir(), "gr"), "fonts")
-        have_dir = true
+        grdir = ENV["GRDIR"]
+        have_dir = length(grdir) > 0
+        if have_dir
+            have_dir = isdir(joinpath(grdir, "fonts"))
+        end
     else
         have_dir = false
-        for d in ("/opt", "/usr/local", "/usr")
-            if isdir(joinpath(d, "gr", "fonts"))
+        for d in (homedir(), "/opt", "/usr/local", "/usr")
+            grdir = joinpath(d, "gr")
+            if isdir(joinpath(grdir, "fonts"))
                 have_dir = true
                 break
             end
         end
+    end
+    if have_dir
+        @info "Found exisitng GR run-time in $grdir"
     end
     have_dir
 end
@@ -90,7 +96,11 @@ if !check_grdir()
       download("https://$url", file)
     catch
       @info("Using insecure connection")
-      download("http://$url", file)
+      try
+        download("http://$url", file)
+      catch
+        @info("Cannot download GR run-time")
+      end
     end
     if os == :Windows
       home = (VERSION < v"0.7-") ? JULIA_HOME : Sys.BINDIR
@@ -98,7 +108,7 @@ if !check_grdir()
       rm("downloads/$tarball")
       tarball = tarball[1:end-3]
       success(`$home/7z x $tarball -y -ttar`)
-      rm("$tarball")
+      rm(tarball)
     else
       run(`tar xzf downloads/$tarball`)
       rm("downloads/$tarball")
