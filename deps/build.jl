@@ -26,7 +26,7 @@ function check_grdir()
 end
 
 function get_version()
-    version = v"0.34.1"
+    version = v"0.35.0"
     try
 @static if VERSION >= v"0.7.0-DEV.3656"
         v = installed()["GR"]
