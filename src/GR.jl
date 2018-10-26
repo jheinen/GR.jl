@@ -248,6 +248,8 @@ function __init__()
     ENV["GKS_USE_CAIRO_PNG"] = "true"
     if "GRDISPLAY" in keys(ENV)
         display_name = ENV["GRDISPLAY"]
+    elseif "GKS_NO_GUI" in keys(ENV)
+        return
     elseif isijulia()
         mime_type = "svg"
         file_path = tempname() * ".svg"
