@@ -147,6 +147,8 @@ export
   sendmeta,
   sendmetaref,
   closemeta,
+  shadepoints,
+  shadelines,
   # Convenience functions
   jlgr,
   colormap,
@@ -3482,6 +3484,40 @@ function closemeta(handle)
           Nothing,
           (Ptr{Nothing}, ),
           handle)
+end
+
+function shadepoints(x, y; dims=[1200, 1200], how=1)
+    @assert length(x) == length(y)
+    n = length(x)
+    w, h = dims
+    if VERSION > v"0.7.0-"
+        data = Array{Int32}(undef, w, h)
+    else
+        data = Array{Int32}(w, h)
+    end
+    ccall( (:gr_shadepoints, libGR),
+          Nothing,
+          (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32, Ptr{Int32}),
+          n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), how,
+          w, h, data)
+    return data
+end
+
+function shadelines(x, y; dims=[1200, 1200], how=1)
+    @assert length(x) == length(y)
+    n = length(x)
+    w, h = dims
+    if VERSION > v"0.7.0-"
+        data = Array{Int32}(undef, w, h)
+    else
+        data = Array{Int32}(w, h)
+    end
+    ccall( (:gr_shadelines, libGR),
+          Nothing,
+          (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32, Ptr{Int32}),
+          n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), how,
+          w, h, data)
+    return data
 end
 
 end # module
