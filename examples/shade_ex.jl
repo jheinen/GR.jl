@@ -23,6 +23,9 @@ setviewport(0.1, 0.95, 0.1, 0.95)
 setwindow(-10, 10, -10, 10)
 setcharheight(0.02)
 axes2d(0.5, 0.5, -10, -10, 4, 4, -0.005)
-setcolormap(19)
+setcolormap(GR.COLORMAP_HOT)
 
 @time shadepoints(x, y, how=5)
+
+updatews()
+
