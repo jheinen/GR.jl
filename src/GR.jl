@@ -186,6 +186,7 @@ export
   polar,
   trisurf,
   tricont,
+  shade,
   libGR3,
   gr3,
   isinline,
@@ -2955,6 +2956,13 @@ PATH_CLOSEPOLY = 0x4f
 MPL_SUPPRESS_CLEAR = 1
 MPL_POSTPONE_UPDATE = 2
 
+XFORM_BOOLEAN  = 0
+XFORM_LINEAR  = 1
+XFORM_LOG  = 2
+XFORM_LOGLOG  = 3
+XFORM_CUBIC  = 4
+XFORM_EQUALIZED  = 5
+
 # GR3 functions
 include("gr3.jl")
 
@@ -3002,6 +3010,7 @@ sph2cart(θ, ϕ, r) = jlgr.sph2cart(θ, ϕ, r)
 polar(args...; kwargs...) = jlgr.polar(args...; kwargs...)
 trisurf(args...; kwargs...) = jlgr.trisurf(args...; kwargs...)
 tricont(args...; kwargs...) = jlgr.tricont(args...; kwargs...)
+shade(args...; kwargs...) = jlgr.shade(args...; kwargs...)
 mainloop() = jlgr.mainloop()
 
 @static if VERSION < v"0.7-"
@@ -3486,7 +3495,7 @@ function closemeta(handle)
           handle)
 end
 
-function shadepoints(x, y; dims=[1200, 1200], how=1)
+function shadepoints(x, y; dims=[1200, 1200], xform=1)
     @assert length(x) == length(y)
     n = length(x)
     w, h = dims
@@ -3494,10 +3503,10 @@ function shadepoints(x, y; dims=[1200, 1200], how=1)
           Nothing,
           (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32),
           n, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
-          how, w, h)
+          xform, w, h)
 end
 
-function shadelines(x, y; dims=[1200, 1200], how=1)
+function shadelines(x, y; dims=[1200, 1200], xform=1)
     @assert length(x) == length(y)
     n = length(x)
     w, h = dims
@@ -3505,7 +3514,7 @@ function shadelines(x, y; dims=[1200, 1200], how=1)
           Nothing,
           (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32),
           n, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
-          how, w, h)
+          xform, w, h)
 end
 
 end # module

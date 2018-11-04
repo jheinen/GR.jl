@@ -37,7 +37,7 @@ const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf, :tricont]
+const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf, :tricont, :shade]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -333,7 +333,7 @@ function draw_axes(kind, pass=1)
             GR.axes3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, majory, 0, ticksize)
         end
     else
-        if kind == :heatmap
+        if kind in (:heatmap, :shade)
             ticksize = -ticksize
         else
             GR.grid(xtick, ytick, 0, 0, majorx, majory)
@@ -759,6 +759,15 @@ function send_serialized(target)
     close(handle)
 end
 
+function contains_NaN(a)
+    for el in a
+        if el === NaN
+            return true
+        end
+    end
+    false
+end
+
 function plot_data(flag=true)
     global scheme, background
 
@@ -940,6 +949,13 @@ function plot_data(flag=true)
             zmin, zmax = plt.kvs[:zrange]
             levels = linspace(zmin, zmax, 20)
             GR.tricontour(x, y, z, levels)
+        elseif kind == :shade
+            xform = get(plt.kvs, :xform, 5)
+            if contains_NaN(x)
+                GR.shadelines(x, y, xform=xform)
+            else
+                GR.shadepoints(x, y, xform=xform)
+            end
         end
         GR.restorestate()
     end
@@ -1353,6 +1369,14 @@ function tricont(args...; kv...)
     create_context(:tricont, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
+
+    plot_data()
+end
+
+function shade(args...; kv...)
+    create_context(:shade, Dict(kv))
+
+    plt.args = plot_args(args, fmt=:xys)
 
     plot_data()
 end
