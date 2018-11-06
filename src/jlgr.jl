@@ -1,6 +1,7 @@
 module jlgr
 
 import GR
+import NaNMath
 
 @static if VERSION >= v"0.7.0-DEV.3476"
     using Serialization
@@ -183,20 +184,20 @@ function minmax()
     xmax = ymax = zmax = typemin(Float64)
     for (x, y, z, c, spec) in plt.args
         if given(x)
-            xmin = min(minimum(x), xmin)
-            xmax = max(maximum(x), xmax)
+            xmin = min(NaNMath.minimum(x), xmin)
+            xmax = max(NaNMath.maximum(x), xmax)
         else
             xmin, xmax = 0, 1
         end
         if given(y)
-            ymin = min(minimum(y), ymin)
-            ymax = max(maximum(y), ymax)
+            ymin = min(NaNMath.minimum(y), ymin)
+            ymax = max(NaNMath.maximum(y), ymax)
         else
             ymin, ymax = 0, 1
         end
         if given(z)
-            zmin = min(minimum(z), zmin)
-            zmax = max(maximum(z), zmax)
+            zmin = min(NaNMath.minimum(z), zmin)
+            zmax = max(NaNMath.maximum(z), zmax)
         end
     end
     xmin, xmax = fix_minmax(xmin, xmax)
