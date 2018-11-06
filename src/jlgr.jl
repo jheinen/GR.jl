@@ -1,7 +1,6 @@
 module jlgr
 
 import GR
-import NaNMath
 
 @static if VERSION >= v"0.7.0-DEV.3476"
     using Serialization
@@ -179,25 +178,43 @@ function given(a)
     a != Nothing && a != "Nothing"
 end
 
+function Extrema64(a)
+    amin =  typemax(Float64)
+    amax = -typemax(Float64)
+    for el in a
+        if !isnan(el)
+            if el < amin
+                amin = el
+            elseif el > amax
+                amax = el
+            end
+        end
+    end
+    amin, amax
+end
+
 function minmax()
-    xmin = ymin = zmin = typemax(Float64)
-    xmax = ymax = zmax = typemin(Float64)
+    xmin = ymin = zmin =  typemax(Float64)
+    xmax = ymax = zmax = -typemax(Float64)
     for (x, y, z, c, spec) in plt.args
         if given(x)
-            xmin = min(NaNMath.minimum(x), xmin)
-            xmax = max(NaNMath.maximum(x), xmax)
+            x0, x1 = Extrema64(x)
+            xmin = min(x0, xmin)
+            xmax = max(x1, xmax)
         else
             xmin, xmax = 0, 1
         end
         if given(y)
-            ymin = min(NaNMath.minimum(y), ymin)
-            ymax = max(NaNMath.maximum(y), ymax)
+            y0, y1 = Extrema64(y)
+            ymin = min(y0, ymin)
+            ymax = max(y1, ymax)
         else
             ymin, ymax = 0, 1
         end
         if given(z)
-            zmin = min(NaNMath.minimum(z), zmin)
-            zmax = max(NaNMath.maximum(z), zmax)
+            z0, z1 = Extrema64(z)
+            zmin = min(z0, zmin)
+            zmax = max(z1, zmax)
         end
     end
     xmin, xmax = fix_minmax(xmin, xmax)
