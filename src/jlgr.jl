@@ -857,7 +857,7 @@ function plot_data(flag=true)
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             if given(z) || given(c)
                 if given(c)
-                    c = (c - minimum(c)) / (maximum(c) - minimum(c))
+                    c = (c .- minimum(c)) ./ (maximum(c) .- minimum(c))
                     cind = Int[round(Int, 1000 + _i * 255) for _i in c]
                 end
                 for i in 1:length(x)
