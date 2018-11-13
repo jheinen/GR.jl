@@ -968,14 +968,12 @@ function plot_data(flag=true)
         elseif kind == :contourf
             zmin, zmax = plt.kvs[:zrange]
             GR.setspace(zmin, zmax, 0, 90)
-            scale = plt.kvs[:scale]
-            GR.setscale(scale)
+            h = linspace(zmin, zmax, 20)
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
-                z = reshape(z, 200, 200)
             end
-            GR.surface(x, y, z, GR.OPTION_CELL_ARRAY)
-            colorbar()
+            GR.contourf(x, y, h, z, 1000)
+            colorbar(0, 20)
         elseif kind == :hexbin
             nbins = get(plt.kvs, :nbins, 40)
             cntmax = GR.hexbin(x, y, nbins)

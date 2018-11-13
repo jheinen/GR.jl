@@ -2038,6 +2038,56 @@ function contour(px, py, h, pz, major_h::Int)
   end
 end
 
+"""
+    contourf(px, py, h, pz, major_h::Int)
+
+Draw filled contours of a three-dimensional data set whose values are
+specified over a rectangular mesh.
+
+**Parameters:**
+
+`x` :
+    A list containing the X coordinates
+`y` :
+    A list containing the Y coordinates
+`h` :
+    A list containing the Z coordinate for the height values
+`z` :
+    A list of length `len(x)` * `len(y)` or an appropriately dimensioned
+    array containing the Z coordinates
+`major_h` :
+    (intended for future use)
+
+"""
+function contourf(px, py, h, pz, major_h::Int)
+  nx = length(px)
+  ny = length(py)
+  nh = length(h)
+  if typeof(pz) == Function
+    f = pz
+    pz = Float64[f(x,y) for y in py, x in px]
+  end
+  nz = length(pz)
+  if ndims(pz) == 1
+    out_of_bounds = nz != nx * ny
+  elseif ndims(pz) == 2
+    out_of_bounds = size(pz)[1] != nx || size(pz)[2] != ny
+  else
+    out_of_bounds = true
+  end
+  if !out_of_bounds
+    if ndims(pz) == 2
+      pz = reshape(pz, nx * ny)
+    end
+    ccall( (:gr_contourf, libGR),
+          Nothing,
+          (Int32, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
+          nx, ny, nh, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, h), convert(Vector{Float64}, pz), major_h)
+  else
+    println("Arrays have incorrect length or dimension.")
+  end
+end
+
 function hexbin(x, y, nbins)
   @assert length(x) == length(y)
   n = length(x)
