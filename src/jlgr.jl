@@ -1381,10 +1381,9 @@ end
 """
 Draw a histogram.
 
-If **num_bins** is **None** or 0, this function computes the number of
-bins as :math:`\text{round}(3.3\cdot\log_{10}(n))+1` with n as the number
-of elements in x, otherwise the given number of bins is used for the
-histogram.
+If **nbins** is **None** or 0, this function computes the number of
+bins as 3.3 * log10(n) + 1,  with n as the number of elements in x,
+otherwise the given number of bins is used for the histogram.
 
 :param x: the values to draw as histogram
 :param num_bins: the number of bins in the histogram
@@ -1726,11 +1725,10 @@ end
 """
 Set the plot title.
 
-The plot title is drawn using the extended text function
-:jl:func:`GR.textext(x::Real, y::Real, string)`. You can use a subset
-of LaTeX math syntax, but will need to escape certain characters,
-e.g. parentheses. For more information see the documentation of
-:jl:func:`GR.textext(x::Real, y::Real, string)`.
+The plot title is drawn using the extended text function GR.textext.
+You can use a subset of LaTeX math syntax, but will need to escape
+certain characters, e.g. parentheses. For more information see the
+documentation of GR.textext.
 
 :param title: the plot title
 
@@ -1750,11 +1748,10 @@ end
 """
 Set the x-axis label.
 
-The axis labels are drawn using the extended text function
-:jl:func:`GR.textext(x::Real, y::Real, string)`. You can use a subset
-of LaTeX math syntax, but will need to escape certain characters,
-e.g. parentheses. For more information see the documentation of
-:jl:func:`GR.textext(x::Real, y::Real, string)`.
+The axis labels are drawn using the extended text function GR.textext.
+You can use a subset of LaTeX math syntax, but will need to escape
+certain characters, e.g. parentheses. For more information see the
+documentation of GR.textext.
 
 :param x_label: the x-axis label
 
@@ -1774,22 +1771,12 @@ end
 """
 Set the y-axis label.
 
-The axis labels are drawn using the extended text function
-:jl:func:`GR.textext(x::Real, y::Real, string)`. You can use a subset
-of LaTeX math syntax, but will need to escape certain characters,
-e.g. parentheses. For more information see the documentation of
-:jl:func:`GR.textext(x::Real, y::Real, string)`.
+The axis labels are drawn using the extended text function GR.textext.
+You can use a subset of LaTeX math syntax, but will need to escape
+certain characters, e.g. parentheses. For more information see the
+documentation of GR.textext.
 
 :param y_label: the y-axis label
-
-**Usage examples:**
-
-.. code-block:: julia
-
-    julia> # Set the y-axis label to "y\(x\)"
-    julia> ylabel("y\(x\)")
-    julia> # Clear the y-axis label
-    julia> ylabel()
 """
 function ylabel(s)
     plt.kvs[:ylabel] = s
