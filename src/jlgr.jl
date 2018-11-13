@@ -583,6 +583,23 @@ function restore_context()
     plt.kvs = copy(plt.obj)
 end
 
+"""
+Create a new figure with the given settings.
+
+Settings like the current colormap, title or axis limits as stored in the
+current figure. This function creates a new figure, restores the default
+settings and applies any settings passed to the function as keyword
+arguments.
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Restore all default settings
+    julia> figure()
+    julia> # Restore all default settings and set the title
+    julia> figure(title="Example Figure")
+"""
 function figure(; kv...)
     global plt
     plt = Figure()
@@ -590,6 +607,30 @@ function figure(; kv...)
     plt
 end
 
+"""
+Set the hold flag for combining multiple plots.
+
+The hold flag prevents drawing of axes and clearing of previous plots, so
+that the next plot will be drawn on top of the previous one.
+
+:param flag: the value of the hold flag
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> x = LinRange(0, 1, 100)
+    julia> # Draw the first plot
+    julia> plot(x, x.^2)
+    julia> # Set the hold flag
+    julia> hold(true)
+    julia> # Draw additional plots
+    julia> plot(x, x.^4)
+    julia> plot(x, x.^8)
+    julia> # Reset the hold flag
+    julia> hold(false)
+"""
 function hold(flag)
     global ctx
     if plt.args != @_tuple(Any)
@@ -615,6 +656,34 @@ function usecolorscheme(index)
     end
 end
 
+"""
+Set current subplot index.
+
+By default, the current plot will cover the whole window. To display more
+than one plot, the window can be split into a number of rows and columns,
+with the current plot covering one or more cells in the resulting grid.
+
+Subplot indices are one-based and start at the upper left corner, with a
+new row starting after every **num_columns** subplots.
+
+:param num_rows: the number of subplot rows
+:param num_columns: the number of subplot columns
+:param subplot_indices:
+	- the subplot index to be used by the current plot
+	- a pair of subplot indices, setting which subplots should be covered
+	  by the current plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Set the current plot to the second subplot in a 2x3 grid
+    julia> subplot(2, 3, 2)
+    julia> # Set the current plot to cover the first two rows of a 4x2 grid
+    julia> subplot(4, 2, (1, 4))
+    julia> # Use the full window for the current plot
+    julia> subplot(1, 1, 1)
+"""
 function subplot(nr, nc, p)
     xmin, xmax, ymin, ymax = 1, 0, 1, 0
     for i in collect(p)
@@ -1148,6 +1217,32 @@ function plot_args(args; fmt=:xys)
     pltargs
 end
 
+"""
+Draw one or more line plots.
+
+This function can receive one or more of the following:
+
+- x values and y values, or
+- x values and a callable to determine y values, or
+- y values only, with their indices as x values
+
+:param args: the data to plot
+
+**Usage examples:**
+
+.. code-block:: julia-repl
+
+    julia> # Create example data
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = 2 .* x .+ 4
+    julia> # Plot x and y
+    julia> plot(x, y)
+    julia> # Plot x and a callable
+    julia> plot(x, x.^3 .+ x.^2 .+ x)
+    julia> # Plot y, using its indices for the x values
+    julia> plot(y)
+
+"""
 function plot(args::PlotArg...; kv...)
     create_context(:line, Dict(kv))
 
@@ -1160,6 +1255,29 @@ function plot(args::PlotArg...; kv...)
     plot_data()
 end
 
+"""
+Draw one or more line plots over another plot.
+
+This function can receive one or more of the following:
+
+- x values and y values, or
+- x values and a callable to determine y values, or
+- y values only, with their indices as x values
+
+:param args: the data to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = 2 .* x .+ 4
+    julia> # Draw the first plot
+    julia> plot(x, y)
+    julia> # Plot graph over it
+    julia> oplot(x, x.^3 .+ x.^2 .+ x)
+"""
 function oplot(args::PlotArg...; kv...)
     create_context(:line, Dict(kv))
 
@@ -1168,6 +1286,42 @@ function oplot(args::PlotArg...; kv...)
     plot_data()
 end
 
+"""
+Draw one or more scatter plots.
+
+This function can receive one or more of the following:
+
+- x values and y values, or
+- x values and a callable to determine y values, or
+- y values only, with their indices as x values
+
+Additional to x and y values, you can provide values for the markers'
+size and color. Size values will determine the marker size in percent of
+the regular size, and color values will be used in combination with the
+current colormap.
+
+:param args: the data to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = 0.2 .* x .+ 0.4
+    julia> # Plot x and y
+    julia> scatter(x, y)
+    julia> # Plot x and a callable
+    julia> scatter(x, 0.2 .* x .+ 0.4)
+    julia> # Plot y, using its indices for the x values
+    julia> scatter(y)
+    julia> # Plot a diagonal with increasing size and color
+    julia> x = LinRange(0, 1, 11)
+    julia> y = LinRange(0, 1, 11)
+    julia> s = LinRange(50, 400, 11)
+    julia> c = LinRange(0, 255, 11)
+    julia> scatter(x, y, s, c)
+"""
 function scatter(args...; kv...)
     create_context(:scatter, Dict(kv))
 
@@ -1176,6 +1330,31 @@ function scatter(args...; kv...)
     plot_data()
 end
 
+"""
+Draw a stem plot.
+
+This function can receive one or more of the following:
+
+- x values and y values, or
+- x values and a callable to determine y values, or
+- y values only, with their indices as x values
+
+:param args: the data to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = 0.2 .* x .+ 0.4
+    julia> # Plot x and y
+    julia> stem(x, y)
+    julia> # Plot x and a callable
+    julia> stem(x, x.^3 .+ x.^2 .+ x .+ 6)
+    julia> # Plot y, using its indices for the x values
+    julia> stem(y)
+"""
 function stem(args...; kv...)
     create_context(:stem, Dict(kv))
 
@@ -1199,6 +1378,28 @@ function hist(x, nbins::Integer=0)
     collect(edges), counts
 end
 
+"""
+Draw a histogram.
+
+If **num_bins** is **None** or 0, this function computes the number of
+bins as :math:`\text{round}(3.3\cdot\log_{10}(n))+1` with n as the number
+of elements in x, otherwise the given number of bins is used for the
+histogram.
+
+:param x: the values to draw as histogram
+:param num_bins: the number of bins in the histogram
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> x = 2 .* rand(100) .- 1
+    julia> # Draw the histogram
+    julia> histogram(x)
+    julia> # Draw the histogram with 19 bins
+    julia> histogram(x, nbins=19)
+"""
 function histogram(x; kv...)
     create_context(:hist, Dict(kv))
 
@@ -1209,6 +1410,43 @@ function histogram(x; kv...)
     plot_data()
 end
 
+"""
+Draw a contour plot.
+
+This function uses the current colormap to display a either a series of
+points or a two-dimensional array as a contour plot. It can receive one
+or more of the following:
+
+- x values, y values and z values, or
+- N x values, M y values and z values on a NxM grid, or
+- N x values, M y values and a callable to determine z values
+
+If a series of points is passed to this function, their values will be
+interpolated on a grid. For grid points outside the convex hull of the
+provided points, a value of 0 will be used.
+
+:param args: the data to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example point data
+    julia> x = 8 .* rand(100) .- 4
+    julia> y = 8 .* rand(100) .- 4
+    julia> z = sin.(x) .+ cos.(y)
+    julia> # Draw the contour plot
+    julia> contour(x, y, z)
+    julia> # Create example grid data
+    julia> X = LinRange(-2, 2, 40)
+    julia> Y = LinRange(0, pi, 20)
+    julia> x, y = meshgrid(X, Y)
+    julia> z = sin.(x) .+ cos.(y)
+    julia> # Draw the contour plot
+    julia> contour(x, y, z)
+    julia> # Draw the contour plot using a callable
+    julia> contour(x, y, sin.(x) .+ cos.(y))
+"""
 function contour(args...; kv...)
     create_context(:contour, Dict(kv))
 
@@ -1217,6 +1455,43 @@ function contour(args...; kv...)
     plot_data()
 end
 
+"""
+Draw a filled contour plot.
+
+This function uses the current colormap to display a either a series of
+points or a two-dimensional array as a filled contour plot. It can
+receive one or more of the following:
+
+- x values, y values and z values, or
+- N x values, M y values and z values on a NxM grid, or
+- N x values, M y values and a callable to determine z values
+
+If a series of points is passed to this function, their values will be
+interpolated on a grid. For grid points outside the convex hull of the
+provided points, a value of 0 will be used.
+
+:param args: the data to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example point data
+    julia> x = 8 .* rand(100) .- 4
+    julia> y = 8 .* rand(100) .- 4
+    julia> z = sin.(x) .+ cos.(y)
+    julia> # Draw the contour plot
+    julia> contourf(x, y, z)
+    julia> # Create example grid data
+    julia> X = LinRange(-2, 2, 40)
+    julia> Y = LinRange(0, pi, 20)
+    julia> x, y = meshgrid(X, Y)
+    julia> z = sin.(x) .+ cos.(y)
+    julia> # Draw the contour plot
+    julia> contourf(x, y, z)
+    julia> # Draw the contour plot using a callable
+    julia> contourf(x, y, sin.(x) .+ cos.(y))
+"""
 function contourf(args...; kv...)
     create_context(:contourf, Dict(kv))
 
@@ -1225,6 +1500,28 @@ function contourf(args...; kv...)
     plot_data()
 end
 
+"""
+Draw a hexagon binning plot.
+
+This function uses hexagonal binning and the the current colormap to
+display a series of points. It  can receive one or more of the following:
+
+- x values and y values, or
+- x values and a callable to determine y values, or
+- y values only, with their indices as x values
+
+:param args: the data to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> x = randn(100000)
+    julia> y = randn(100000)
+    julia> # Draw the hexbin plot
+    julia> hexbin(x, y)
+"""
 function hexbin(args...; kv...)
     create_context(:hexbin, Dict(kv))
 
@@ -1233,6 +1530,33 @@ function hexbin(args...; kv...)
     plot_data()
 end
 
+"""
+Draw a heatmap.
+
+This function uses the current colormap to display a two-dimensional
+array as a heatmap. The array is drawn with its first value in the upper
+left corner, so in some cases it may be neccessary to flip the columns
+(see the example below).
+
+By default the function will use the row and column indices for the x- and
+y-axes, so setting the axis limits is recommended. Also note that the
+values in the array must lie within the current z-axis limits so it may
+be neccessary to adjust these limits or clip the range of array values.
+
+:param data: the heatmap data
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> X = LinRange(-2, 2, 40)
+    julia> Y = LinRange(0, pi, 20)
+    julia> x, y = meshgrid(X, Y)
+    julia> z = sin.(x) .+ cos.(y)
+    julia> # Draw the heatmap
+    julia> heatmap(z)
+"""
 function heatmap(D; kv...)
     create_context(:heatmap, Dict(kv))
 
@@ -1250,6 +1574,43 @@ function heatmap(D; kv...)
     end
 end
 
+"""
+Draw a three-dimensional wireframe plot.
+
+This function uses the current colormap to display a either a series of
+points or a two-dimensional array as a wireframe plot. It can receive one
+or more of the following:
+
+- x values, y values and z values, or
+- N x values, M y values and z values on a NxM grid, or
+- N x values, M y values and a callable to determine z values
+
+If a series of points is passed to this function, their values will be
+interpolated on a grid. For grid points outside the convex hull of the
+provided points, a value of 0 will be used.
+
+:param args: the data to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example point data
+    julia> x = 8 .* rand(100) .- 4
+    julia> y = 8 .* rand(100) .- 4
+    julia> z = sin.(x) .+ cos.(y)
+    julia> # Draw the wireframe plot
+    julia> wireframe(x, y, z)
+    julia> # Create example grid data
+    julia> X = LinRange(-2, 2, 40)
+    julia> Y = LinRange(0, pi, 20)
+    julia> x, y = meshgrid(X, Y)
+    julia> z = sin.(x) .+ cos.(y)
+    julia> # Draw the wireframe plot
+    julia> wireframe(x, y, z)
+    julia> # Draw the wireframe plot using a callable
+    julia> wireframe(x, y, sin.(x) .+ cos.(y))
+"""
 function wireframe(args...; kv...)
     create_context(:wireframe, Dict(kv))
 
@@ -1258,6 +1619,43 @@ function wireframe(args...; kv...)
     plot_data()
 end
 
+"""
+Draw a three-dimensional surface plot.
+
+This function uses the current colormap to display a either a series of
+points or a two-dimensional array as a surface plot. It can receive one or
+more of the following:
+
+- x values, y values and z values, or
+- N x values, M y values and z values on a NxM grid, or
+- N x values, M y values and a callable to determine z values
+
+If a series of points is passed to this function, their values will be
+interpolated on a grid. For grid points outside the convex hull of the
+provided points, a value of 0 will be used.
+
+:param args: the data to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example point data
+    julia> x = 8 .* rand(100) .- 4
+    julia> y = 8 .* rand(100) .- 4
+    julia> z = sin.(x) .+ cos.(y)
+    julia> # Draw the surface plot
+    julia> surface(x, y, z)
+    julia> # Create example grid data
+    julia> X = LinRange(-2, 2, 40)
+    julia> Y = LinRange(0, pi, 20)
+    julia> x, y = meshgrid(X, Y)
+    julia> z = sin.(x) .+ cos.(y)
+    julia> # Draw the surface plot
+    julia> surface(x, y, z)
+    julia> # Draw the surface plot using a callable
+    julia> surface(x, y, sin.(x) .+ cos.(y))
+"""
 function surface(args...; kv...)
     create_context(:surface, Dict(kv))
 
@@ -1266,6 +1664,24 @@ function surface(args...; kv...)
     plot_data()
 end
 
+"""
+Draw one or more three-dimensional line plots.
+
+:param x: the x coordinates to plot
+:param y: the y coordinates to plot
+:param z: the z coordinates to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> x = LinRange(0, 30, 1000)
+    julia> y = cos.(x) * x
+    julia> z = sin.(x) * x
+    julia> # Plot the points
+    julia> plot3(x, y, z)
+"""
 function plot3(args...; kv...)
     create_context(:plot3, Dict(kv))
 
@@ -1274,6 +1690,31 @@ function plot3(args...; kv...)
     plot_data()
 end
 
+"""
+Draw one or more three-dimensional scatter plots.
+
+Additional to x, y and z values, you can provide values for the markers'
+color. Color values will be used in combination with the current colormap.
+
+:param x: the x coordinates to plot
+:param y: the y coordinates to plot
+:param z: the z coordinates to plot
+:param c: the optional color values to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> x = 2 .* rand(100) .- 1
+    julia> y = 2 .* rand(100) .- 1
+    julia> z = 2 .* rand(100) .- 1
+    julia> c = 999 .* rand(100) .+ 1
+    julia> # Plot the points
+    julia> scatter3(x, y, z)
+    julia> # Plot the points with colors
+    julia> scatter3(x, y, z, c)
+"""
 function scatter3(args...; kv...)
     create_context(:scatter3, Dict(kv))
 
@@ -1282,14 +1723,74 @@ function scatter3(args...; kv...)
     plot_data()
 end
 
+"""
+Set the plot title.
+
+The plot title is drawn using the extended text function
+:jl:func:`GR.textext(x::Real, y::Real, string)`. You can use a subset
+of LaTeX math syntax, but will need to escape certain characters,
+e.g. parentheses. For more information see the documentation of
+:jl:func:`GR.textext(x::Real, y::Real, string)`.
+
+:param title: the plot title
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Set the plot title to "Example Plot"
+    julia> title("Example Plot")
+    julia> # Clear the plot title
+    julia> title()
+"""
 function title(s)
     plt.kvs[:title] = s
 end
 
+"""
+Set the x-axis label.
+
+The axis labels are drawn using the extended text function
+:jl:func:`GR.textext(x::Real, y::Real, string)`. You can use a subset
+of LaTeX math syntax, but will need to escape certain characters,
+e.g. parentheses. For more information see the documentation of
+:jl:func:`GR.textext(x::Real, y::Real, string)`.
+
+:param x_label: the x-axis label
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Set the x-axis label to "x"
+    julia> xlabel("x")
+    julia> # Clear the x-axis label
+    julia> xlabel()
+"""
 function xlabel(s)
     plt.kvs[:xlabel] = s
 end
 
+"""
+Set the y-axis label.
+
+The axis labels are drawn using the extended text function
+:jl:func:`GR.textext(x::Real, y::Real, string)`. You can use a subset
+of LaTeX math syntax, but will need to escape certain characters,
+e.g. parentheses. For more information see the documentation of
+:jl:func:`GR.textext(x::Real, y::Real, string)`.
+
+:param y_label: the y-axis label
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Set the y-axis label to "y\(x\)"
+    julia> ylabel("y\(x\)")
+    julia> # Clear the y-axis label
+    julia> ylabel()
+"""
 function ylabel(s)
     plt.kvs[:ylabel] = s
 end
@@ -1298,14 +1799,96 @@ function legend(args::AbstractString...; kv...)
     plt.kvs[:labels] = args
 end
 
+"""
+Set the limits for the x-axis.
+
+The x-axis limits can either be passed as individual arguments or as a
+tuple of (**x_min**, **x_max**). Setting either limit to **None** will
+cause it to be automatically determined based on the data, which is the
+default behavior.
+
+:param x_min:
+	- the x-axis lower limit, or
+	- **None** to use an automatic lower limit, or
+	- a tuple of both x-axis limits
+:param x_max:
+	- the x-axis upper limit, or
+	- **None** to use an automatic upper limit, or
+	- **None** if both x-axis limits were passed as first argument
+:param adjust: whether or not the limits may be adjusted
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Set the x-axis limits to -1 and 1
+    julia> xlim((-1, 1))
+    julia> # Reset the x-axis limits to be determined automatically
+    julia> xlim()
+    julia> # Reset the x-axis upper limit and set the lower limit to 0
+    julia> xlim((0, None))
+    julia> # Reset the x-axis lower limit and set the upper limit to 1
+    julia> xlim((None, 1))
+"""
 function xlim(a)
     plt.kvs[:xlim] = a
 end
 
+"""
+Set the limits for the y-axis.
+
+The y-axis limits can either be passed as individual arguments or as a
+tuple of (**y_min**, **y_max**). Setting either limit to **None** will
+cause it to be automatically determined based on the data, which is the
+default behavior.
+
+:param y_min:
+	- the y-axis lower limit, or
+	- **None** to use an automatic lower limit, or
+	- a tuple of both y-axis limits
+:param y_max:
+	- the y-axis upper limit, or
+	- **None** to use an automatic upper limit, or
+	- **None** if both y-axis limits were passed as first argument
+:param adjust: whether or not the limits may be adjusted
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Set the y-axis limits to -1 and 1
+    julia> ylim((-1, 1))
+    julia> # Reset the y-axis limits to be determined automatically
+    julia> ylim()
+    julia> # Reset the y-axis upper limit and set the lower limit to 0
+    julia> ylim((0, None))
+    julia> # Reset the y-axis lower limit and set the upper limit to 1
+    julia> ylim((None, 1))
+"""
 function ylim(a)
     plt.kvs[:ylim] = a
 end
 
+"""
+Save the current figure to a file.
+
+This function draw the current figure using one of GR's workstation types
+to create a file of the given name. Which file types are supported depends
+on the installed workstation types, but GR usually is built with support
+for .png, .jpg, .pdf, .ps, .gif and various other file formats.
+
+:param filename: the filename the figure should be saved to
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create a simple plot
+    julia> x = 1:100
+    julia> plot(x, 1 ./ (x .+ 1))
+    julia> # Save the figure to a file
+    julia> savefig("example.png")
+"""
 function savefig(filename)
     GR.beginprint(filename)
     plot_data(false)
@@ -1331,12 +1914,34 @@ function meshgrid(vx, vy, vz)
 end
 
 function peaks(n=49)
-    x = linspace(-2.5, 2.5, n)
+    x = LinRange(-2.5, 2.5, n)
     y = x
     x, y = meshgrid(x, y)
     3 * (1 .- x).^2 .* exp.(-(x.^2) .- (y.+1).^2) .- 10*(x/5 .- x.^3 .- y.^5) .* exp.(-x.^2 .- y.^2) .- 1/3 * exp.(-(x.+1).^2 .- y.^2)
 end
 
+"""
+Draw an image.
+
+This function can draw an image either from reading a file or using a
+two-dimensional array and the current colormap.
+
+:param image: an image file name or two-dimensional array
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> X = linspace(-2, 2, 40)
+    julia> Y = linspace(0, pi, 20)
+    julia> x, y = meshgrid(X, Y)
+    julia> z = sin.(x) .+ cos.(y)
+    julia> # Draw an image from a 2d array
+    julia> imshow(z)
+    julia> # Draw an image from a file
+    julia> imshow("example.png")
+"""
 function imshow(I; kv...)
     create_context(:imshow, Dict(kv))
 
@@ -1345,6 +1950,28 @@ function imshow(I; kv...)
     plot_data()
 end
 
+"""
+Draw an isosurface.
+
+This function can draw an image either from reading a file or using a
+two-dimensional array and the current colormap. Values greater than the
+isovalue will be seen as outside the isosurface, while values less than
+the isovalue will be seen as inside the isosurface.
+
+:param v: the volume data
+:param isovalue: the isovalue
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> s = linspace(-1, 1, 40)
+    julia> x, y, z = meshgrid(s, s, s)
+    julia> v = 1 .- (x .^ 2 .+ y .^ 2 .+ z .^ 2) .^ 0.5
+    julia> # Draw an image from a 2d array
+    julia> isosurface(v, isovalue=0.2)
+"""
 function isosurface(V; kv...)
     create_context(:isosurface, Dict(kv))
 
@@ -1367,6 +1994,28 @@ function sph2cart(azimuth, elevation, r)
     x, y, z
 end
 
+"""
+Draw one or more polar plots.
+
+This function can receive one or more of the following:
+
+- angle values and radius values, or
+- angle values and a callable to determine radius values
+
+:param args: the data to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> angles = linspace(0, 2pi, 40)
+    julia> radii = linspace(0, 2, 40)
+    julia> # Plot angles and radii
+    julia> polar(angles, radii)
+    julia> # Plot angles and a callable
+    julia> polar(angles, cos.(radii) .^ 2)
+"""
 function polar(args...; kv...)
     create_context(:polar, Dict(kv))
 
@@ -1375,6 +2024,30 @@ function polar(args...; kv...)
     plot_data()
 end
 
+"""
+Draw a triangular surface plot.
+
+This function uses the current colormap to display a series of points
+as a triangular surface plot. It will use a Delaunay triangulation to
+interpolate the z values between x and y values. If the series of points
+is concave, this can lead to interpolation artifacts on the edges of the
+plot, as the interpolation may occur in very acute triangles.
+
+:param x: the x coordinates to plot
+:param y: the y coordinates to plot
+:param z: the z coordinates to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example point data
+    julia> x = 8 .* rand(100) .- 4
+    julia> y = 8 .* rand(100) .- 4
+    julia> z = sin.(x) .+ cos.(y)
+    julia> # Draw the triangular surface plot
+    julia> trisurf(x, y, z)
+"""
 function trisurf(args...; kv...)
     create_context(:trisurf, Dict(kv))
 
@@ -1383,6 +2056,30 @@ function trisurf(args...; kv...)
     plot_data()
 end
 
+"""
+Draw a triangular contour plot.
+
+This function uses the current colormap to display a series of points
+as a triangular contour plot. It will use a Delaunay triangulation to
+interpolate the z values between x and y values. If the series of points
+is concave, this can lead to interpolation artifacts on the edges of the
+plot, as the interpolation may occur in very acute triangles.
+
+:param x: the x coordinates to plot
+:param y: the y coordinates to plot
+:param z: the z coordinates to plot
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example point data
+    julia> x = 8 .* rand(100) .- 4
+    julia> y = 8 .* rand(100) .- 4
+    julia> z = sin.(x) + cos.(y)
+    julia> # Draw the triangular contour plot
+    julia> tricont(x, y, z)
+"""
 function tricont(args...; kv...)
     create_context(:tricont, Dict(kv))
 
