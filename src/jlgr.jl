@@ -29,6 +29,10 @@ end
         dims===nothing ? Base.reverse(a) : Base.flipdim(a, dims)
 end
 
+@static if VERSION >= v"0.7.0-DEV.4804"
+    signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
+end
+
 macro _tuple(t)
     :( Tuple{$t} )
 end
