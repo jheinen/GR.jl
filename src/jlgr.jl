@@ -1747,10 +1747,15 @@ documentation of GR.textext.
     julia> # Set the plot title to "Example Plot"
     julia> title("Example Plot")
     julia> # Clear the plot title
-    julia> title()
+    julia> title("")
 """
 function title(s)
-    plt.kvs[:title] = s
+    if s != ""
+        plt.kvs[:title] = s
+    else
+        delete!(plt.kvs, :title)
+    end
+    s
 end
 
 """
@@ -1770,10 +1775,15 @@ documentation of GR.textext.
     julia> # Set the x-axis label to "x"
     julia> xlabel("x")
     julia> # Clear the x-axis label
-    julia> xlabel()
+    julia> xlabel("")
 """
 function xlabel(s)
-    plt.kvs[:xlabel] = s
+    if s != ""
+        plt.kvs[:xlabel] = s
+    else
+        delete!(plt.kvs, :xlabel)
+    end
+    s
 end
 
 """
@@ -1787,7 +1797,12 @@ documentation of GR.textext.
 :param y_label: the y-axis label
 """
 function ylabel(s)
-    plt.kvs[:ylabel] = s
+    if s != ""
+        plt.kvs[:ylabel] = s
+    else
+        delete!(plt.kvs, :ylabel)
+    end
+    s
 end
 
 function legend(args::AbstractString...; kv...)
