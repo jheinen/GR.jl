@@ -1684,8 +1684,8 @@ Draw one or more three-dimensional line plots.
 
     julia> # Create example data
     julia> x = LinRange(0, 30, 1000)
-    julia> y = cos.(x) * x
-    julia> z = sin.(x) * x
+    julia> y = cos.(x) .* x
+    julia> z = sin.(x) .* x
     julia> # Plot the points
     julia> plot3(x, y, z)
 """
@@ -1943,8 +1943,8 @@ two-dimensional array and the current colormap.
 .. code-block:: julia
 
     julia> # Create example data
-    julia> X = linspace(-2, 2, 40)
-    julia> Y = linspace(0, pi, 20)
+    julia> X = LinRange(-2, 2, 40)
+    julia> Y = LinRange(0, pi, 20)
     julia> x, y = meshgrid(X, Y)
     julia> z = sin.(x) .+ cos.(y)
     julia> # Draw an image from a 2d array
@@ -1976,7 +1976,7 @@ the isovalue will be seen as inside the isosurface.
 .. code-block:: julia
 
     julia> # Create example data
-    julia> s = linspace(-1, 1, 40)
+    julia> s = LinRange(-1, 1, 40)
     julia> x, y, z = meshgrid(s, s, s)
     julia> v = 1 .- (x .^ 2 .+ y .^ 2 .+ z .^ 2) .^ 0.5
     julia> # Draw an image from a 2d array
@@ -2019,8 +2019,8 @@ This function can receive one or more of the following:
 .. code-block:: julia
 
     julia> # Create example data
-    julia> angles = linspace(0, 2pi, 40)
-    julia> radii = linspace(0, 2, 40)
+    julia> angles = LinRange(0, 2pi, 40)
+    julia> radii = LinRange(0, 2, 40)
     julia> # Plot angles and radii
     julia> polar(angles, radii)
     julia> # Plot angles and a callable
