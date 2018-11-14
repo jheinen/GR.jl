@@ -1379,7 +1379,7 @@ end
 """
 Draw a histogram.
 
-If **nbins** is **None** or 0, this function computes the number of
+If **nbins** is **Nothing** or 0, this function computes the number of
 bins as 3.3 * log10(n) + 1,  with n as the number of elements in x,
 otherwise the given number of bins is used for the histogram.
 
@@ -1788,18 +1788,18 @@ end
 Set the limits for the x-axis.
 
 The x-axis limits can either be passed as individual arguments or as a
-tuple of (**x_min**, **x_max**). Setting either limit to **None** will
+tuple of (**x_min**, **x_max**). Setting either limit to **Nothing** will
 cause it to be automatically determined based on the data, which is the
 default behavior.
 
 :param x_min:
 	- the x-axis lower limit, or
-	- **None** to use an automatic lower limit, or
+	- **Nothing** to use an automatic lower limit, or
 	- a tuple of both x-axis limits
 :param x_max:
 	- the x-axis upper limit, or
-	- **None** to use an automatic upper limit, or
-	- **None** if both x-axis limits were passed as first argument
+	- **Nothing** to use an automatic upper limit, or
+	- **Nothing** if both x-axis limits were passed as first argument
 :param adjust: whether or not the limits may be adjusted
 
 **Usage examples:**
@@ -1811,9 +1811,9 @@ default behavior.
     julia> # Reset the x-axis limits to be determined automatically
     julia> xlim()
     julia> # Reset the x-axis upper limit and set the lower limit to 0
-    julia> xlim((0, None))
+    julia> xlim((0, Nothing))
     julia> # Reset the x-axis lower limit and set the upper limit to 1
-    julia> xlim((None, 1))
+    julia> xlim((Nothing, 1))
 """
 function xlim(a)
     plt.kvs[:xlim] = a
@@ -1823,18 +1823,18 @@ end
 Set the limits for the y-axis.
 
 The y-axis limits can either be passed as individual arguments or as a
-tuple of (**y_min**, **y_max**). Setting either limit to **None** will
+tuple of (**y_min**, **y_max**). Setting either limit to **Nothing** will
 cause it to be automatically determined based on the data, which is the
 default behavior.
 
 :param y_min:
 	- the y-axis lower limit, or
-	- **None** to use an automatic lower limit, or
+	- **Nothing** to use an automatic lower limit, or
 	- a tuple of both y-axis limits
 :param y_max:
 	- the y-axis upper limit, or
-	- **None** to use an automatic upper limit, or
-	- **None** if both y-axis limits were passed as first argument
+	- **Nothing** to use an automatic upper limit, or
+	- **Nothing** if both y-axis limits were passed as first argument
 :param adjust: whether or not the limits may be adjusted
 
 **Usage examples:**
@@ -1846,9 +1846,9 @@ default behavior.
     julia> # Reset the y-axis limits to be determined automatically
     julia> ylim()
     julia> # Reset the y-axis upper limit and set the lower limit to 0
-    julia> ylim((0, None))
+    julia> ylim((0, Nothing))
     julia> # Reset the y-axis lower limit and set the upper limit to 1
-    julia> ylim((None, 1))
+    julia> ylim((Nothing, 1))
 """
 function ylim(a)
     plt.kvs[:ylim] = a
