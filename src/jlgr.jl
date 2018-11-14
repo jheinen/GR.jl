@@ -1031,7 +1031,17 @@ function plot_data(flag=true)
             GR.polyline3d(x, y, z)
             draw_axes(kind, 2)
         elseif kind == :scatter3
-            GR.polymarker3d(x, y, z)
+            GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
+            if given(c)
+                c = (c .- minimum(c)) ./ (maximum(c) .- minimum(c))
+                cind = Int[round(Int, 1000 + _i * 255) for _i in c]
+                for i in 1:length(x)
+                    GR.setmarkercolorind(cind[i])
+                    GR.polymarker3d([x[i]], [y[i]], [z[i]])
+                end
+            else
+                GR.polymarker3d(x, y, z)
+            end
             draw_axes(kind, 2)
         elseif kind == :imshow
             plot_img(z)
