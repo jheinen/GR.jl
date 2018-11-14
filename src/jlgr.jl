@@ -41,7 +41,7 @@ const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :hexbin, 
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
-const kw_args = [:accelerate, :alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :location, :nbins, :rotation, :size, :tilt, :title, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog]
+const kw_args = [:accelerate, :alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
@@ -959,7 +959,12 @@ function plot_data(flag=true)
         elseif kind == :contour
             zmin, zmax = plt.kvs[:zrange]
             GR.setspace(zmin, zmax, 0, 90)
-            h = linspace(zmin, zmax, 20)
+            levels = get(plt.kvs, :levels, 20)
+            if typeof(levels) <: Int
+                h = linspace(zmin, zmax, levels)
+            else
+                h = float(levels)
+            end
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
             end
@@ -968,7 +973,12 @@ function plot_data(flag=true)
         elseif kind == :contourf
             zmin, zmax = plt.kvs[:zrange]
             GR.setspace(zmin, zmax, 0, 90)
-            h = linspace(zmin, zmax, 20)
+            levels = get(plt.kvs, :levels, 20)
+            if typeof(levels) <: Int
+                h = linspace(zmin, zmax, levels)
+            else
+                h = float(levels)
+            end
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
             end
