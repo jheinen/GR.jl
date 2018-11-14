@@ -3567,4 +3567,146 @@ function shadelines(x, y; dims=[1200, 1200], xform=1)
           xform, w, h)
 end
 
+if isijulia()
+  using IJulia
+
+  export
+    JSTermWidget,
+    jsterm_display,
+    jsterm_send
+
+  id_count = 0
+
+  mutable struct JSTermWidget
+      widget_id::Int
+  end
+
+  function JSTermWidget()
+      global id_count
+      id_count += 1
+      JSTermWidget(id_count)
+  end
+
+  function jsterm_display(widget::JSTermWidget)
+      display(HTML(string("<canvas id=\"jsterm-", widget.widget_id, "\" width=\"500\" height=\"500\"></canvas>")))
+  end
+
+  function jsterm_send(widget::JSTermWidget, data::String)
+      comm = IJulia.Comm("jsterm_comm")
+      IJulia.send_comm(comm, Dict("json" => data, "canvasid" => widget.widget_id))
+  end
+
+  _js_fallback = "https://gr-framework.org/downloads/gr-latest.js"
+  _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
+    _gr_js = try
+      _gr_js = open(joinpath(ENV["GRDIR"], "lib", "gr.js")) do f
+        _gr_js = read(f, String)
+        _gr_js = string(_gr_js, "let ready = true;")
+        _gr_js
+      end
+    catch e
+      nothing
+    end
+    _gr_js
+  end
+  if _gr_js == nothing
+      _gr_js = string("""
+        let ready = false;
+        function saveLoad(url, callback, maxtime) {
+            let script = document.createElement('script');
+            script.onload = function () {
+                callback();
+            }
+            script.onerror = function() {
+                console.error(url + ' can not be loaded.');
+            }
+            script.src = url;
+            document.head.appendChild(script);
+            setTimeout(function() {
+                if (!ready) {
+                    console.error(url + ' can not be loaded.');
+                }
+            }, maxtime);
+        }
+
+        function jsLoaded() {
+            ready = true;
+            for (let i = 0; i < onready.length; i++) {
+                onready[i]();
+            }
+            onready = [];
+        }
+        saveLoad('""", _js_fallback, """', jsLoaded, 10000);
+    """)
+  end
+  display(HTML(string("""
+  <script type="text/javascript">
+  (function() {
+      "use strict";
+      if (typeof grJSTermRunning === 'undefined') {
+          let onready = [];
+          let gr = [];
+          let args = [];
+          """, _gr_js, """
+          function draw(msg) {
+              if (!ready) {
+                  onready.push(function() { return draw(msg); });
+              } else if (!GR.is_ready) {
+                  GR.ready(function() { return draw(msg); });
+              } else {
+                  if (typeof gr['jsterm-' + msg.content.data.canvasid] === 'undefined') {
+                      gr['jsterm-' + msg.content.data.canvasid] = new GR('jsterm-' + msg.content.data.canvasid);
+                  }
+                  gr['jsterm-' + msg.content.data.canvasid].select_canvas();
+                  if (!args.hasOwnProperty('jsterm-' + msg.content.data.canvasid) || typeof args['jsterm-' + msg.content.data.canvasid] === 'undefined') {
+                      args['jsterm-' + msg.content.data.canvasid] = gr['jsterm-' + msg.content.data.canvasid].newmeta();
+                  }
+                  gr['jsterm-' + msg.content.data.canvasid].readmeta(args['jsterm-' + msg.content.data.canvasid], msg.content.data.json);
+                  gr['jsterm-' + msg.content.data.canvasid].clearws();
+                  gr['jsterm-' + msg.content.data.canvasid].plotmeta(args['jsterm-' + msg.content.data.canvasid]);
+              }
+          }
+
+          function onLoad() {
+              Jupyter.notebook.events.on('execution_request.Kernel', function() {
+                  for (var key in gr) {
+                      if (args.hasOwnProperty(key)) {
+                          gr[key].deletemeta(args[key])
+                      }
+                  }
+                  gr = [];
+                  args = [];
+              });
+              let kernel = Jupyter.notebook.kernel;
+              Jupyter.notebook.events.on('kernel_ready.Kernel', function() {
+                  kernel = IPython.notebook.kernel;
+                  kernel.comm_manager.register_target('jsterm_comm', function(comm) {
+                      comm.on_msg(function(msg) {
+                          draw(msg);
+                      });
+                      comm.on_close(function() {
+                      });
+                  });
+              });
+              if (typeof kernel === 'undefined' || kernel == null) {
+                  console.error('JSTerm: No kernel detected');
+                  return;
+              }
+              kernel.comm_manager.register_target('jsterm_comm', function(comm) {
+                  comm.on_msg(function(msg) {
+                      draw(msg);
+                  });
+                  comm.on_close(function() {
+                  });
+              });
+          }
+          onLoad();
+      }
+  })();
+  var grJSTermRunning = true;
+  </script>
+  """)))
+
+end
+
 end # module
