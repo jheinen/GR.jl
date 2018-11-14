@@ -778,7 +778,7 @@ function plot_iso(V)
     GR.selntran(0)
     values = round.(UInt16, (V .- minimum(V)) ./ (maximum(V) .- minimum(V)) .* (2^16-1))
     nx, ny, nz = size(V)
-    isovalue = get(plt.kvs, :isovalue, 0.5)
+    isovalue = (get(plt.kvs, :isovalue, 0.5) - minimum(V)) / (maximum(V) - minimum(V))
     rotation = get(plt.kvs, :rotation, 40) * π / 180.0
     tilt = get(plt.kvs, :tilt, 70) * π / 180.0
     r = 2.5
