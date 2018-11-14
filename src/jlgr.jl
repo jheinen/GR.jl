@@ -225,17 +225,26 @@ function minmax()
     ymin, ymax = fix_minmax(ymin, ymax)
     zmin, zmax = fix_minmax(zmin, zmax)
     if haskey(plt.kvs, :xlim)
-        plt.kvs[:xrange] = plt.kvs[:xlim]
+        x0, x1 = plt.kvs[:xlim]
+        if x0 === Nothing x0 = xmin end
+        if x1 === Nothing x1 = xmax end
+        plt.kvs[:xrange] = (x0, x1)
     else
         plt.kvs[:xrange] = xmin, xmax
     end
     if haskey(plt.kvs, :ylim)
-        plt.kvs[:yrange] = plt.kvs[:ylim]
+        y0, y1 = plt.kvs[:ylim]
+        if y0 === Nothing y0 = ymin end
+        if y1 === Nothing y1 = ymax end
+        plt.kvs[:yrange] = (y0, y1)
     else
         plt.kvs[:yrange] = ymin, ymax
     end
     if haskey(plt.kvs, :zlim)
-        plt.kvs[:zrange] = plt.kvs[:zlim]
+        z0, z1 = plt.kvs[:zlim]
+        if z0 === Nothing z0 = zmin end
+        if z1 === Nothing z1 = zmax end
+        plt.kvs[:zrange] = (z0, z1)
     else
         plt.kvs[:zrange] = zmin, zmax
     end
