@@ -832,8 +832,8 @@ end
 to_double(a) = Float64[float(el) for el in a]
 to_int(a) = Int32[el for el in a]
 
-function send_meta()
-    handle = GR.openmeta()
+function send_meta(target)
+    handle = GR.openmeta(target)
     if handle != C_NULL
         GR.sendmeta(handle, "o(")
         for (k, v) in plt.kvs
@@ -877,10 +877,12 @@ function plot_data(flag=true)
 
     target = GR.displayname()
     if flag && target != None
-        if target != "meta"
-            send_serialized()
+        if target == "meta"
+            send_meta(GR.TARGET_SOCKET)
+        elseif target == "jsterm"
+            send_meta(GR.TARGET_JUPYTER)
         else
-            send_meta()
+            send_serialized()
         end
         return
     end
