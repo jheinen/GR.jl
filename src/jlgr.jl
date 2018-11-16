@@ -1271,7 +1271,7 @@ This function can receive one or more of the following:
     julia> # Plot x and y
     julia> plot(x, y)
     julia> # Plot x and a callable
-    julia> plot(x, x.^3 .+ x.^2 .+ x)
+    julia> plot(x, t -> t^3 + t^2 + t)
     julia> # Plot y, using its indices for the x values
     julia> plot(y)
 
