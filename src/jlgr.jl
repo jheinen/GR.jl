@@ -811,7 +811,7 @@ end
 function plot_polar(θ, ρ)
     window = plt.kvs[:window]
     rmin, rmax = window[3], window[4]
-    ρ = (ρ - rmin) / (rmax - rmin)
+    ρ = (ρ .- rmin) ./ (rmax .- rmin)
     n = length(ρ)
     x, y = zeros(n), zeros(n)
     for i in 1:n
