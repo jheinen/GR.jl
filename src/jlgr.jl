@@ -882,7 +882,7 @@ function plot_data(flag=true)
         elseif target == "jsterm"
             send_meta(GR.TARGET_JUPYTER)
         else
-            send_serialized()
+            send_serialized(target)
         end
         return
     end
