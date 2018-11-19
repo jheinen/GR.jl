@@ -15,7 +15,6 @@ function main()
 
     GR.setviewport(0.1, 0.95, 0.1, 0.95)
     GR.setwindow(-2, 2, -2, 2)
-    GR.setspace(-0.5, 0.5, 0, 90)
     GR.setmarkersize(1)
     GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
     GR.setcharheight(0.024)
@@ -23,9 +22,8 @@ function main()
     GR.settextfontprec(3, 0)
 
     x, y, z = GR.gridit(xd, yd, zd, 200, 200)
-    h = -0.5:0.05:0.5
-    GR.surface(x, y, z, 5)
-    GR.contour(x, y, h, z, 0)
+    h = -0.6:0.05:0.6
+    GR.contourf(x, y, h, z, 2)
     GR.polymarker(xd, yd)
     GR.axes(0.25, 0.25, -2, -2, 2, 2, 0.01)
 
