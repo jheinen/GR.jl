@@ -263,10 +263,12 @@ function __init__()
         ENV["GKSwstype"] = "svg"
         ENV["GKS_FILEPATH"] = file_path
     elseif isatom()
-        mime_type = "atom"
-        file_path = tempname() * ".svg"
-        ENV["GKSwstype"] = "svg"
-        ENV["GKS_FILEPATH"] = file_path
+        if Main.Atom.PlotPaneEnabled[] == true
+            mime_type = "atom"
+            file_path = tempname() * ".svg"
+            ENV["GKSwstype"] = "svg"
+            ENV["GKS_FILEPATH"] = file_path
+        end
     end
 end
 
