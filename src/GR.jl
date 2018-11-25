@@ -11,6 +11,7 @@ end
 const None = Union{}
 @static if VERSION < v"0.7.0-DEV.3137"
   const Nothing = Void
+  const Cvoid = Void
 end
 @static if VERSION < v"0.7.0-DEV.3155"
   const popfirst! = shift!
