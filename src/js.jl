@@ -2,6 +2,12 @@ module js
 
 import GR
 
+@static if VERSION < v"0.7.0-DEV.4762"
+    macro cfunction(f, rt, tup)
+        :(Base.cfunction($(esc(f)), $(esc(rt)), Tuple{$(esc(tup))...}))
+    end
+end
+
 id_count = 0
 js_running = false
 
