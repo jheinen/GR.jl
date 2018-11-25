@@ -24,11 +24,6 @@ else
     import Base.Base64
 end
 
-const SOURCE_JUPYTER = 0
-const SOURCE_SOCKET = 1
-const TARGET_JUPYTER = 2
-const TARGET_SOCKET = 3
-
 export
   opengks,
   closegks,
@@ -141,8 +136,6 @@ export
   quiver,
   reducepoints,
   version,
-  TARGET_JUPYTER,
-  TARGET_SOCKET,
   openmeta,
   sendmeta,
   sendmetaref,
@@ -192,11 +185,7 @@ export
   isinline,
   inline,
   displayname,
-  mainloop,
-  # jsterm
-  JSTermWidget,
-  jsterm_display,
-  jsterm_send
+  mainloop
 
 
 display_name = None
@@ -255,6 +244,9 @@ function __init__()
     ENV["GKS_USE_CAIRO_PNG"] = "true"
     if "GRDISPLAY" in keys(ENV)
         display_name = ENV["GRDISPLAY"]
+        if display_name == "js"
+            js.initjs()
+        end
     elseif "GKS_NO_GUI" in keys(ENV)
         return
     elseif isijulia()
@@ -3109,58 +3101,6 @@ function displayname()
     return display_name
 end
 
-function startserver()
-    global msgs
-
-    @eval import WebSockets
-    @eval import HttpServer
-
-    msgs = []
-    app = WebSockets.WebSocketHandler() do req, client
-        while true
-            msg = WebSockets.read(client)
-            if startswith(unsafe_string(msg), "ready")
-                if length(msgs) != 0
-                    WebSockets.write(client, msgs[1])
-                    popfirst!!(msgs)
-                else
-                    WebSockets.write(client, "busy")
-                end
-            end
-        end
-    end
-
-    server = HttpServer.Server(app)
-    @async begin
-        HttpServer.run(server, 8889)
-    end
-
-    if !isfile("gr.js")
-        symlink(joinpath(dirname(@__FILE__), "gr.js"), "gr.js")
-    end
-
-    return HTML("""
-<canvas id="canvas" width="600" height="450"></canvas>
-<script type="text/javascript" src="gr.js"></script>
-<script>GR.ready(
-  function() {
-    var ws = new WebSocket("ws://localhost:8889/");
-    ws.onopen = function() {
-      ws.send("ready");
-    };
-    ws.onmessage = function(ev) {
-      if (ev.data == "busy") {
-        setTimeout(function() {ws.send("ready");}, 10);
-      } else {
-        gr_clearws();
-        gr_drawgraphics(window.atob(ev.data));
-        ws.send("ready");
-      };
-    };
-  }
-);</script>""")
-end
-
 function inline(mime="svg", scroll=true)
     global mime_type, file_path, figure_count, msgs
     if mime_type != mime
@@ -3175,7 +3115,8 @@ function inline(mime="svg", scroll=true)
             ENV["GKS_WSTYPE"] = "svg"
         elseif mime == "js"
             file_path = None
-            ENV["GKS_WSTYPE"] = "nul"
+            ENV["GRDISPLAY"] = "js"
+            js.initjs()
         else
             file_path = tempname() * "." * mime
             ENV["GKS_WSTYPE"] = mime
@@ -3185,9 +3126,6 @@ function inline(mime="svg", scroll=true)
         end
         emergencyclosegks()
         mime_type = mime
-        if mime == "js"
-            startserver()
-        end
     end
     figure_count = scroll ? None : 0
     mime_type
@@ -3482,11 +3420,11 @@ function version()
   unsafe_string(info)
 end
 
-function openmeta(target=TARGET_SOCKET, device="localhost", port=8002)
+function openmeta(target=0, device="localhost", port=8002)
     handle = ccall((:gr_openmeta, libGR),
                    Ptr{Nothing},
-                   (Int32, Cstring, Int32),
-                   target, device, port)
+                   (Int32, Cstring, Int64, Ptr{Cvoid}, Ptr{Cvoid}),
+                   target, device, port, js.send_c, js.recv_c)
     return handle
 end
 
@@ -3497,17 +3435,17 @@ function sendmeta(handle, string::AbstractString)
           handle, string)
 end
 
-function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=0)
+function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=-1)
     if typeof(data) <: String
-        if len == 0
-            len = sizeof(data)
+        if len == -1
+            len = length(data)
         end
         ccall((:gr_sendmeta_ref, libGR),
               Nothing,
               (Ptr{Nothing}, Cstring, Cchar, Cstring, Int32),
               handle, key, fmt, data, len)
     else
-        if len == 0
+        if len == -1
             len = length(data)
         end
         if typeof(data) <: Array
@@ -3573,151 +3511,7 @@ function shadelines(x, y; dims=[1200, 1200], xform=1)
           xform, w, h)
 end
 
-
-id_count = 0
-js_running = false
-
-mutable struct JSTermWidget
-    widget_id::Int
-end
-
-function JSTermWidget()
-  global id_count, js_running
-  if isijulia()
-    id_count += 1
-    if !js_running
-      _js_fallback = "https://gr-framework.org/downloads/gr-latest.js"
-      _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
-        _gr_js = try
-          _gr_js = open(joinpath(ENV["GRDIR"], "lib", "gr.js")) do f
-            _gr_js = read(f, String)
-            _gr_js = string(_gr_js, "let ready = true;")
-            _gr_js
-          end
-        catch e
-          nothing
-        end
-        _gr_js
-      end
-      if _gr_js === nothing
-          _gr_js = string("""
-            let ready = false;
-            function saveLoad(url, callback, maxtime) {
-                let script = document.createElement('script');
-                script.onload = function () {
-                    callback();
-                }
-                script.onerror = function() {
-                    console.error(url + ' can not be loaded.');
-                }
-                script.src = url;
-                document.head.appendChild(script);
-                setTimeout(function() {
-                    if (!ready) {
-                        console.error(url + ' can not be loaded.');
-                    }
-                }, maxtime);
-            }
-
-            function jsLoaded() {
-                ready = true;
-                for (let i = 0; i < onready.length; i++) {
-                    onready[i]();
-                }
-                onready = [];
-            }
-            saveLoad('""", _js_fallback, """', jsLoaded, 10000);
-        """)
-      end
-      display(HTML(string("""
-      <script type="text/javascript">
-      (function() {
-          if (typeof grJSTermRunning === 'undefined') {
-              let onready = [];
-              let gr = [];
-              let args = [];
-              """, _gr_js, """
-              function draw(msg) {
-                  if (!ready) {
-                      onready.push(function() { return draw(msg); });
-                  } else if (!GR.is_ready) {
-                      GR.ready(function() { return draw(msg); });
-                  } else {
-                      if (typeof gr['jsterm-' + msg.content.data.canvasid] === 'undefined') {
-                          gr['jsterm-' + msg.content.data.canvasid] = new GR('jsterm-' + msg.content.data.canvasid);
-                      }
-                      gr['jsterm-' + msg.content.data.canvasid].select_canvas();
-                      if (!args.hasOwnProperty('jsterm-' + msg.content.data.canvasid) || typeof args['jsterm-' + msg.content.data.canvasid] === 'undefined') {
-                          args['jsterm-' + msg.content.data.canvasid] = gr['jsterm-' + msg.content.data.canvasid].newmeta();
-                      }
-                      gr['jsterm-' + msg.content.data.canvasid].readmeta(args['jsterm-' + msg.content.data.canvasid], msg.content.data.json);
-                      gr['jsterm-' + msg.content.data.canvasid].clearws();
-                      gr['jsterm-' + msg.content.data.canvasid].plotmeta(args['jsterm-' + msg.content.data.canvasid]);
-                  }
-              }
-
-              function onLoad() {
-                  Jupyter.notebook.events.on('execution_request.Kernel', function() {
-                      for (var key in gr) {
-                          if (args.hasOwnProperty(key)) {
-                              gr[key].deletemeta(args[key])
-                          }
-                      }
-                      gr = [];
-                      args = [];
-                  });
-                  let kernel = Jupyter.notebook.kernel;
-                  Jupyter.notebook.events.on('kernel_ready.Kernel', function() {
-                      kernel = IPython.notebook.kernel;
-                      kernel.comm_manager.register_target('jsterm_comm', function(comm) {
-                          comm.on_msg(function(msg) {
-                              draw(msg);
-                          });
-                          comm.on_close(function() {
-                          });
-                      });
-                  });
-                  if (typeof kernel === 'undefined' || kernel == null) {
-                      console.error('JSTerm: No kernel detected');
-                      return;
-                  }
-                  kernel.comm_manager.register_target('jsterm_comm', function(comm) {
-                      comm.on_msg(function(msg) {
-                          draw(msg);
-                      });
-                      comm.on_close(function() {
-                      });
-                  });
-              }
-              onLoad();
-          }
-      })();
-      var grJSTermRunning = true;
-      </script>
-      """)))
-      js_running = true
-    end
-    JSTermWidget(id_count)
-  else
-    error("JSTermWidget is only available in IJulia environments")
-  end
-end
-
-function jsterm_display(widget::JSTermWidget)
-  if isijulia()
-    display(HTML(string("<canvas id=\"jsterm-", widget.widget_id, "\" width=\"500\" height=\"500\"></canvas>")))
-  else
-    error("jsterm_display is only available in IJulia environments")
-  end
-end
-
-function jsterm_send(widget::JSTermWidget, data::String)
-  if isijulia()
-    comm = Main.IJulia.Comm("jsterm_comm")
-    Main.IJulia.send_comm(comm, Dict("json" => data, "canvasid" => widget.widget_id))
-  else
-    error("jsterm_send is only available in IJulia environments")
-  end
-end
+# JS functions
+include("js.jl")
 
 end # module

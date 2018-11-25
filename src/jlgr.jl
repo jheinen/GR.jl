@@ -877,10 +877,10 @@ function plot_data(flag=true)
 
     target = GR.displayname()
     if flag && target != None
-        if target == "meta"
-            send_meta(GR.TARGET_SOCKET)
-        elseif target == "jsterm"
-            send_meta(GR.TARGET_JUPYTER)
+        if target == "js"
+            send_meta(0)
+        elseif target == "meta"
+            send_meta(1)
         else
             send_serialized(target)
         end
