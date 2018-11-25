@@ -25,7 +25,7 @@ setcharheight(0.02)
 axes2d(0.5, 0.5, -10, -10, 4, 4, -0.005)
 setcolormap(GR.COLORMAP_HOT)
 
-@time shadepoints(x, y, how=5)
+@time shadepoints(x, y, xform=GR.XFORM_EQUALIZED)
 
 updatews()
 
