@@ -878,10 +878,8 @@ function plot_data(flag=true)
 
     target = GR.displayname()
     if flag && target != None
-        if target == "js"
+        if target == "js" || target == "meta"
             send_meta(0)
-        elseif target == "meta"
-            send_meta(1)
         else
             send_serialized(target)
         end

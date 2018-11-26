@@ -199,15 +199,16 @@ function send(name::Cstring, id::Int64)
 end
 
 jswidgets = nothing
-recv_c = nothing
 send_c = nothing
+recv_c = nothing
 
 function initjs()
-    global jswidgets, recv_c, send_c
+    global jswidgets, send_c, recv_c
 
     jswidgets = Dict{String, JSTermWidget}()
-    recv_c = @cfunction(recv, Int32, (Cstring, Int64, Cstring))
     send_c = @cfunction(send, Cstring, (Cstring, Int64))
+    recv_c = @cfunction(recv, Int32, (Cstring, Int64, Cstring))
+    send_c, recv_c
 end
 
 end # module

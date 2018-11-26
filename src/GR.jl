@@ -194,6 +194,8 @@ mime_type = None
 file_path = None
 figure_count = None
 msgs = None
+send_c = C_NULL
+recv_c = C_NULL
 
 @static if os == :Windows
   const libGR = "libGR.dll"
@@ -207,7 +209,7 @@ isijulia() = isdefined(Main, :IJulia) && isdefined(Main.IJulia, :clear_output)
 isatom() = isdefined(Main, :Atom) && Main.Atom.isconnected()
 
 function __init__()
-    global display_name, mime_type, file_path
+    global display_name, mime_type, file_path, send_c, recv_c
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
         if grdir == ""
@@ -246,7 +248,7 @@ function __init__()
     if "GRDISPLAY" in keys(ENV)
         display_name = ENV["GRDISPLAY"]
         if display_name == "js"
-            js.initjs()
+            send_c, recv_c = js.initjs()
         end
     elseif "GKS_NO_GUI" in keys(ENV)
         return
@@ -3103,7 +3105,7 @@ function displayname()
 end
 
 function inline(mime="svg", scroll=true)
-    global mime_type, file_path, figure_count, msgs
+    global mime_type, file_path, figure_count, msgs, send_c, recv_c
     if mime_type != mime
         if mime == "iterm"
             file_path = tempname() * ".pdf"
@@ -3117,7 +3119,7 @@ function inline(mime="svg", scroll=true)
         elseif mime == "js"
             file_path = None
             ENV["GRDISPLAY"] = "js"
-            js.initjs()
+            send_c, recv_c = js.initjs()
         else
             file_path = tempname() * "." * mime
             ENV["GKS_WSTYPE"] = mime
@@ -3422,10 +3424,11 @@ function version()
 end
 
 function openmeta(target=0, device="localhost", port=8002)
+    global send_c, recv_c
     handle = ccall((:gr_openmeta, libGR),
                    Ptr{Nothing},
                    (Int32, Cstring, Int64, Ptr{Cvoid}, Ptr{Cvoid}),
-                   target, device, port, js.send_c, js.recv_c)
+                   target, device, port, send_c, recv_c)
     return handle
 end
 
