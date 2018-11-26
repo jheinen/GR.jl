@@ -836,18 +836,21 @@ to_int(a) = Int32[el for el in a]
 function send_meta(target)
     handle = GR.openmeta(target)
     if handle != C_NULL
-        GR.sendmeta(handle, "o(")
-        for (k, v) in plt.kvs
-            GR.sendmetaref(handle, string(k), 's', string(v))
-        end
-        for (x, y, z, c, spec) in plt.args
+        #for (k, v) in plt.kvs
+        #    GR.sendmetaref(handle, string(k), 's', string(v))
+        #end
+        num_series = length(plt.args)
+        GR.sendmetaref(handle, "series", 'O', "[", num_series)
+        for (i, (x, y, z, c, spec)) in enumerate(plt.args)
             given(x) && GR.sendmetaref(handle, "x", 'D', to_double(x))
             given(y) && GR.sendmetaref(handle, "y", 'D', to_double(y))
             given(z) && GR.sendmetaref(handle, "z", 'D', to_double(z))
             given(c) && GR.sendmetaref(handle, "c", 'I', to_int(c))
             given(spec) && GR.sendmetaref(handle, "spec", 's', spec)
+            GR.sendmetaref(handle, "", 'O', i < num_series ? "," : "]", 1)
         end
-        GR.sendmeta(handle, ")")
+        GR.sendmetaref(handle, "kind", 's', string(plt.kvs[:kind]));
+        GR.sendmetaref(handle, "", '\0', "", 0);
         GR.closemeta(handle)
     end
 end
