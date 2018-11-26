@@ -187,9 +187,10 @@ function Extrema64(a)
     amax = -typemax(Float64)
     for el in a
         if !isnan(el)
-            if el < amin
+            if isnan(amin) || el < amin
                 amin = el
-            elseif el > amax
+            end
+            if isnan(amax) || el > amax
                 amax = el
             end
         end
