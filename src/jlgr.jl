@@ -837,11 +837,16 @@ function send_meta(target)
     handle = GR.openmeta(target)
     if handle != C_NULL
         for (k, v) in plt.kvs
-            if k in [:xlim, :ylim, :zlim, :size]
+            if k in [:backgroundcolor, :color, :colormap, :location, :nbins,
+                     :rotation, :tilt, :xform]
+                GR.sendmetaref(handle, string(k), 'i', Int32(v))
+            elseif k in [:alpha, :isovalue]
+                GR.sendmetaref(handle, string(k), 'd', Float64(v))
+            elseif k in [:xlim, :ylim, :zlim, :size]
                 GR.sendmetaref(handle, string(k), 'D', to_double(v))
             elseif k in [:title, :xlabel, :ylabel, :zlabel]
                 GR.sendmetaref(handle, string(k), 's', string(v))
-            elseif k in [:xflip, :yflip, :zflip]
+            elseif k in [:xflip, :yflip, :zflip, :xlog, :ylog, :zlog]
                 GR.sendmetaref(handle, string(k), 'i', v ? 1 : 0)
             end
         end
