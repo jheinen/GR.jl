@@ -65,7 +65,9 @@ export
   setscale,
   inqscale,
   setwindow,
+  inqwindow,
   setviewport,
+  inqviewport,
   selntran,
   setclip,
   setwswindow,
@@ -181,6 +183,7 @@ export
   trisurf,
   tricont,
   shade,
+  panzoom,
   libGR3,
   gr3,
   isinline,
@@ -193,7 +196,6 @@ display_name = None
 mime_type = None
 file_path = None
 figure_count = None
-msgs = None
 send_c = C_NULL
 recv_c = C_NULL
 
@@ -424,10 +426,6 @@ function deactivatews(workstation_id::Int)
 end
 
 function clearws()
-  global msgs
-  if msgs != None
-    begingraphics("")
-  end
   ccall( (:gr_clearws, libGR),
         Nothing,
         ()
@@ -435,10 +433,6 @@ function clearws()
 end
 
 function updatews()
-  global msgs
-  if msgs != None
-    endgraphics()
-  end
   ccall( (:gr_updatews, libGR),
         Nothing,
         ()
@@ -1379,6 +1373,18 @@ function setwindow(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
         xmin, xmax, ymin, ymax)
 end
 
+function inqwindow()
+  _xmin = Cdouble[0]
+  _xmax = Cdouble[0]
+  _ymin = Cdouble[0]
+  _ymax = Cdouble[0]
+  ccall( (:gr_inqwindow, libGR),
+        Nothing,
+        (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
+        _xmin, _xmax, _ymin, _ymax)
+  return _xmin[1], _xmax[1], _ymin[1], _ymax[1]
+end
+
 """
     setviewport(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
 
@@ -1408,6 +1414,18 @@ function setviewport(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
         Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
+end
+
+function inqviewport()
+  _xmin = Cdouble[0]
+  _xmax = Cdouble[0]
+  _ymin = Cdouble[0]
+  _ymax = Cdouble[0]
+  ccall( (:gr_inqviewport, libGR),
+        Nothing,
+        (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
+        _xmin, _xmax, _ymin, _ymax)
+  return _xmin[1], _xmax[1], _ymin[1], _ymax[1]
 end
 
 """
@@ -3062,6 +3080,7 @@ polar(args...; kwargs...) = jlgr.polar(args...; kwargs...)
 trisurf(args...; kwargs...) = jlgr.trisurf(args...; kwargs...)
 tricont(args...; kwargs...) = jlgr.tricont(args...; kwargs...)
 shade(args...; kwargs...) = jlgr.shade(args...; kwargs...)
+panzoom(pan, zoom) = jlgr.panzoom(pan, zoom)
 mainloop() = jlgr.mainloop()
 
 @static if VERSION < v"0.7-"
@@ -3105,7 +3124,7 @@ function displayname()
 end
 
 function inline(mime="svg", scroll=true)
-    global mime_type, file_path, figure_count, msgs, send_c, recv_c
+    global mime_type, file_path, figure_count, send_c, recv_c
     if mime_type != mime
         if mime == "iterm"
             file_path = tempname() * ".pdf"
@@ -3135,7 +3154,7 @@ function inline(mime="svg", scroll=true)
 end
 
 function show()
-    global mime_type, file_path, figure_count, msgs
+    global mime_type, file_path, figure_count
 
     emergencyclosegks()
     if mime_type == "svg"
@@ -3173,11 +3192,6 @@ function show()
             return nothing
         else
             return content
-        end
-    elseif mime_type == "js"
-        if msgs != None
-            endgraphics()
-            push!(msgs, Base64.base64encode(getgraphics()))
         end
     end
     return None

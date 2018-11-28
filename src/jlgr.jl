@@ -75,6 +75,8 @@ function Figure(width=600, height=450)
     kvs[:subplot] = [0, 1, 0, 1]
     kvs[:clear] = true
     kvs[:update] = true
+    kvs[:pan] = None
+    kvs[:zoom] = None
     PlotObject(obj, args, kvs)
 end
 
@@ -251,6 +253,12 @@ function minmax()
     end
 end
 
+function to_wc(wn)
+    xmin, ymin = GR.ndctowc(wn[1], wn[3])
+    xmax, ymax = GR.ndctowc(wn[2], wn[4])
+    xmin, xmax, ymin, ymax
+end
+
 function set_window(kind)
     scale = 0
     if kind != :polar
@@ -262,7 +270,22 @@ function set_window(kind)
         get(plt.kvs, :zflip, false) && (scale |= GR.OPTION_FLIP_Z)
     end
 
-    minmax()
+    zoom = plt.kvs[:zoom]
+    if zoom != None
+        x0, x1, y0, y1 = to_wc(plt.kvs[:pan])
+        if zoom == 0
+            plt.kvs[:xrange] = (x0, x1)
+            plt.kvs[:yrange] = (y0, y1)
+        else
+            xmin, xmax, ymin, ymax = GR.inqwindow()
+            xext = (xmax - xmin) * 0.5 * zoom
+            yext = (ymax - ymin) * 0.5 * zoom
+            plt.kvs[:xrange] = (x0 - xext, x0 + xext)
+            plt.kvs[:yrange] = (y0 - yext, y0 + yext)
+        end
+    else
+        minmax()
+    end
 
     if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :trisurf)
         major_count = 2
@@ -272,7 +295,7 @@ function set_window(kind)
 
     xmin, xmax = plt.kvs[:xrange]
     if scale & GR.OPTION_X_LOG == 0
-        if !haskey(plt.kvs, :xlim)
+        if !haskey(plt.kvs, :xlim) && plt.kvs[:zoom] == None
             xmin, xmax = GR.adjustlimits(xmin, xmax)
         end
         majorx = major_count
@@ -292,7 +315,7 @@ function set_window(kind)
         ymin = 0
     end
     if scale & GR.OPTION_Y_LOG == 0
-        if !haskey(plt.kvs, :ylim)
+        if !haskey(plt.kvs, :ylim) && plt.kvs[:zoom] == None
             ymin, ymax = GR.adjustlimits(ymin, ymax)
         end
         majory = major_count
@@ -2140,6 +2163,13 @@ function shade(args...; kv...)
     create_context(:shade, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xys)
+
+    plot_data()
+end
+
+function panzoom(pan, zoom)
+    plt.kvs[:pan] = pan
+    plt.kvs[:zoom] = zoom
 
     plot_data()
 end
