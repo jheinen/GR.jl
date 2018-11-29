@@ -158,6 +158,7 @@ export
   semilogx,
   semilogy,
   loglog,
+  step,
   scatter,
   stem,
   histogram,
@@ -3051,6 +3052,7 @@ oplot(args...; kwargs...) = jlgr.oplot(args...; kwargs...)
 semilogx(args...; kwargs...) = jlgr.plot(args...; kwargs..., xlog=true)
 semilogy(args...; kwargs...) = jlgr.plot(args...; kwargs..., ylog=true)
 loglog(args...; kwargs...) = jlgr.plot(args...; kwargs..., xlog=true, ylog=true)
+step(args...; kwargs...) = jlgr.step(args...; kwargs...)
 scatter(args...; kwargs...) = jlgr.scatter(args...; kwargs...)
 stem(args...; kwargs...) = jlgr.stem(args...; kwargs...)
 histogram(x; kwargs...) = jlgr.histogram(x; kwargs...)

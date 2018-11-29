@@ -41,11 +41,11 @@ const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf, :tricont, :shade]
+const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf, :tricont, :shade]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
-const kw_args = [:accelerate, :alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog]
+const kw_args = [:accelerate, :alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
@@ -984,6 +984,52 @@ function plot_data(flag=true)
             mask = GR.uselinespec(spec)
             mask in (0, 1, 3, 4, 5) && GR.polyline(x, y)
             mask & 0x02 != 0 && GR.polymarker(x, y)
+        elseif kind == :step
+            mask = GR.uselinespec(spec)
+            if mask in (0, 1, 3, 4, 5)
+                where = get(plt.kvs, :where, "mid")
+                if where == "pre"
+                    n = length(x)
+                    xs = zeros(2 * n - 1)
+                    ys = zeros(2 * n - 1)
+                    xs[1] = x[1]
+                    ys[1] = y[1]
+                    for i in 1:n-1
+                        xs[2*i]   = x[i]
+                        xs[2*i+1] = x[i+1]
+                        ys[2*i]   = y[i+1]
+                        ys[2*i+1] = y[i+1]
+                    end
+                elseif where == "post"
+                    n = length(x)
+                    xs = zeros(2 * n - 1)
+                    ys = zeros(2 * n - 1)
+                    xs[1] = x[1]
+                    ys[1] = y[1]
+                    for i in 1:n-1
+                        xs[2*i]   = x[i+1]
+                        xs[2*i+1] = x[i+1]
+                        ys[2*i]   = y[i]
+                        ys[2*i+1] = y[i+1]
+                    end
+                else
+                    n = length(x)
+                    xs = zeros(2 * n)
+                    ys = zeros(2 * n)
+                    xs[1] = x[1]
+                    for i in 1:n-1
+                        xs[2*i]   = 0.5 * (x[i] + x[i+1])
+                        xs[2*i+1] = 0.5 * (x[i] + x[i+1])
+                        ys[2*i-1] = y[i]
+                        ys[2*i]   = y[i]
+                    end
+                    xs[2*n]   = x[n]
+                    ys[2*n-1] = y[n]
+                    ys[2*n]   = y[n]
+                end
+                GR.polyline(xs, ys)
+            end
+            mask & 0x02 != 0 && GR.polymarker(x, y)
         elseif kind == :scatter
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             if given(z) || given(c)
@@ -1127,7 +1173,7 @@ function plot_data(flag=true)
         GR.restorestate()
     end
 
-    if kind in (:line, :scatter, :stem) && haskey(plt.kvs, :labels)
+    if kind in (:line, :step, :scatter, :stem) && haskey(plt.kvs, :labels)
         draw_legend()
     end
 
@@ -1362,6 +1408,45 @@ function oplot(args::PlotArg...; kv...)
     create_context(:line, Dict(kv))
 
     plt.args = append!(plt.args, plot_args(args))
+
+    plot_data()
+end
+
+"""
+Draw one or more step or staircase plots.
+
+This function can receive one or more of the following:
+
+- x values and y values, or
+- x values and a callable to determine y values, or
+- y values only, with their indices as x values
+
+:param args: the data to plot
+:param where: pre, mid or post, to decide where the step between two y values should be placed
+
+**Usage examples:**
+
+.. code-block:: julia
+    julia> # Create example data
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = 2 .* x .+ 4
+    julia> # Plot x and y
+    julia> step(x, y)
+    julia> # Plot x and a callable
+    julia> step(x, x -> x .^ 3 .+ x .^ 2 .+ x)
+    julia> # Plot y, using its indices for the x values
+    julia> step(y)
+    julia> # Use next y step directly after x each position
+    julia> step(y, where="pre")
+    julia> # Use next y step between two x positions
+    julia> step(y, where="mid")
+    julia> # Use next y step immediately before next x position
+    julia> step(y, where="post")
+"""
+function step(args...; kv...)
+    create_context(:step, Dict(kv))
+
+    plt.args = plot_args(args, fmt=:xyac)
 
     plot_data()
 end
