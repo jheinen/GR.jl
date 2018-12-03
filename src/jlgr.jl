@@ -1066,29 +1066,31 @@ function plot_data(flag=true)
             end
         elseif kind == :contour
             zmin, zmax = plt.kvs[:zrange]
+            if length(x) == length(y) == length(z)
+                x, y, z = GR.gridit(x, y, z, 200, 200)
+                zmin, zmax = get(plt.kvs, :zlim, (minimum(x), maximum(z)))
+            end
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 20)
             if typeof(levels) <: Int
                 h = linspace(zmin, zmax, levels)
             else
                 h = float(levels)
-            end
-            if length(x) == length(y) == length(z)
-                x, y, z = GR.gridit(x, y, z, 200, 200)
             end
             GR.contour(x, y, h, z, 1000)
             colorbar(0, length(h))
         elseif kind == :contourf
             zmin, zmax = plt.kvs[:zrange]
+            if length(x) == length(y) == length(z)
+                x, y, z = GR.gridit(x, y, z, 200, 200)
+                zmin, zmax = get(plt.kvs, :zlim, (minimum(x), maximum(z)))
+            end
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 20)
             if typeof(levels) <: Int
                 h = linspace(zmin, zmax, levels)
             else
                 h = float(levels)
-            end
-            if length(x) == length(y) == length(z)
-                x, y, z = GR.gridit(x, y, z, 200, 200)
             end
             GR.contourf(x, y, h, z, 1000)
             colorbar(0, length(h))
