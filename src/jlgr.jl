@@ -272,28 +272,9 @@ function set_window(kind)
 
     zoom = plt.kvs[:zoom]
     if zoom != None
-        x0, x1, y0, y1 = to_wc(plt.kvs[:pan])
-        if scale & GR.OPTION_FLIP_X != 0
-            x0, x1 = x1, x0
-        end
-        if scale & GR.OPTION_FLIP_Y != 0
-            y0, y1 = y1, y0
-        end
-        if zoom == 0
-            plt.kvs[:xrange] = (x0, x1)
-            plt.kvs[:yrange] = (y0, y1)
-        else
-            xmin, xmax, ymin, ymax = GR.inqwindow()
-            xmin, ymin = GR.wctondc(xmin, ymin)
-            xmax, ymax = GR.wctondc(xmax, ymax)
-            x0, y0 = GR.wctondc(x0, y0)
-            xext = (xmax - xmin) * 0.5 * zoom
-            yext = (ymax - ymin) * 0.5 * zoom
-            xmin, ymin = GR.ndctowc(x0 - xext, y0 - yext)
-            xmax, ymax = GR.ndctowc(x0 + xext, y0 + yext)
-            plt.kvs[:xrange] = (xmin, xmax)
-            plt.kvs[:yrange] = (ymin, ymax)
-        end
+        xmin, xmax, ymin, ymax = GR.panzoom(plt.kvs[:pan]..., zoom)
+        plt.kvs[:xrange] = (xmin, xmax)
+        plt.kvs[:yrange] = (ymin, ymax)
     else
         minmax()
     end
@@ -2265,7 +2246,7 @@ function shade(args...; kv...)
     plot_data()
 end
 
-function panzoom(pan, zoom)
+function setpanzoom(pan, zoom)
     global ctx
 
     plt.kvs = copy(ctx)

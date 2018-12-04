@@ -185,6 +185,7 @@ export
   tricont,
   shade,
   panzoom,
+  setpanzoom,
   libGR3,
   gr3,
   isinline,
@@ -3082,7 +3083,7 @@ polar(args...; kwargs...) = jlgr.polar(args...; kwargs...)
 trisurf(args...; kwargs...) = jlgr.trisurf(args...; kwargs...)
 tricont(args...; kwargs...) = jlgr.tricont(args...; kwargs...)
 shade(args...; kwargs...) = jlgr.shade(args...; kwargs...)
-panzoom(pan, zoom) = jlgr.panzoom(pan, zoom)
+setpanzoom(pan, zoom) = jlgr.setpanzoom(pan, zoom)
 mainloop() = jlgr.mainloop()
 
 @static if VERSION < v"0.7-"
@@ -3529,6 +3530,18 @@ function shadelines(x, y; dims=[1200, 1200], xform=1)
           (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32),
           n, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
           xform, w, h)
+end
+
+function panzoom(xmin, xmax, ymin, ymax, zoom)
+  _xmin = Cdouble[xmin]
+  _xmax = Cdouble[xmax]
+  _ymin = Cdouble[ymin]
+  _ymax = Cdouble[ymax]
+  ccall( (:gr_panzoom, libGR),
+        Nothing,
+        (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Float64),
+        _xmin, _xmax, _ymin, _ymax, zoom)
+  return _xmin[1], _xmax[1], _ymin[1], _ymax[1]
 end
 
 # JS functions
