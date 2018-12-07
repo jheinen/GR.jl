@@ -11,12 +11,16 @@ end
 id_count = 0
 js_running = false
 
+
 mutable struct JSTermWidget
     identifier::String
     visible::Bool
 end
 
+
 function inject_js()
+  global comm
+  comm = nothing
   _js_fallback = "https://gr-framework.org/downloads/gr-latest.js"
   _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
     _gr_js = try
@@ -39,6 +43,8 @@ function inject_js()
         this.args = [];
         this.canvas = [];
         this.comm = undefined;
+        this.waiting = [];
+        this.oncanv = [];
 
         function saveLoad(url, callback, maxtime) {
             let script = document.createElement('script');
@@ -69,7 +75,24 @@ function inject_js()
           this.comm.send({"type":"removed","content":id})
         }
 
+        function handlewheel(event, canv, comm) {
+            if (!event.shiftKey && !event.controlKey) {
+                let mousex = event.offsetX / canv.width;
+                let mousey = event.offsetY / canv.height;
+                event.preventDefault();
+                if (event.deltaY < 0) {
+                    factor = 1.0075;
+                } else {
+                    factor = 0.9925;
+                }
+                comm.send({"type":"evt","t":"z", "p":[mousex, mousey],"f":factor,"id":canv.id})
+            }
+        }
+
         function draw(msg) {
+            if (typeof this.waiting['jsterm-' + msg.content.data.canvasid] === 'undefined') {
+              this.waiting['jsterm-' + msg.content.data.canvasid] = false
+            }
             if (!grJstermReady) {
                 this.onready.push(function() {
                     return draw(msg);
@@ -78,40 +101,59 @@ function inject_js()
                 GR.ready(function() {
                     return draw(msg);
                 });
+            } else if (this.waiting['jsterm-' + msg.content.data.canvasid]) {
+                this.oncanv['jsterm-' + msg.content.data.canvasid] = function() {
+                    return draw(msg);
+                };
             } else {
-                if (typeof this.canvas['jsterm-' + msg.content.data.canvasid] === 'undefined') {
-                  this.canvas['jsterm-' + msg.content.data.canvasid] = document.getElementById('jsterm-' + msg.content.data.canvasid);
-                  this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('DOMNodeRemoved', function() {
-                      canvas_removed(msg.content.data.canvasid);
-                  });
-                }
-                if (typeof this.gr['jsterm-' + msg.content.data.canvasid] === 'undefined') {
-                    this.gr['jsterm-' + msg.content.data.canvasid] = new GR('jsterm-' + msg.content.data.canvasid);
-                }
-                if (!this.args.hasOwnProperty('jsterm-' + msg.content.data.canvasid) || typeof this.args['jsterm-' + msg.content.data.canvasid] === 'undefined') {
-                    this.args['jsterm-' + msg.content.data.canvasid] = this.gr['jsterm-' + msg.content.data.canvasid].newmeta();
-                }
                 if (document.getElementById('jsterm-' + msg.content.data.canvasid) == null) {
                     canvas_removed(msg.content.data.canvasid);
-                    this.gr['jsterm-' + msg.content.data.canvasid] = undefined;
-                    setTimeout(function(){refr_plot('jsterm-' + msg.content.data.canvasid, msg, 0);}, 5);
+                    this.canvas['jsterm-' + msg.content.data.canvasid] = undefined;
+                    //this.gr['jsterm-' + msg.content.data.canvasid] = undefined;
+                    this.waiting['jsterm-' + msg.content.data.canvasid] = true;
+                    this.oncanv['jsterm-' + msg.content.data.canvasid] = undefined;
+                    this.oncanv['jsterm-' + msg.content.data.canvasid] = function() {
+                        return draw(msg);
+                    };
+                    setTimeout(function(){refr_plot('jsterm-' + msg.content.data.canvasid, msg, 0);}, 100);
                 } else {
-                    this.gr['jsterm-' + msg.content.data.canvasid].readmeta(this.args['jsterm-' + msg.content.data.canvasid], msg.content.data.json);
+                    if (typeof this.canvas['jsterm-' + msg.content.data.canvasid] === 'undefined') {
+                      this.canvas['jsterm-' + msg.content.data.canvasid] = document.getElementById('jsterm-' + msg.content.data.canvasid);
+                      /*this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('DOMNodeRemoved', function() {
+                          canvas_removed(msg.content.data.canvasid);
+                          this.waiting['jsterm-' + msg.content.data.canvasid] = true;
+                          this.oncanv['jsterm-' + msg.content.data.canvasid] = undefined;
+                      });*/
+                      this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('wheel', function (evt) {handlewheel(evt, this.canvas['jsterm-' + msg.content.data.canvasid], this.comm);}.bind(this));
+                    }
+                    if (typeof this.gr['jsterm-' + msg.content.data.canvasid] === 'undefined') {
+                        this.gr['jsterm-' + msg.content.data.canvasid] = new GR('jsterm-' + msg.content.data.canvasid);
+                    }
+                    if (!this.args.hasOwnProperty('jsterm-' + msg.content.data.canvasid) || typeof this.args['jsterm-' + msg.content.data.canvasid] === 'undefined') {
+                        this.args['jsterm-' + msg.content.data.canvasid] = this.gr['jsterm-' + msg.content.data.canvasid].newmeta();
+                    }
+                    this.waiting['jsterm-' + msg.content.data.canvasid] = false;
+                    this.gr['jsterm-' + msg.content.data.canvasid].current_canvas = document.getElementById('jsterm-' + msg.content.data.canvasid);
+                    this.gr['jsterm-' + msg.content.data.canvasid].current_context = this.gr['jsterm-' + msg.content.data.canvasid].current_canvas.getContext('2d');
                     this.gr['jsterm-' + msg.content.data.canvasid].select_canvas();
-                    this.gr['jsterm-' + msg.content.data.canvasid].clearws();
+                    this.gr['jsterm-' + msg.content.data.canvasid].readmeta(this.args['jsterm-' + msg.content.data.canvasid], msg.content.data.json);
                     this.gr['jsterm-' + msg.content.data.canvasid].plotmeta(this.args['jsterm-' + msg.content.data.canvasid]);
                 }
             }
         }
 
         function refr_plot(id, msg, count) {
-            if (count >= 500) {
+            /*if (count >= 100) {
               return;
-            }
+            }*/
+            // TODO: global count, that resets on new message / activity
             if (document.getElementById(id) == null) {
-                setTimeout(function(){refr_plot(id, msg, count + 1);}, 5);
+                setTimeout(function(){refr_plot(id, msg, count + 1);}, 100);
             } else {
-                draw(msg);
+                this.waiting['jsterm-' + msg.content.data.canvasid] = false;
+                if (typeof this.oncanv['jsterm-' + msg.content.data.canvasid] !== 'undefined') {
+                    this.oncanv['jsterm-' + msg.content.data.canvasid]();
+                }
             }
         }
 
@@ -180,7 +222,7 @@ function JSTermWidget(name::String, id::Int64)
       inject_js()
       js_running = true
     end
-    JSTermWidget(string(name, id), false)
+    JSTermWidget(string(name, id), false, 0)
   else
     error("JSTermWidget is only available in IJulia environments")
   end
@@ -188,26 +230,35 @@ end
 
 function jsterm_display(widget::JSTermWidget)
   if GR.isijulia()
-    display(HTML(string("<canvas id=\"jsterm-", widget.identifier, "\" width=\"500\" height=\"500\"></canvas>")))
+    display(HTML(string("<canvas id=\"jsterm-", widget.identifier, "\" width=\"640\" height=\"480\"></canvas>")))
     widget.visible = true
   else
     error("jsterm_display is only available in IJulia environments")
   end
 end
 
+comm = nothing
+
 function jsterm_send(widget::JSTermWidget, data::String)
-  global js_running
+  global js_running, draw_condition, comm
   if GR.isijulia()
-    comm = Main.IJulia.Comm("jsterm_comm")
-    comm.on_close = function comm_close_callback(msg)
-      global js_running
-      js_running = false
-    end
-    comm.on_msg = function comm_msg_callback(msg)
-      if haskey(msg.content["data"], "type")
-        if msg.content["data"]["type"] == "removed"
-          jswidgets[msg.content["data"]["content"]].visible = false
-          jsterm_display(widget)
+    if comm === nothing
+      comm = Main.IJulia.Comm("jsterm_comm")
+      comm.on_close = function comm_close_callback(msg)
+        global js_running
+        js_running = false
+      end
+      comm.on_msg = function comm_msg_callback(msg)
+        if haskey(msg.content["data"], "type")
+          if msg.content["data"]["type"] == "removed"
+            jswidgets[msg.content["data"]["content"]].visible = false
+            jsterm_display(widget)
+          elseif msg.content["data"]["type"] == "evt"
+            if msg.content["data"]["t"] == "z"
+              x, y = msg.content["data"]["p"]
+              GR.panzoom([x, y, x, y], msg.content["data"]["f"])
+            end
+          end
         end
       end
     end
@@ -222,6 +273,7 @@ function recv(name::Cstring, id::Int64, msg::Cstring)
     global js_running
     if !js_running
       inject_js()
+      js_running = true
     end
     _name = unsafe_string(name)
     if haskey(jswidgets, string(_name, id))
