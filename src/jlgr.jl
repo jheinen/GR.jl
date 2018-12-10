@@ -1049,7 +1049,7 @@ function plot_data(flag=true)
             zmin, zmax = plt.kvs[:zrange]
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
-                zmin, zmax = get(plt.kvs, :zlim, (minimum(x), maximum(z)))
+                zmin, zmax = get(plt.kvs, :zlim, (minimum(z), maximum(z)))
             end
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 20)
@@ -1058,13 +1058,13 @@ function plot_data(flag=true)
             else
                 h = float(levels)
             end
-            GR.contour(x, y, h, z, 1000)
+            GR.contour(x, y, h, z, 0)
             colorbar(0, length(h))
         elseif kind == :contourf
             zmin, zmax = plt.kvs[:zrange]
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
-                zmin, zmax = get(plt.kvs, :zlim, (minimum(x), maximum(z)))
+                zmin, zmax = get(plt.kvs, :zlim, (minimum(z), maximum(z)))
             end
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 20)
@@ -1073,7 +1073,7 @@ function plot_data(flag=true)
             else
                 h = float(levels)
             end
-            GR.contourf(x, y, h, z, 1000)
+            GR.contourf(x, y, h, z, 0)
             colorbar(0, length(h))
         elseif kind == :hexbin
             nbins = get(plt.kvs, :nbins, 40)
