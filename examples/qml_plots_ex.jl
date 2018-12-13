@@ -1,19 +1,16 @@
 ENV["QSG_RENDER_LOOP"] = "basic"
 using CxxWrap # for safe_cfunction
 using QML
+using Observables
 using Plots
 import GR
 
 ENV["GKSwstype"] = "use_default"
 gr(show=true)
 
-qmlfile = joinpath(dirname(Base.source_path()), "qml_ex.qml")
+const qmlfile = joinpath(dirname(Base.source_path()), "qml_ex.qml")
 
-type Parameters
-  nbins::Float64
-end
-
-parameters = Parameters(30)
+nbins = Observable(30)
 w, h = (600, 450)
 
 # Called from QQuickPaintedItem::paint with the QPainterRef as an argument
@@ -27,8 +24,8 @@ function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
   r = effectiveDevicePixelRatio(window(item))
   w, h = width(dev) / r, height(dev) / r
 
-  nbins = Int64(round(parameters.nbins))
-  histogram(randn(10000), nbins=nbins, size=(w, h))
+  num_bins = Int64(round(nbins[]))
+  histogram(randn(10000), nbins=num_bins, size=(w, h))
 
   return
 end
@@ -45,12 +42,9 @@ function mousePosition(eventx, eventy)
   "($(round(x,4)), $(round(y,4)))"
 end
 
-# Convert to cfunction, passing the painter as void*
-paint_cfunction = safe_cfunction(paint, Void, (QML.QPainterRef, QML.JuliaPaintedItemRef))
-
-# paint_cfunction becomes a context property
-@qmlapp qmlfile paint_cfunction parameters
-
-@qmlfunction mousePosition
+load(qmlfile,
+  paint_cfunction = @safe_cfunction(paint, Cvoid, (QML.QPainterRef, QML.JuliaPaintedItemRef)),
+  nbins = nbins
+)
 
 exec()

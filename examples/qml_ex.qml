@@ -56,7 +56,7 @@ ApplicationWindow {
       Connections {
         target: nbins
         onValueChanged: {
-          parameters.nbins = nbins.value;
+          num_bins = value;
           painter.update()
         }
       }
