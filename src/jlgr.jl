@@ -2131,8 +2131,8 @@ function isosurface(V; kv...)
 end
 
 function cart2sph(x, y, z)
-    azimuth = atan2.(y, x)
-    elevation = atan2.(z, sqrt.(x.^2 + y.^2))
+    azimuth = atan.(y, x)
+    elevation = atan.(z, sqrt.(x.^2 + y.^2))
     r = sqrt.(x.^2 + y.^2 + z.^2)
     azimuth, elevation, r
 end
