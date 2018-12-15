@@ -47,15 +47,17 @@ for device in reverse(cl.available_devices(cl.platforms()[1]))
         prg = cl.Program(ctx, source = mandel_kernel) |> cl.build!
         println(device[:name])
         break
+    catch
+        true
     end
 end
 
 function calc_fractal(q, min_x, max_x, min_y, max_y, width, height, iters)
     global ctx, queue, prg
 
-    output = Array{UInt16}(size(q))
+    output = Array{UInt16}(undef, size(q))
 
-    q_opencl = cl.Buffer(Complex128, ctx, (:r, :copy), hostbuf=q)
+    q_opencl = cl.Buffer(ComplexF64, ctx, (:r, :copy), hostbuf=q)
     output_opencl = cl.Buffer(UInt16, ctx, :w, length(output))
 
     k = cl.Kernel(prg, "mandelbrot")
@@ -68,7 +70,7 @@ function calc_fractal(q, min_x, max_x, min_y, max_y, width, height, iters)
 end
 
 function create_fractal(min_x, max_x, min_y, max_y, width, height, iters)
-    q = zeros(Complex128, (width, height))
+    q = zeros(ComplexF64, (width, height))
 
     output = calc_fractal(q, min_x, max_x, min_y, max_y, width, height, iters)
 
@@ -78,10 +80,10 @@ end
 
 x = -0.9223327810370947027656057193752719757635
 y = 0.3102598350874576432708737495917724836010
-f = 0.5
 
 for i in 1:200
 
+    f = 0.5 * 0.9^i
     dt = @elapsed image = create_fractal(x-f, x+f, y-f, y+f, 500, 500, 400)
     println("Mandelbrot created in $dt s")
 
@@ -91,5 +93,4 @@ for i in 1:200
     GR.cellarray(0, 1, 0, 1, 500, 500, image .+ 1000)
     GR.updatews()
 
-    f *= 0.9
 end
