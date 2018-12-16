@@ -1,7 +1,7 @@
 # Plot a real-time spectrogram
 # see https://github.com/JuliaAudio/PortAudio.jl
 
-using GR, PortAudio, SampledSignals
+using GR, PortAudio, SampledSignals, FFTW
 
 const N = 1024
 const stream = PortAudioStream(1, 0, blocksize=N)
