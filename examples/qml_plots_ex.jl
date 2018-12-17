@@ -39,12 +39,14 @@ function mousePosition(eventx, eventy)
     yn = (h - eventy) / h
   end
   x, y = GR.ndctowc(xn, yn)
-  "($(round(x,4)), $(round(y,4)))"
+  "($(round(x,digits=4)), $(round(y,digits=4)))"
 end
 
 load(qmlfile,
   paint_cfunction = @safe_cfunction(paint, Cvoid, (QML.QPainterRef, QML.JuliaPaintedItemRef)),
   nbins = nbins
 )
+
+@qmlfunction mousePosition
 
 exec()
