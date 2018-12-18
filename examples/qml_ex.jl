@@ -8,10 +8,12 @@ const qmlfile = joinpath(dirname(Base.source_path()), "qml_ex.qml")
 
 nbins = Observable(30)
 w, h = (600, 450)
+zoom = Nothing
 
 # Called from QQuickPaintedItem::paint with the QPainterRef as an argument
 function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
   global w, h
+  global zoom
 
   ENV["GKSwstype"] = 381
   ENV["GKSconid"] = split(repr(p.cpp_object), "@")[2]
@@ -23,15 +25,28 @@ function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
   plt = gcf()
   plt[:size] = (w, h)
 
+  if zoom === Nothing
+    xmin, xmax, ymin, ymax = (-5, 5, -5, 5)
+  elseif zoom != 0
+    xmin, xmax, ymin, ymax = panzoom(0, 0, zoom)
+  else
+    xmin, xmax, ymin, ymax = inqwindow()
+  end
+
   num_bins = Int64(round(nbins[]))
   hexbin(randn(1000000), randn(1000000),
-         nbins=num_bins, xlim=(-5,5), ylim=(-5,5), title="nbins: $num_bins")
+         nbins=num_bins, xlim=(xmin, xmax), ylim=(ymin, ymax), title="nbins: $num_bins")
 
   return
 end
 
 function mousePosition(eventx, eventy, deltay)
-  println(deltay)
+  global zoom
+  if deltay != 0
+    zoom = deltay < 0 ? 1.02 : 1/1.02
+  else
+    zoom = 0
+  end
   if w > h
     xn = eventx / w
     yn = (h - eventy) / w

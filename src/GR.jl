@@ -3083,7 +3083,7 @@ polar(args...; kwargs...) = jlgr.polar(args...; kwargs...)
 trisurf(args...; kwargs...) = jlgr.trisurf(args...; kwargs...)
 tricont(args...; kwargs...) = jlgr.tricont(args...; kwargs...)
 shade(args...; kwargs...) = jlgr.shade(args...; kwargs...)
-setpanzoom(pan, zoom) = jlgr.setpanzoom(pan, zoom)
+setpanzoom(x, y, zoom) = jlgr.setpanzoom(x, y, zoom)
 mainloop() = jlgr.mainloop()
 
 @static if VERSION < v"0.7-"
@@ -3532,16 +3532,16 @@ function shadelines(x, y; dims=[1200, 1200], xform=1)
           xform, w, h)
 end
 
-function panzoom(xmin, xmax, ymin, ymax, zoom)
-  _xmin = Cdouble[xmin]
-  _xmax = Cdouble[xmax]
-  _ymin = Cdouble[ymin]
-  _ymax = Cdouble[ymax]
+function panzoom(x, y, zoom)
+  xmin = Cdouble[0]
+  xmax = Cdouble[0]
+  ymin = Cdouble[0]
+  ymax = Cdouble[0]
   ccall( (:gr_panzoom, libGR),
         Nothing,
-        (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Float64),
-        _xmin, _xmax, _ymin, _ymax, zoom)
-  return _xmin[1], _xmax[1], _ymin[1], _ymax[1]
+        (Float64, Float64, Float64, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
+        x, y, zoom, xmin, xmax, ymin, ymax)
+  return xmin[1], xmax[1], ymin[1], ymax[1]
 end
 
 # JS functions

@@ -75,8 +75,7 @@ function Figure(width=600, height=450)
     kvs[:subplot] = [0, 1, 0, 1]
     kvs[:clear] = true
     kvs[:update] = true
-    kvs[:pan] = None
-    kvs[:zoom] = None
+    kvs[:panzoom] = None
     PlotObject(obj, args, kvs)
 end
 
@@ -270,9 +269,8 @@ function set_window(kind)
         get(plt.kvs, :zflip, false) && (scale |= GR.OPTION_FLIP_Z)
     end
 
-    zoom = plt.kvs[:zoom]
-    if zoom != None
-        xmin, xmax, ymin, ymax = GR.panzoom(plt.kvs[:pan]..., zoom)
+    if plt.kvs[:panzoom] != None
+        xmin, xmax, ymin, ymax = GR.panzoom(plt.kvs[:panzoom]...)
         plt.kvs[:xrange] = (xmin, xmax)
         plt.kvs[:yrange] = (ymin, ymax)
     else
@@ -287,7 +285,7 @@ function set_window(kind)
 
     xmin, xmax = plt.kvs[:xrange]
     if scale & GR.OPTION_X_LOG == 0
-        if !haskey(plt.kvs, :xlim) && plt.kvs[:zoom] == None
+        if !haskey(plt.kvs, :xlim) && plt.kvs[:panzoom] == None
             xmin, xmax = GR.adjustlimits(xmin, xmax)
         end
         majorx = major_count
@@ -307,7 +305,7 @@ function set_window(kind)
         ymin = 0
     end
     if scale & GR.OPTION_Y_LOG == 0
-        if !haskey(plt.kvs, :ylim) && plt.kvs[:zoom] == None
+        if !haskey(plt.kvs, :ylim) && plt.kvs[:panzoom] == None
             ymin, ymax = GR.adjustlimits(ymin, ymax)
         end
         majory = major_count
@@ -2246,12 +2244,11 @@ function shade(args...; kv...)
     plot_data()
 end
 
-function setpanzoom(pan, zoom)
+function setpanzoom(x, y, zoom)
     global ctx
 
     plt.kvs = copy(ctx)
-    plt.kvs[:pan] = pan
-    plt.kvs[:zoom] = zoom
+    plt.kvs[:panzoom] = (x, y, zoom)
 
     plot_data()
 end
