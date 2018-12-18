@@ -11,6 +11,8 @@ ApplicationWindow {
 
   Text {
     id: xy
+    font.pointSize: 12
+    font.family: "Courier"
     x: 5
     y: 5
     text: ""
@@ -49,7 +51,11 @@ ApplicationWindow {
         onClicked: { nbins.value = 30 }
         hoverEnabled: true
         onPositionChanged: {
-          xy.text = Julia.mousePosition(mouse.x, mouse.y);
+          xy.text = Julia.mousePosition(mouse.x, mouse.y, 0);
+        }
+        onWheel: {
+          Julia.mousePosition(wheel.x, wheel.y, wheel.angleDelta.y);
+          painter.update()
         }
       }
 
