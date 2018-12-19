@@ -32,11 +32,12 @@ ApplicationWindow {
       }
 
       Slider {
-        id: nbins
+        id: nbinsSlider
         width: 100
-        value: 30.
-        minimumValue: 10.
-        maximumValue: 60.
+        value: 30
+        minimumValue: 10
+        maximumValue: 60
+        stepSize: 1
       }
     }
 
@@ -48,7 +49,6 @@ ApplicationWindow {
 
       MouseArea {
         anchors.fill: parent
-        onClicked: { nbins.value = 30 }
         hoverEnabled: true
         onPositionChanged: {
           xy.text = Julia.mousePosition(mouse.x, mouse.y, 0);
@@ -60,9 +60,9 @@ ApplicationWindow {
       }
 
       Connections {
-        target: nbins
+        target: nbinsSlider
         onValueChanged: {
-          num_bins = value;
+          nbins = nbinsSlider.value;
           painter.update()
         }
       }

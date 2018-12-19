@@ -6,7 +6,10 @@ using GR
 
 const qmlfile = joinpath(dirname(Base.source_path()), "qml_ex.qml")
 
+x = randn(1000000)
+y = randn(1000000)
 nbins = Observable(30)
+
 w, h = (600, 450)
 zoom = Nothing
 
@@ -34,8 +37,7 @@ function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
   end
 
   num_bins = Int64(round(nbins[]))
-  hexbin(randn(1000000), randn(1000000),
-         nbins=num_bins, xlim=(xmin, xmax), ylim=(ymin, ymax), title="nbins: $num_bins")
+  hexbin(x, y, nbins=num_bins, xlim=(xmin, xmax), ylim=(ymin, ymax), title="nbins: $num_bins")
 
   return
 end
