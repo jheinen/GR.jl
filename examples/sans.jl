@@ -1,5 +1,3 @@
-using Compat
-
 using GR
 
 @static if VERSION >= v"0.7.0-DEV.3406"

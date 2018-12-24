@@ -2,6 +2,12 @@
 
 import GR
 
+const theta = 70.0   # initial angle
+const gamma = 0.1    # damping coefficient
+const L = 0.2        # wire length
+
+w, h, ball = GR.readimage("ball.png")
+
 function rk4(x, h, y, f)
   k1 = h * f(x, y)
   k2 = h * f(x + 0.5 * h, y + 0.5 * k1)
@@ -23,7 +29,7 @@ function draw_cradle(theta)
   GR.fillarea([0.3, 0.7, 0.7, 0.3], [0.79, 0.79, 0.81, 0.81])
   # draw balls
   for i = -2:2
-    x = [0.5, 0.5] + i * 0.06
+    x = [0.5, 0.5] .+ i * 0.06
     y = [0.8, 0.4]
     if (theta < 0 && i == -2) || (theta > 0 && i == 2)
       x[2] += sin(theta) * 0.4
@@ -35,29 +41,27 @@ function draw_cradle(theta)
   GR.updatews()
 end
 
-theta = 70.0   # initial angle
-gamma = 0.1    # damping coefficient
-L = 0.2        # wire length
+function main()
+  t = 0.0
+  dt = 0.01
+  state = [theta * pi / 180, 0]
 
-t = 0.0
-dt = 0.01
-state = [theta * pi / 180, 0]
+  start = refresh = time_ns()
 
-w, h, ball = GR.readimage("ball.png")
+  while t < 30
+    t, state = rk4(t, dt, state, deriv)
+    theta, omega = state
 
-start = refresh = time_ns()
+    if time_ns() - refresh > 20 * 1000000   # 20ms
+      draw_cradle(theta)
+      refresh = time_ns()
+    end
 
-while t < 30
-  t, state = rk4(t, dt, state, deriv)
-  theta, omega = state
-
-  if time_ns() - refresh > 20 * 1000000   # 20ms
-    draw_cradle(theta)
-    refresh = time_ns()
-  end
-
-  now = (time_ns() - start) / 1000000000
-  if t > now
-      sleep(t - now)
+    now = (time_ns() - start) / 1000000000
+    if t > now
+        sleep(t - now)
+    end
   end
 end
+
+main()

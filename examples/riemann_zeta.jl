@@ -2,8 +2,6 @@
 
 # A view of the Riemann Zeta function using the domain coloring method
 
-using Compat
-
 import GR
 import SpecialFunctions
 
@@ -19,7 +17,7 @@ function domain_colors(w, n)
 
     V = [modc[i] * isol[i] for i = 1:length(modc)]
     S = 0.9 .* fill!(similar(H), 1)
-    HSV = Compat.cat(H, S, V, dims=2)
+    HSV = cat(H, S, V, dims=2)
 
     return HSV
 end

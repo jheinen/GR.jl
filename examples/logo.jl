@@ -1,5 +1,3 @@
-using Compat
-
 import GR
 
 macro codes(n)

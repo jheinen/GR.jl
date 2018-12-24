@@ -3,8 +3,6 @@
 # (see https://albi3ro.github.io/M4/prerequisites/Atomic-Orbitals.html)
 #
 
-using Compat
-
 using GSL    # GSL holds the special functions
 using GR
 

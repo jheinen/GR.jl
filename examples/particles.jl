@@ -1,10 +1,13 @@
 using GR
+using Printf
+using LinearAlgebra
 
 # Simple particle simulation
 
-const N = 300                   # number of particles
+const N = 500                   # number of particles
 M = 0.05 * ones(Float64, N)     # masses
 const S = 0.04                  # size of particles
+const dt = 1.0 / 30
 
 function step(dt, p, v)
   # update positions
@@ -58,34 +61,38 @@ function step(dt, p, v)
   return p, v
 end
 
-setwindow(-2, 2, -2, 2)
-setviewport(0, 1, 0, 1)
-setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
-setmarkersize(1.0)
+function main()
 
-n = 0
-t = 0.0
+  setwindow(-2, 2, -2, 2)
+  setviewport(0, 1, 0, 1)
+  setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
+  setmarkersize(1.0)
 
-p = (rand(N,2) - 0.5) * (4-2*S)     # initial positions
-v = rand(N,2) - 0.5                 # initial velocities
+  n = 0
+  t = 0.0
 
-const dt = 1.0 / 30
+  p = (rand(N,2) .- 0.5) .* (4 .- 2 .* S)    # initial positions
+  v = rand(N,2) .- 0.5                       # initial velocities
 
-while t < 3
+  s = time_ns()
 
-  start = tic()
-  p, v = step(dt, p, v)
+  while n < 300
 
-  clearws()
-  setmarkercolorind(983)
-  polymarker(p[:,1], p[:,2])
+    p, v = step(dt, p, v)
 
-  if n > 0
-    text(0.01, 0.95, @sprintf("%10s: %4d fps", "Julia", round(n / t)))
+    clearws()
+    setmarkercolorind(983)
+    polymarker(p[:,1], p[:,2])
+
+    if n > 0
+      text(0.01, 0.95, @sprintf("%10s: %4d fps", "Julia", round(n / (1e-9 * (time_ns() - s)))))
+    end
+    updatews()
+
+    n += 1
+    t += dt
+
   end
-  updatews()
-
-  n += 1
-  t += 1.0 / (toq() * 1000000)
-
 end
+
+main()
