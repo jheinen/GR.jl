@@ -87,32 +87,31 @@ if !check_grdir()
   end
   version = get_version()
   tarball = "gr-$version-$os-$arch.tar.gz"
-  if !isfile("downloads/$tarball")
-    @info("Downloading pre-compiled GR $version $os binary")
-    url = "gr-framework.org/downloads/$tarball"
-    file = "downloads/$tarball"
-    mkpath("downloads")
+  rm("downloads", force=true, recursive=true)
+  @info("Downloading pre-compiled GR $version $os binary")
+  url = "gr-framework.org/downloads/$tarball"
+  file = "downloads/$tarball"
+  mkpath("downloads")
+  try
+    download("https://$url", file)
+  catch
+    @info("Using insecure connection")
     try
-      download("https://$url", file)
+      download("http://$url", file)
     catch
-      @info("Using insecure connection")
-      try
-        download("http://$url", file)
-      catch
-        @info("Cannot download GR run-time")
-      end
+      @info("Cannot download GR run-time")
     end
-    if os == :Windows
-      home = (VERSION < v"0.7-") ? JULIA_HOME : Sys.BINDIR
-      success(`$home/7z x downloads/$tarball -y`)
-      rm("downloads/$tarball")
-      tarball = tarball[1:end-3]
-      success(`$home/7z x $tarball -y -ttar`)
-      rm(tarball)
-    else
-      run(`tar xzf downloads/$tarball`)
-      rm("downloads/$tarball")
-    end
+  end
+  if os == :Windows
+    home = (VERSION < v"0.7-") ? JULIA_HOME : Sys.BINDIR
+    success(`$home/7z x downloads/$tarball -y`)
+    rm("downloads/$tarball")
+    tarball = tarball[1:end-3]
+    success(`$home/7z x $tarball -y -ttar`)
+    rm(tarball)
+  else
+    run(`tar xzf downloads/$tarball`)
+    rm("downloads/$tarball")
   end
   if os == :Darwin
     app = joinpath("gr", "Applications", "GKSTerm.app")
