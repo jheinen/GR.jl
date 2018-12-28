@@ -737,7 +737,12 @@ function plot_img(I)
         width, height, data = GR.readimage(I)
     else
         width, height = size(I)
-        data = (float(I) .- minimum(I)) ./ (maximum(I) .- minimum(I))
+        minI = minimum(I)
+        maxI = maximum(I)
+        data = float(I) .- minI
+        if minI != maxI
+            data ./= maxI .- minI
+        end
         data = Int32[round(Int32, 1000 + _i * 255) for _i in data]
     end
 
