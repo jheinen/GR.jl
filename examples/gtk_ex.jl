@@ -1,24 +1,23 @@
 using Gtk.ShortNames
+using Printf
 import GR
 
 function paint(w)
     ctx = Gtk.getgc(w)
-
     h = Gtk.height(w)
     w = Gtk.width(w)
+
+#    Gtk.select_font_face(ctx, "Sans",
+#                         Cairo.FONT_SLANT_NORMAL, Cairo.FONT_WEIGHT_NORMAL);
+#    Gtk.move_to(ctx, 15, 15)
+#    Gtk.set_font_size(ctx, 14)
+#    Gtk.show_text(ctx, "Contour Plot using Gtk ...")
 
     ENV["GKS_WSTYPE"] = "142"
     ENV["GKSconid"] = @sprintf("%lu", UInt64(ctx.ptr))
 
-    Gtk.select_font_face(ctx, "Sans",
-                         Cairo.FONT_SLANT_NORMAL, Cairo.FONT_WEIGHT_NORMAL);
-    Gtk.move_to(ctx, 15, 15)
-    Gtk.set_font_size(ctx, 14)
-    Gtk.show_text(ctx, "Contour Plot using Gtk ...")
-
-    srand(0)
-    xd = -2 + 4 * rand(100)
-    yd = -2 + 4 * rand(100)
+    xd = -2 .+ 4 .* rand(100)
+    yd = -2 .+ 4 .* rand(100)
     zd = [xd[i] * exp(-xd[i]^2 - yd[i]^2) for i = 1:100]
 
     GR.setviewport(0.15, 0.95, 0.1, 0.9)
@@ -31,25 +30,22 @@ function paint(w)
     GR.settextfontprec(3, 0)
 
     x, y, z = GR.gridit(xd, yd, zd, 200, 200)
-    levels = linspace(-0.5, 0.5, 20)
-    GR.surface(x, y, z, 5)
-    GR.contour(x, y, levels, z, 0)
+    levels = LinRange(-0.5, 0.5, 20)
+    GR.contourf(x, y, levels, z, 0)
     GR.polymarker(xd, yd)
-    GR.axes(0.25, 0.25, -2, -2, 2, 2, 0.01)
+#    GR.axes(0.25, 0.25, -2, -2, 2, 2, 0.01)
 
     GR.updatews()
 end
 
-win = Gtk.GtkWindow("Gtk")
-
-canvas = Gtk.GtkCanvas(500, 500)
+win = Gtk.GtkWindow("Gtk", 500, 500)
+canvas = Gtk.GtkCanvas()
 Gtk.push!(win, canvas)
 
 Gtk.draw(paint, canvas)
 Gtk.showall(win)
 
 signal_connect(win, :destroy) do widget
-    exit(0)
+    Gtk.gtk_quit()
 end
-
 Gtk.gtk_main()
