@@ -209,8 +209,8 @@ else
   const libGR3 = "libGR3.so"
 end
 
-isijulia() = isdefined(Main, :IJulia) && isdefined(Main.IJulia, :clear_output)
-isatom() = isdefined(Main, :Atom) && Main.Atom.isconnected()
+isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
+isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected()
 
 function __init__()
     global display_name, mime_type, file_path, send_c, recv_c
