@@ -41,7 +41,7 @@ const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf, :tricont, :shade]
+const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :trisurf, :tricont, :shade]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -162,7 +162,7 @@ function set_viewport(kind, subplot)
         GR.restorestate()
     end
 
-    if kind == :polar
+    if kind in (:polar, :polarhist)
         xmin, xmax, ymin, ymax = viewport
         xcenter = 0.5 * (xmin + xmax)
         ycenter = 0.5 * (ymin + ymax)
@@ -260,7 +260,7 @@ end
 
 function set_window(kind)
     scale = 0
-    if kind != :polar
+    if !(kind in (:polar, :polarhist))
         get(plt.kvs, :xlog, false) && (scale |= GR.OPTION_X_LOG)
         get(plt.kvs, :ylog, false) && (scale |= GR.OPTION_Y_LOG)
         get(plt.kvs, :zlog, false) && (scale |= GR.OPTION_Z_LOG)
@@ -277,7 +277,7 @@ function set_window(kind)
         minmax()
     end
 
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :polarhist, :trisurf)
         major_count = 2
     else
         major_count = 5
@@ -340,7 +340,7 @@ function set_window(kind)
     end
 
     plt.kvs[:window] = xmin, xmax, ymin, ymax
-    if kind != :polar
+    if !(kind in (:polar, :polarhist))
         GR.setwindow(xmin, xmax, ymin, ymax)
     else
         GR.setwindow(-1, 1, -1, 1)
@@ -945,7 +945,7 @@ function plot_data(flag=true)
     set_viewport(kind, plt.kvs[:subplot])
     if !plt.kvs[:ax]
         set_window(kind)
-        if kind == :polar
+        if kind in (:polar, :polarhist)
             draw_polar_axes()
         elseif kind != :imshow && kind != :isosurface
             draw_axes(kind)
@@ -1047,6 +1047,21 @@ function plot_data(flag=true)
                 GR.setfillcolorind(1)
                 GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
                 GR.fillrect(x[i], x[i+1], ymin, y[i])
+            end
+        elseif kind == :polarhist
+            xmin, xmax = extrema(x)
+            ymax = plt.kvs[:window][4]
+            ρ = 2 .* (y ./ ymax .- 0.5)
+            θ = 2pi .* (x .- xmin) ./ (xmax - xmin)
+            for i = 1:length(ρ)
+                GR.setfillcolorind(989)
+                GR.setfillintstyle(GR.INTSTYLE_SOLID)
+                GR.fillarea([0, ρ[i] * cos(θ[i]), ρ[i] * cos(θ[i+1])],
+                            [0, ρ[i] * sin(θ[i]), ρ[i] * sin(θ[i+1])])
+                GR.setfillcolorind(1)
+                GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
+                GR.fillarea([0, ρ[i] * cos(θ[i]), ρ[i] * cos(θ[i+1])],
+                            [0, ρ[i] * sin(θ[i]), ρ[i] * sin(θ[i+1])])
             end
         elseif kind == :contour
             zmin, zmax = plt.kvs[:zrange]
@@ -1552,6 +1567,37 @@ otherwise the given number of bins is used for the histogram.
 """
 function histogram(x; kv...)
     create_context(:hist, Dict(kv))
+
+    nbins = get(plt.kvs, :nbins, 0)
+    x, y = hist(x, nbins)
+    plt.args = [(x, y, Nothing, Nothing, "")]
+
+    plot_data()
+end
+
+"""
+Draw a polar histogram.
+
+If **nbins** is **Nothing** or 0, this function computes the number of
+bins as 3.3 * log10(n) + 1,  with n as the number of elements in x,
+otherwise the given number of bins is used for the histogram.
+
+:param x: the values to draw as a polar histogram
+:param num_bins: the number of bins in the polar histogram
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> x = 2 .* rand(100) .- 1
+    julia> # Draw the polar histogram
+    julia> polarhistogram(x, alpha=0.5)
+    julia> # Draw the polar histogram with 19 bins
+    julia> polarhistogram(x, nbins=19, alpha=0.5)
+"""
+function polarhistogram(x; kv...)
+    create_context(:polarhist, Dict(kv))
 
     nbins = get(plt.kvs, :nbins, 0)
     x, y = hist(x, nbins)

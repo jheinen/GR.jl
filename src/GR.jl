@@ -162,6 +162,7 @@ export
   scatter,
   stem,
   histogram,
+  polarhistogram,
   contourf,
   heatmap,
   wireframe,
@@ -3057,6 +3058,7 @@ step(args...; kwargs...) = jlgr.step(args...; kwargs...)
 scatter(args...; kwargs...) = jlgr.scatter(args...; kwargs...)
 stem(args...; kwargs...) = jlgr.stem(args...; kwargs...)
 histogram(x; kwargs...) = jlgr.histogram(x; kwargs...)
+polarhistogram(x; kwargs...) = jlgr.polarhistogram(x; kwargs...)
 contour(args...; kwargs...) = jlgr.contour(args...; kwargs...)
 contourf(args...; kwargs...) = jlgr.contourf(args...; kwargs...)
 hexbin(args...; kwargs...) = jlgr.hexbin(args...; kwargs...)
