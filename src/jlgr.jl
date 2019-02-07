@@ -361,7 +361,13 @@ function draw_axes(kind, pass=1)
     ratio = plt.kvs[:ratio]
     xtick, xorg, majorx = plt.kvs[:xaxis]
     ytick, yorg, majory = plt.kvs[:yaxis]
-
+    # enforce scientific notation for logarithmic axes labels
+    if plt.kvs[:scale] & GR.OPTION_X_LOG != 0
+        xtick = 10
+    end
+    if plt.kvs[:scale] & GR.OPTION_Y_LOG != 0
+        ytick = 10
+    end
     GR.setlinecolorind(1)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     GR.setlinewidth(1)
