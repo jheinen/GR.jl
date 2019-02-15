@@ -92,7 +92,7 @@ if !check_grdir()
   mkpath("downloads")
   file = "downloads/$tarball"
   try
-    url = "github.com/sciapp/gr/releases/tag/v$version/$tarball"
+    url = "github.com/sciapp/gr/releases/download/v$version/$tarball"
     download("https://$url", file)
   catch
     url = "gr-framework.org/downloads/$tarball"
