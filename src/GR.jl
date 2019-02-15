@@ -92,6 +92,7 @@ export
   axes3d,
   titles3d,
   surface,
+  volume,
   contour,
   hexbin,
   setcolormap,
@@ -3065,6 +3066,7 @@ hexbin(args...; kwargs...) = jlgr.hexbin(args...; kwargs...)
 heatmap(D; kwargs...) = jlgr.heatmap(D; kwargs...)
 wireframe(args...; kwargs...) = jlgr.wireframe(args...; kwargs...)
 surface(args...; kwargs...) = jlgr.surface(args...; kwargs...)
+volume(V; kwargs...) = jlgr.volume(V; kwargs...)
 plot3(args...; kwargs...) = jlgr.plot3(args...; kwargs...)
 scatter3(args...; kwargs...) = jlgr.scatter3(args...; kwargs...)
 title(s) = jlgr.title(s)

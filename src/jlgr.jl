@@ -41,11 +41,11 @@ const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :trisurf, :tricont, :shade]
+const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :trisurf, :tricont, :shade, :volume]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
-const kw_args = [:accelerate, :alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
@@ -123,7 +123,7 @@ function set_viewport(kind, subplot)
         vp[1] *= ratio
         vp[2] *= ratio
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         extent = min(vp[2] - vp[1], vp[4] - vp[3])
         vp1 = 0.5 * (vp[1] + vp[2] - extent)
         vp2 = 0.5 * (vp[1] + vp[2] + extent)
@@ -137,7 +137,7 @@ function set_viewport(kind, subplot)
     viewport[3] = vp3 + 0.125 * (vp4 - vp3)
     viewport[4] = vp3 + 0.925 * (vp4 - vp3)
 
-    if kind in (:contour, :contourf, :hexbin, :heatmap, :surface, :trisurf)
+    if kind in (:contour, :contourf, :hexbin, :heatmap, :surface, :trisurf, :volume)
         viewport[2] -= 0.1
     end
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
@@ -277,7 +277,7 @@ function set_window(kind)
         minmax()
     end
 
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :polarhist, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :polarhist, :trisurf, :volume)
         major_count = 2
     else
         major_count = 5
@@ -320,7 +320,7 @@ function set_window(kind)
     end
     plt.kvs[:yaxis] = ytick, yorg, majory
 
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         zmin, zmax = plt.kvs[:zrange]
         if scale & GR.OPTION_Z_LOG == 0
             if !haskey(plt.kvs, :zlim)
@@ -345,7 +345,7 @@ function set_window(kind)
     else
         GR.setwindow(-1, 1, -1, 1)
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         rotation = get(plt.kvs, :rotation, 40)
         tilt = get(plt.kvs, :tilt, 70)
         GR.setspace(zmin, zmax, rotation, tilt)
@@ -374,7 +374,7 @@ function draw_axes(kind, pass=1)
     charheight = max(0.018 * diag, 0.012)
     GR.setcharheight(charheight)
     ticksize = 0.0075 * diag
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         ztick, zorg, majorz = plt.kvs[:zaxis]
         if pass == 1
             GR.grid3d(xtick, 0, ztick, xorg[1], yorg[2], zorg[1], 2, 0, 2)
@@ -399,7 +399,7 @@ function draw_axes(kind, pass=1)
         text(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
         GR.restorestate()
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         xlabel = get(plt.kvs, :xlabel, "")
         ylabel = get(plt.kvs, :ylabel, "")
         zlabel = get(plt.kvs, :zlabel, "")
@@ -1138,6 +1138,13 @@ function plot_data(flag=true)
             end
             draw_axes(kind, 2)
             colorbar(0.05)
+        elseif kind == :volume
+            algorithm = get(plt.kvs, :algorithm, 0)
+            gr3.clear()
+            dmin, dmax = GR.gr3.volume(z, algorithm)
+            draw_axes(kind, 2)
+            plt.kvs[:zrange] = dmin, dmax
+            colorbar(0.05)
         elseif kind == :plot3
             GR.polyline3d(x, y, z)
             draw_axes(kind, 2)
@@ -1862,6 +1869,14 @@ function surface(args...; kv...)
     create_context(:surface, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
+
+    plot_data()
+end
+
+function volume(V; kv...)
+    create_context(:volume, Dict(kv))
+
+    plt.args = [(Nothing, Nothing, V, Nothing, "")]
 
     plot_data()
 end

@@ -382,6 +382,18 @@ function surface(px, py, pz, option::Int)
   end
 end
 
+function volume(data::Array{Float64,3}, algorithm::Int64)
+  dmin = Cdouble[-1]
+  dmax = Cdouble[-1]
+  nx, ny, nz = size(data)
+  data = reshape(data, nx * ny * nz)
+  ccall((:gr_volume, GR.libGR3),
+        Nothing,
+        (Cint, Cint, Cint, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}),
+        nx, ny, nz, data, algorithm, dmin, dmax)
+  return dmin[1], dmax[1]
+end
+
 function createslicemeshes(grid; x::Union{Real, Nothing}=nothing, y::Union{Real, Nothing}=nothing, z::Union{Real, Nothing}=nothing, step::Union{Tuple{Real, Real, Real}, Nothing}=nothing, offset::Union{Tuple{Real, Real, Real}, Nothing}=nothing)
     if x == nothing && y == nothing && z == nothing
         x = 0.5
