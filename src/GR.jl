@@ -2418,7 +2418,7 @@ function fillrect(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
 end
 
 """
-    drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
+    drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Real, a2::Real)
 
 Draw a circular or elliptical arc covering the specified rectangle.
 
@@ -2442,15 +2442,15 @@ such that 0 degrees is at the 3 o'clock position. The center of the arc is the c
 of the given rectangle.
 
 """
-function drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
+function drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Real, a2::Real)
   ccall( (:gr_drawarc, libGR),
         Nothing,
-        (Float64, Float64, Float64, Float64, Int32, Int32),
+        (Float64, Float64, Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax, a1, a2)
 end
 
 """
-    fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
+    fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Real, a2::Real)
 
 Fill a circular or elliptical arc covering the specified rectangle.
 
@@ -2474,10 +2474,10 @@ such that 0 degrees is at the 3 o'clock position. The center of the arc is the c
 of the given rectangle.
 
 """
-function fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
+function fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Real, a2::Real)
   ccall( (:gr_fillarc, libGR),
         Nothing,
-        (Float64, Float64, Float64, Float64, Int32, Int32),
+        (Float64, Float64, Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax, a1, a2)
 end
 
