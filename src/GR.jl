@@ -266,7 +266,7 @@ function __init__()
         ENV["GKS_FILEPATH"] = file_path
     elseif isatom()
         if Main.Atom.PlotPaneEnabled[] == true
-            mime_type = "atom"
+            mime_type = "svg"
             file_path = tempname() * ".svg"
             ENV["GKSwstype"] = "svg"
             ENV["GKS_FILEPATH"] = file_path
@@ -3144,9 +3144,6 @@ function inline(mime="svg", scroll=true)
         elseif mime == "mlterm"
             file_path = tempname() * ".six"
             ENV["GKS_WSTYPE"] = "six"
-        elseif mime == "atom"
-            file_path = tempname() * ".svg"
-            ENV["GKS_WSTYPE"] = "svg"
         elseif mime == "js"
             file_path = None
             ENV["GRDISPLAY"] = "js"
@@ -3195,16 +3192,6 @@ function show()
         write(STDOUT, content)
         rm(file_path)
         return nothing
-    elseif mime_type == "atom"
-        bg = jlgr.background
-        content = Base.HTML(string("""<div style="display: inline-block; background: #""", Base.hex(UInt64(bg), 6, false), """;">""", String(read(file_path)), """</div>"""))
-        rm(file_path)
-        if Main.Atom.PlotPaneEnabled[] == true
-            Main.Atom.render(Main.Atom.PlotPane(), content)
-            return nothing
-        else
-            return content
-        end
     end
     return None
 end
