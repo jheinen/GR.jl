@@ -2,6 +2,9 @@ module js
 
 import GR
 
+pxwidth = 640
+pxheight = 480
+
 @static if VERSION < v"0.7.0-DEV.4762"
     macro cfunction(f, rt, tup)
         :(Base.cfunction($(esc(f)), $(esc(rt)), Tuple{$(esc(tup))...}))
@@ -14,6 +17,8 @@ js_running = false
 
 mutable struct JSTermWidget
     identifier::String
+    width::Int
+    height::Int
     visible::Bool
 end
 
@@ -21,6 +26,7 @@ end
 function inject_js()
   global comm
   comm = nothing
+  ENV["GRDIR"] = "/Users/deckers/Desktop/gr-installation/"
   _js_fallback = "https://gr-framework.org/downloads/gr-latest.js"
   _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
     _gr_js = try
@@ -45,6 +51,10 @@ function inject_js()
         this.comm = undefined;
         this.waiting = [];
         this.oncanv = [];
+        this.panning = false;
+        this.prev_mouse_pos = undefined;
+        this.boxzoom = false;
+        this.boxzoom_point = [0, 0];
 
         function saveLoad(url, callback, maxtime) {
             let script = document.createElement('script');
@@ -63,6 +73,12 @@ function inject_js()
             }, maxtime);
         }
 
+        function getCoords(canv, event) {
+          let rect = canv.getBoundingClientRect();
+          //TODO mind the canvas-padding if necessary!
+          return [event.clientX - rect.left, event.clientY - rect.top];
+        }
+
         function jsLoaded() {
             grJstermReady = true;
             for (let i = 0; i < this.onready.length; i++) {
@@ -75,18 +91,104 @@ function inject_js()
           this.comm.send({"type":"removed","content":id})
         }
 
-        function handlewheel(event, canv, comm) {
-            if (!event.shiftKey && !event.controlKey) {
-                let mousex = event.offsetX / canv.width;
-                let mousey = event.offsetY / canv.height;
-                event.preventDefault();
-                if (event.deltaY < 0) {
-                    factor = 1.0075;
-                } else {
-                    factor = 0.9925;
-                }
-                comm.send({"type":"evt","t":"z", "p":[mousex, mousey],"f":factor,"id":canv.id})
+        function handlewheel(event, canv, comm, gr, args) {
+            let mouseargs = gr.newmeta();
+            let coords = getCoords(canv, event);
+            gr.meta_args_push(mouseargs, "x", "i", [coords[0]]);
+            gr.meta_args_push(mouseargs, "y", "i", [coords[1]]);
+            gr.meta_args_push(mouseargs, "angle_delta", "d", [event.deltaY]);
+            gr.inputmeta(args, mouseargs);
+            gr.plotmeta(mouseargs);
+            event.preventDefault();
+        }
+        
+        function handleMousedown(event, canv, comm, gr, args) {
+          if (event.button == 0) {
+            canv.style.cursor = 'move';
+            this.panning = true;
+            this.boxzoom = false;
+            this.prev_mouse_pos = getCoords(canv, event);;
+          } else if (event.button == 2) {
+            this.panning = false;
+            this.boxzoom = true;
+            this.boxzoom_point = getCoords(canv, event);;
+          }
+        }
+        
+        function handleMouseup(event, canv, comm, gr, args) {
+          if (this.boxzoom) {
+            let coords = getCoords(canv, event);
+            if ((Math.abs(this.boxzoom_point[0] - coords[0]) >= 10)
+              && (Math.abs(this.boxzoom_point[1] - coords[1]) >= 10)) {
+              let mouseargs = gr.newmeta();
+              gr.meta_args_push(mouseargs, "x1", "i", [this.boxzoom_point[0]]);
+              gr.meta_args_push(mouseargs, "y1", "i", [this.boxzoom_point[1]]);
+              gr.meta_args_push(mouseargs, "x2", "i", [event.coords[0]]);
+              gr.meta_args_push(mouseargs, "y2", "i", [event.coords[1]]);
+              gr.inputmeta(args, mouseargs);
+              gr.plotmeta(mouseargs);
             }
+          } else if (this.panning) {
+            this.prev_mouse_pos = undefined;
+          }
+          canv.style.cursor = 'auto';
+          this.panning = false;
+          this.boxzoom = false;
+        }
+        
+        function handleMouseleave(event, canv, comm, gr, args) {
+          canv.style.cursor = 'auto';
+          this.panning = false;
+          this.prev_mouse_pos = undefined;
+          this.boxzoom = false;
+        }
+        
+        function handleMousemove(event, canv, comm, gr, args) {
+          let coords = getCoords(canv, event);
+          if (this.panning) {
+            let mouseargs = gr.newmeta();
+            gr.meta_args_push(mouseargs, "x", "i", [coords[0] - this.prev_mouse_pos[0]]);
+            gr.meta_args_push(mouseargs, "y", "i", [coords[1] - this.prev_mouse_pos[1]]);
+            gr.inputmeta(args, mouseargs);
+            gr.plotmeta(mouseargs);
+            this.prev_mouse_pos = [coords[0], coords[1]]
+            event.preventDefault();
+          } else if (this.boxzoom) {
+            let context = canv.getContext('2d');
+            let mousex = coords[0];
+            let mousey = coords[1];
+            /*if (mousex / canv.width < mousey / canv.height) {
+              mousey = mousex * canv.height / canv.width;
+            } else {
+              mousex = mousey * canv.width / canv.height;
+            }*/
+            /*
+            let diff = [mousex - this.boxzoom_point[0], mousey - this.boxzoom_point[1]];
+            context.clearRect(0, 0, canv.width, canv.height);
+            if (diff[0] * diff[1] >= 0) {
+                canv.style.cursor = 'nwse-resize';
+            } else {
+                canv.style.cursor = 'nesw-resize';
+            }
+            context.fillStyle = '#FFAAAA';
+            context.strokeStyle = '#FF0000';
+            context.beginPath();
+            context.rect(this.boxzoom_point[0], this.boxzoom_point[1], diff[0], diff[1]);
+            context.globalAlpha = 0.2;
+            context.fill();
+            context.globalAlpha = 1.0;
+            context.stroke();
+            context.closePath();
+            event.preventDefault();*/
+          }
+        }
+
+        function handleDoubleclick(event, canv, comm, gr, args) {
+          let mouseargs = gr.newmeta();
+          gr.meta_args_push(mouseargs, "key", "s", "r");
+          gr.inputmeta(args, mouseargs);
+          gr.plotmeta(mouseargs);
+          event.preventDefault();
         }
 
         function draw(msg) {
@@ -109,7 +211,6 @@ function inject_js()
                 if (document.getElementById('jsterm-' + msg.content.data.canvasid) == null) {
                     canvas_removed(msg.content.data.canvasid);
                     this.canvas['jsterm-' + msg.content.data.canvasid] = undefined;
-                    //this.gr['jsterm-' + msg.content.data.canvasid] = undefined;
                     this.waiting['jsterm-' + msg.content.data.canvasid] = true;
                     this.oncanv['jsterm-' + msg.content.data.canvasid] = undefined;
                     this.oncanv['jsterm-' + msg.content.data.canvasid] = function() {
@@ -119,12 +220,20 @@ function inject_js()
                 } else {
                     if (typeof this.canvas['jsterm-' + msg.content.data.canvasid] === 'undefined') {
                       this.canvas['jsterm-' + msg.content.data.canvasid] = document.getElementById('jsterm-' + msg.content.data.canvasid);
+                      //this.overlay_canvas['jsterm-' + msg.content.data.canvasid] = document.getElementById('jsterm-overlay-' + msg.content.data.canvasid);
                       /*this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('DOMNodeRemoved', function() {
                           canvas_removed(msg.content.data.canvasid);
                           this.waiting['jsterm-' + msg.content.data.canvasid] = true;
                           this.oncanv['jsterm-' + msg.content.data.canvasid] = undefined;
                       });*/
-                      this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('wheel', function (evt) {handlewheel(evt, this.canvas['jsterm-' + msg.content.data.canvasid], this.comm);}.bind(this));
+                      this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('wheel', function (evt) {handlewheel(evt, this.canvas['jsterm-' + msg.content.data.canvasid], this.comm, this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);}.bind(this));
+                      this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('mousedown', function (evt) {handleMousedown(evt, this.canvas['jsterm-' + msg.content.data.canvasid], this.comm, this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);}.bind(this));
+                      this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('mousemove', function (evt) {handleMousemove(evt, this.canvas['jsterm-' + msg.content.data.canvasid], this.comm, this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);}.bind(this));
+                      this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('mouseup', function (evt) {handleMouseup(evt, this.canvas['jsterm-' + msg.content.data.canvasid], this.comm, this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);}.bind(this));
+                      this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('mouseleave', function (evt) {handleMouseleave(evt, this.canvas['jsterm-' + msg.content.data.canvasid], this.comm, this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);}.bind(this));
+                      this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('dblclick', function (evt) {handleDoubleclick(evt, this.canvas['jsterm-' + msg.content.data.canvasid], this.comm, this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);}.bind(this));
+                      this.canvas['jsterm-' + msg.content.data.canvasid].addEventListener('contextmenu', function(event) { event.preventDefault(); return false; });
+                      this.canvas['jsterm-' + msg.content.data.canvasid].style.cursor = 'auto';
                     }
                     if (typeof this.gr['jsterm-' + msg.content.data.canvasid] === 'undefined') {
                         this.gr['jsterm-' + msg.content.data.canvasid] = new GR('jsterm-' + msg.content.data.canvasid);
@@ -136,6 +245,7 @@ function inject_js()
                     this.gr['jsterm-' + msg.content.data.canvasid].current_canvas = document.getElementById('jsterm-' + msg.content.data.canvasid);
                     this.gr['jsterm-' + msg.content.data.canvasid].current_context = this.gr['jsterm-' + msg.content.data.canvasid].current_canvas.getContext('2d');
                     this.gr['jsterm-' + msg.content.data.canvasid].select_canvas();
+                    this.gr['jsterm-' + msg.content.data.canvasid].meta_args_push(this.args['jsterm-' + msg.content.data.canvasid], "size", "dd", [this.canvas['jsterm-' + msg.content.data.canvasid].width, this.canvas['jsterm-' + msg.content.data.canvasid].height]);
                     this.gr['jsterm-' + msg.content.data.canvasid].readmeta(this.args['jsterm-' + msg.content.data.canvasid], msg.content.data.json);
                     this.gr['jsterm-' + msg.content.data.canvasid].plotmeta(this.args['jsterm-' + msg.content.data.canvasid]);
                 }
@@ -200,7 +310,7 @@ function inject_js()
   var grJSTermRunning = true;"""
   if _gr_js === nothing
       _gr_js = string("""
-        saveLoad('""", _js_fallback, """', jsLoaded, 10000);
+        JSTerm.saveLoad('""", _js_fallback, """', jsLoaded, 10000);
         var grJstermReady = false;
       """)
   else
@@ -222,15 +332,16 @@ function JSTermWidget(name::String, id::Int64)
       inject_js()
       js_running = true
     end
-    JSTermWidget(string(name, id), false, 0)
+    JSTermWidget(string(name, id), pxwidth, pxheight, false)
   else
     error("JSTermWidget is only available in IJulia environments")
   end
 end
 
 function jsterm_display(widget::JSTermWidget)
+  global pxwidth, pxheight
   if GR.isijulia()
-    display(HTML(string("<canvas id=\"jsterm-", widget.identifier, "\" width=\"640\" height=\"480\"></canvas>")))
+    display(HTML(string("<canvas id=\"jsterm-", widget.identifier, "\" width=\"", widget.width, "\" height=\"", widget.height, "\"></canvas>")))
     widget.visible = true
   else
     error("jsterm_display is only available in IJulia environments")
@@ -240,7 +351,7 @@ end
 comm = nothing
 
 function jsterm_send(widget::JSTermWidget, data::String)
-  global js_running, draw_condition, comm
+  global js_running, draw_condition, comm, PXWIDTH, PXHEIGHT
   if GR.isijulia()
     if comm === nothing
       comm = Main.IJulia.Comm("jsterm_comm")
@@ -253,11 +364,6 @@ function jsterm_send(widget::JSTermWidget, data::String)
           if msg.content["data"]["type"] == "removed"
             jswidgets[msg.content["data"]["content"]].visible = false
             jsterm_display(widget)
-          elseif msg.content["data"]["type"] == "evt"
-            if msg.content["data"]["t"] == "z"
-              x, y = msg.content["data"]["p"]
-              GR.panzoom([x, y, x, y], msg.content["data"]["f"])
-            end
           end
         end
       end
@@ -291,7 +397,6 @@ end
 
 function send(name::Cstring, id::Int64)
     # Dummy function, not in use
-    print(string("send", name, id, "\n"))
     return convert(Cstring, "String")
 end
 
