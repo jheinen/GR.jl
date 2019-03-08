@@ -26,6 +26,7 @@ else
 end
 
 export
+  initgr,
   opengks,
   closegks,
   inqdspsize,
@@ -273,6 +274,13 @@ function __init__()
         end
     end
     ignore_encoding = "GKS_IGNORE_ENCODING" in keys(ENV)
+end
+
+function initgr()
+  ccall( (:gr_initgr, libGR),
+        Nothing,
+        ()
+        )
 end
 
 function opengks()
