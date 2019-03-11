@@ -26,7 +26,7 @@ end
 function inject_js()
   global comm
   comm = nothing
-  ENV["GRDIR"] = "/Users/deckers/Desktop/gr-installation/"
+  ENV["GRDIR"] = "/usr/local/gr"
   _js_fallback = "https://gr-framework.org/downloads/gr-latest.js"
   _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
     _gr_js = try
