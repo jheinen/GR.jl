@@ -147,6 +147,7 @@ export
   closemeta,
   shadepoints,
   shadelines,
+  setcolormapfromrgb,
   # Convenience functions
   jlgr,
   colormap,
@@ -3534,6 +3535,22 @@ function shadelines(x, y; dims=[1200, 1200], xform=1)
           (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32),
           n, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
           xform, w, h)
+end
+
+function setcolormapfromrgb(r, g, b; positions=Nothing)
+    @assert length(r) == length(g) == length(b)
+    n = length(r)
+    if positions === Nothing
+        positions = C_NULL
+    else
+        @assert length(positions) == n
+        positions = convert(Vector{Float64}, positions)
+    end
+    ccall( (:gr_setcolormapfromrgb, libGR),
+          Nothing,
+          (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
+          n, convert(Vector{Float64}, r), convert(Vector{Float64}, g),
+          convert(Vector{Float64}, b), positions)
 end
 
 function panzoom(x, y, zoom)
