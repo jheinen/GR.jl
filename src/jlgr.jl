@@ -140,6 +140,13 @@ function set_viewport(kind, subplot)
     if kind in (:contour, :contourf, :hexbin, :heatmap, :surface, :trisurf, :volume)
         viewport[2] -= 0.1
     end
+    if kind in (:line, :step, :scatter, :stem) && haskey(plt.kvs, :labels)
+        location = get(plt.kvs, :location, 1)
+        if location in (11, 12, 13)
+            w, h = legend_size()
+            viewport[2] -= w + 0.1
+        end
+    end
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
 
     plt.kvs[:viewport] = viewport
@@ -482,11 +489,8 @@ function text(x, y, s)
     end
 end
 
-function draw_legend()
-    viewport = plt.kvs[:viewport]
-    location = get(plt.kvs, :location, 1)
-    num_labels = length(plt.kvs[:labels])
-    GR.savestate()
+function legend_size()
+    scale = Int(GR.inqscale())
     GR.selntran(0)
     GR.setscale(0)
     w = 0
@@ -496,17 +500,36 @@ function draw_legend()
         w  = max(w, tbx[3])
         h += max(tby[3] - tby[1], 0.03)
     end
-    if location in (8, 9, 10)
-        px = 0.5 * (viewport[1] + viewport[2] - w)
+    GR.setscale(scale)
+    GR.selntran(1)
+    w, h
+end
+
+function draw_legend()
+    w, h = legend_size()
+    viewport = plt.kvs[:viewport]
+    location = get(plt.kvs, :location, 1)
+    num_labels = length(plt.kvs[:labels])
+    GR.savestate()
+    GR.selntran(0)
+    GR.setscale(0)
+    if location in (11, 12, 13)
+        px = viewport[2] + 0.11
+    elseif location in (8, 9, 10)
+        px = 0.5 * (viewport[1] + viewport[2] - w + 0.05)
     elseif location in (2, 3, 6)
         px = viewport[1] + 0.11
     else
         px = viewport[2] - 0.05 - w
     end
-    if location in (5, 6, 7, 10)
-        py = 0.5 * (viewport[3] + viewport[4] + h) - 0.03
-    elseif location in (3, 4, 8)
+    if location in (5, 6, 7, 10, 12)
+        py = 0.5 * (viewport[3] + viewport[4] + h - 0.03)
+    elseif location == 13
         py = viewport[3] + h
+    elseif location in (3, 4, 8)
+        py = viewport[3] + h + 0.03
+    elseif location == 11
+        py = viewport[4] - 0.03
     else
         py = viewport[4] - 0.06
     end
