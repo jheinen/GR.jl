@@ -308,7 +308,7 @@ function set_window(kind)
     plt.kvs[:xaxis] = xtick, xorg, majorx
 
     ymin, ymax = plt.kvs[:yrange]
-    if kind in (:stem, :hist) && !haskey(plt.kvs, :ylim)
+    if kind == :hist && !haskey(plt.kvs, :ylim)
         ymin = 0
     end
     if scale & GR.OPTION_Y_LOG == 0
