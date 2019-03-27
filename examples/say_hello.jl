@@ -1,4 +1,4 @@
-ENV["GKS_IGNORE_ENCODING"] = "1"
+ENV["GKS_ENCODING"] = "utf8"
 
 using GR
 

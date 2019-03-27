@@ -204,7 +204,7 @@ file_path = None
 figure_count = None
 send_c = C_NULL
 recv_c = C_NULL
-ignore_encoding = false
+encoding = "latin1"
 
 @static if os == :Windows
   const libGR = "libGR.dll"
@@ -218,7 +218,7 @@ isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Mai
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected()
 
 function __init__()
-    global display_name, mime_type, file_path, send_c, recv_c, ignore_encoding
+    global display_name, mime_type, file_path, send_c, recv_c, encoding
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
         if grdir == ""
@@ -274,7 +274,13 @@ function __init__()
             ENV["GKS_FILEPATH"] = file_path
         end
     end
-    ignore_encoding = "GKS_IGNORE_ENCODING" in keys(ENV)
+    if "GKS_IGNORE_ENCODING" in keys(ENV)
+        encoding = "utf8"
+    elseif "GKS_ENCODING" in keys(ENV)
+        if ENV["GKS_ENCODING"] in ("utf8", "utf-8")
+            encoding = "utf8"
+        end
+    end
 end
 
 function initgr()
@@ -508,7 +514,7 @@ function polymarker(x, y)
 end
 
 function latin1(string)
-  if ignore_encoding
+  if encoding != "latin1"
     return string
   end
   b = unsafe_wrap(Array{UInt8,1}, pointer(string), sizeof(string))
