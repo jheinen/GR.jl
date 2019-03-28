@@ -45,13 +45,16 @@ function inject_js()
         this.gr = [];
         this.args = [];
         this.canvas = [];
+        this.overlay_canvas = [];
         this.comm = undefined;
         this.waiting = [];
         this.oncanv = [];
         this.panning = false;
         this.prev_mouse_pos = undefined;
         this.boxzoom = false;
+        this.keep_aspect_ratio = true;
         this.boxzoom_point = [0, 0];
+        this.BOXZOOM_THRESHOLD = 10;
 
         function saveLoad(url, callback, maxtime) {
           let script = document.createElement('script');
@@ -112,6 +115,9 @@ function inject_js()
           } else if (event.button == 2) {
             this.panning = false;
             this.boxzoom = true;
+            if (event.ctrlKey) {
+              this.keep_aspect_ratio = false;
+            }
             this.boxzoom_point = getCoords(canv, event);;
           }
         }
@@ -119,7 +125,7 @@ function inject_js()
         function handleMouseup(event, canv, comm, gr, args) {
           if (this.boxzoom) {
             let coords = getCoords(canv, event);
-            if ((Math.abs(this.boxzoom_point[0] - coords[0]) >= 10) && (Math.abs(this.boxzoom_point[1] - coords[1]) >= 10)) {
+            if ((Math.abs(this.boxzoom_point[0] - coords[0]) >= this.BOXZOOM_THRESHOLD) && (Math.abs(this.boxzoom_point[1] - coords[1]) >= this.BOXZOOM_THRESHOLD)) {
               let mouseargs = gr.newmeta();
               if (this.boxzoom_point[0] < coords[0]) {
                 gr.meta_args_push(mouseargs, "left", "i", [this.boxzoom_point[0]]);
@@ -135,6 +141,11 @@ function inject_js()
                 gr.meta_args_push(mouseargs, "bottom", "i", [this.boxzoom_point[1]]);
                 gr.meta_args_push(mouseargs, "top", "i", [coords[1]]);
               }
+              if (this.keep_aspect_ratio) {
+                gr.meta_args_push(mouseargs, "keep_aspect_ratio", "i", [1]);
+              } else {
+                gr.meta_args_push(mouseargs, "keep_aspect_ratio", "i", [0]);
+              }
               gr.inputmeta(mouseargs);
               gr.plotmeta();
             }
@@ -144,13 +155,21 @@ function inject_js()
           canv.style.cursor = 'auto';
           this.panning = false;
           this.boxzoom = false;
+          this.keep_aspect_ratio = true;
+          let context = canv.getContext('2d');
+          context.clearRect(0, 0, canv.width, canv.height);
         }
 
         function handleMouseleave(event, canv, comm, gr, args) {
           canv.style.cursor = 'auto';
           this.panning = false;
           this.prev_mouse_pos = undefined;
+          if (this.boxzoom) {
+            let context = canv.getContext('2d');
+            context.clearRect(0, 0, canv.width, canv.height);
+          }
           this.boxzoom = false;
+          this.keep_aspect_ratio = true;
         }
 
         function handleMousemove(event, canv, comm, gr, args) {
@@ -169,11 +188,15 @@ function inject_js()
             let context = canv.getContext('2d');
             let mousex = coords[0];
             let mousey = coords[1];
-            if (mousex / canv.width < mousey / canv.height) {
-              mousey = mousex * canv.height / canv.width;
-            } else {
-              mousex = mousey * canv.width / canv.height;
+            /*
+            if (this.keep_aspect_ratio) {
+              if (mousex / canv.width > mousey / canv.height) {
+                mousey = this.prev_mouse_pos[1] + (mousex - this.prev_mouse_pos[0]) / canv.width;
+              } else {
+                mousex = this.prev_mouse_pos[1] + (mousey - this.prev_mouse_pos[1]) / canv.height;
+              }
             }
+            */
 
             let diff = [mousex - this.boxzoom_point[0], mousey - this.boxzoom_point[1]];
             context.clearRect(0, 0, canv.width, canv.height);
