@@ -41,23 +41,27 @@ function inject_js()
   _jsterm = """
     if (typeof grJSTermRunning === 'undefined') {
       function JSTerm() {
-        this.onready = [];
-        this.gr = [];
-        this.args = [];
-        this.canvas = [];
-        this.overlay_canvas = [];
-        this.comm = undefined;
-        this.waiting = [];
-        this.oncanv = [];
-        this.panning = false;
-        this.prev_mouse_pos = undefined;
-        this.boxzoom = false;
-        this.keep_aspect_ratio = true;
-        this.boxzoom_point = [0, 0];
-        this.boxzoomTriggerTimeout = undefined;
-
         this.BOXZOOM_THRESHOLD = 5;
         this.BOXZOOM_TRIGGER_THRESHHOLD = 1000;
+
+        function init() {
+          this.onready = [];
+          this.gr = [];
+          this.args = [];
+          this.canvas = [];
+          this.overlay_canvas = [];
+          this.comm = undefined;
+          this.waiting = [];
+          this.oncanv = [];
+          this.panning = false;
+          this.prev_mouse_pos = undefined;
+          this.boxzoom = false;
+          this.keep_aspect_ratio = true;
+          this.boxzoom_point = [0, 0];
+          this.boxzoomTriggerTimeout = undefined;
+        }
+
+        init();
 
         function saveLoad(url, callback, maxtime) {
           let script = document.createElement('script');
@@ -361,16 +365,6 @@ function inject_js()
         }
 
         function onLoad() {
-          Jupyter.notebook.events.on('execution_request.Kernel', function() {
-            for (var key in this.gr) {
-              if (this.args.hasOwnProperty(key)) {
-                this.gr[key].deletemeta(this.args[key]);
-              }
-            }
-            this.gr = [];
-            this.args = [];
-          });
-          // TODO restart event
           let kernel = Jupyter.notebook.kernel;
           if (typeof kernel === 'undefined' || kernel == null) {
             console.error('JSTerm: No kernel detected');
@@ -379,6 +373,7 @@ function inject_js()
           register_comm(kernel);
           Jupyter.notebook.events.on('kernel_ready.Kernel', function() {
             kernel = IPython.notebook.kernel;
+            init();
             register_comm(kernel);
           });
         }
