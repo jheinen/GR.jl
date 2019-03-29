@@ -54,7 +54,10 @@ function inject_js()
         this.boxzoom = false;
         this.keep_aspect_ratio = true;
         this.boxzoom_point = [0, 0];
+        this.boxzoomTriggerTimeout = undefined;
+
         this.BOXZOOM_THRESHOLD = 5;
+        this.BOXZOOM_TRIGGER_THRESHHOLD = 1000;
 
         function saveLoad(url, callback, maxtime) {
           let script = document.createElement('script');
@@ -95,6 +98,9 @@ function inject_js()
         }
 
         function handlewheel(event, canv, comm, gr, args) {
+          if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
+            clearTimeout(this.boxzoomTriggerTimeout);
+          }
           let mouseargs = gr.newmeta();
           let coords = getCoords(canv, event);
           gr.meta_args_push(mouseargs, "x", "i", [coords[0]]);
@@ -107,22 +113,34 @@ function inject_js()
         }
 
         function handleMousedown(event, canv, comm, gr, args) {
+          if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
+            clearTimeout(this.boxzoomTriggerTimeout);
+          }
           if (event.button == 0) {
             canv.style.cursor = 'move';
             this.panning = true;
             this.boxzoom = false;
-            this.prev_mouse_pos = getCoords(canv, event);;
+            this.prev_mouse_pos = getCoords(canv, event);
+            this.boxzoomTriggerTimeout = setTimeout(function() {startBoxzoom(event, canv)}, this.BOXZOOM_TRIGGER_THRESHHOLD);
           } else if (event.button == 2) {
-            this.panning = false;
-            this.boxzoom = true;
-            if (event.ctrlKey) {
-              this.keep_aspect_ratio = false;
-            }
-            this.boxzoom_point = getCoords(canv, event);;
+            startBoxzoom(event, canv);
           }
         }
 
+        function startBoxzoom(event, canv) {
+          this.panning = false;
+          this.boxzoom = true;
+          if (event.ctrlKey) {
+            this.keep_aspect_ratio = false;
+          }
+          this.boxzoom_point = getCoords(canv, event);
+          canv.style.cursor = 'nwse-resize';
+        }
+
         function handleMouseup(event, canv, comm, gr, args) {
+          if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
+            clearTimeout(this.boxzoomTriggerTimeout);
+          }
           if (this.boxzoom) {
             let coords = getCoords(canv, event);
             if ((Math.abs(this.boxzoom_point[0] - coords[0]) >= this.BOXZOOM_THRESHOLD) && (Math.abs(this.boxzoom_point[1] - coords[1]) >= this.BOXZOOM_THRESHOLD)) {
@@ -161,6 +179,9 @@ function inject_js()
         }
 
         function handleMouseleave(event, canv, comm, gr, args) {
+          if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
+            clearTimeout(this.boxzoomTriggerTimeout);
+          }
           canv.style.cursor = 'auto';
           this.panning = false;
           this.prev_mouse_pos = undefined;
@@ -175,6 +196,9 @@ function inject_js()
         function handleMousemove(event, canv, comm, gr, args) {
           let coords = getCoords(canv, event);
           if (this.panning) {
+            if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
+              clearTimeout(this.boxzoomTriggerTimeout);
+            }
             let mouseargs = gr.newmeta();
             gr.meta_args_push(mouseargs, "x", "i", [this.prev_mouse_pos[0]]);
             gr.meta_args_push(mouseargs, "y", "i", [this.prev_mouse_pos[1]]);
