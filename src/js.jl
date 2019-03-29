@@ -54,7 +54,7 @@ function inject_js()
         this.boxzoom = false;
         this.keep_aspect_ratio = true;
         this.boxzoom_point = [0, 0];
-        this.BOXZOOM_THRESHOLD = 10;
+        this.BOXZOOM_THRESHOLD = 5;
 
         function saveLoad(url, callback, maxtime) {
           let script = document.createElement('script');
@@ -188,17 +188,16 @@ function inject_js()
             let context = canv.getContext('2d');
             let mousex = coords[0];
             let mousey = coords[1];
-            /*
+            let diff = [mousex - this.boxzoom_point[0], mousey - this.boxzoom_point[1]];
             if (this.keep_aspect_ratio) {
-              if (mousex / canv.width > mousey / canv.height) {
-                mousey = this.prev_mouse_pos[1] + (mousex - this.prev_mouse_pos[0]) / canv.width;
+              if (Math.abs(diff[0]) / canv.width > Math.abs(diff[1]) / canv.height) {
+                let factor = Math.abs(coords[0] - this.boxzoom_point[0]) / canv.width
+                diff[1] = Math.sign(diff[1]) * factor * canv.height;
               } else {
-                mousex = this.prev_mouse_pos[1] + (mousey - this.prev_mouse_pos[1]) / canv.height;
+                let factor = Math.abs(coords[1] - this.boxzoom_point[1]) / canv.height;
+                diff[0] = Math.sign(diff[0]) * factor * canv.width;
               }
             }
-            */
-
-            let diff = [mousex - this.boxzoom_point[0], mousey - this.boxzoom_point[1]];
             context.clearRect(0, 0, canv.width, canv.height);
             if (diff[0] * diff[1] >= 0) {
               canv.style.cursor = 'nwse-resize';
