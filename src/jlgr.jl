@@ -1099,13 +1099,15 @@ function plot_data(flag=true)
                 zmin, zmax = get(plt.kvs, :zlim, (minimum(z), maximum(z)))
             end
             GR.setspace(zmin, zmax, 0, 90)
-            levels = get(plt.kvs, :levels, 20)
+            levels = get(plt.kvs, :levels, 0)
+            clabels = get(plt.kvs, :clabels, false)
             if typeof(levels) <: Int
-                h = linspace(zmin, zmax, levels)
+                hmin, hmax = GR.adjustrange(zmin, zmax)
+                h = linspace(hmin, hmax, levels == 0 ? 21 : levels + 1)
             else
                 h = float(levels)
             end
-            GR.contour(x, y, h, z, 1000)
+            GR.contour(x, y, h, z, clabels ? 1 : 1000)
             colorbar(0, length(h))
         elseif kind == :contourf
             zmin, zmax = plt.kvs[:zrange]
@@ -1114,10 +1116,11 @@ function plot_data(flag=true)
                 zmin, zmax = get(plt.kvs, :zlim, (minimum(z), maximum(z)))
             end
             GR.setspace(zmin, zmax, 0, 90)
-            levels = get(plt.kvs, :levels, 20)
-            clabels = get(plt.kvs, :clabels, true)
+            levels = get(plt.kvs, :levels, 0)
+            clabels = get(plt.kvs, :clabels, false)
             if typeof(levels) <: Int
-                h = linspace(zmin, zmax, levels)
+                hmin, hmax = GR.adjustrange(zmin, zmax)
+                h = linspace(hmin, hmax, levels == 0 ? 21 : levels + 1)
             else
                 h = float(levels)
             end
