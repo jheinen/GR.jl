@@ -16,9 +16,6 @@ end
 @static if VERSION < v"0.7.0-DEV.3155"
   const popfirst! = shift!
 end
-@static if VERSION > v"0.7-"
-  const STDOUT = stdout
-end
 @static if VERSION >= v"0.7.0-DEV.2338"
     import Base64
 else
@@ -3203,8 +3200,8 @@ function show()
         rm(file_path)
         return nothing
     elseif mime_type == "mlterm"
-        content = read(file_path)
-        write(STDOUT, content)
+        content = read(file_path, String)
+        println(content)
         rm(file_path)
         return nothing
     end
