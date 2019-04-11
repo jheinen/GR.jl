@@ -309,7 +309,7 @@ function set_window(kind)
 
     ymin, ymax = plt.kvs[:yrange]
     if kind == :hist && !haskey(plt.kvs, :ylim)
-        ymin = 0
+        ymin = scale & GR.OPTION_Y_LOG == 0 ? 0 : 1
     end
     if scale & GR.OPTION_Y_LOG == 0
         if !haskey(plt.kvs, :ylim) && plt.kvs[:panzoom] == None
