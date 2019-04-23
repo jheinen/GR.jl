@@ -1337,13 +1337,13 @@ function plot_args(args; fmt=:xys)
 
         isvector(x) && (x = vec(x))
 
-        if typeof(y) == Function
+        if isa(y, Function)
             y = [y(a) for a in x]
         else
             isvector(y) && (y = vec(y))
         end
         if given(z)
-            if fmt == :xyzc && typeof(z) == Function
+            if fmt == :xyzc && isa(z, Function)
                 z = [z(a,b) for a in x, b in y]
             else
                 isvector(z) && (z = vec(z))
@@ -1443,7 +1443,7 @@ This function can receive one or more of the following:
     julia> # Draw the first plot
     julia> plot(x, y)
     julia> # Plot graph over it
-    julia> oplot(x, x.^3 .+ x.^2 .+ x)
+    julia> oplot(x, x -> x^3 + x^2 + x)
 """
 function oplot(args::PlotArg...; kv...)
     create_context(:line, Dict(kv))
@@ -1474,7 +1474,7 @@ This function can receive one or more of the following:
     julia> # Plot x and y
     julia> step(x, y)
     julia> # Plot x and a callable
-    julia> step(x, x -> x .^ 3 .+ x .^ 2 .+ x)
+    julia> step(x, x -> x^3 + x^2 + x)
     julia> # Plot y, using its indices for the x values
     julia> step(y)
     julia> # Use next y step directly after x each position
@@ -1518,7 +1518,7 @@ current colormap.
     julia> # Plot x and y
     julia> scatter(x, y)
     julia> # Plot x and a callable
-    julia> scatter(x, 0.2 .* x .+ 0.4)
+    julia> scatter(x, x -> 0.2 * x + 0.4)
     julia> # Plot y, using its indices for the x values
     julia> scatter(y)
     julia> # Plot a diagonal with increasing size and color
@@ -1557,7 +1557,7 @@ This function can receive one or more of the following:
     julia> # Plot x and y
     julia> stem(x, y)
     julia> # Plot x and a callable
-    julia> stem(x, x.^3 .+ x.^2 .+ x .+ 6)
+    julia> stem(x, x -> x^3 + x^2 + x + 6)
     julia> # Plot y, using its indices for the x values
     julia> stem(y)
 """
@@ -1681,7 +1681,7 @@ provided points, a value of 0 will be used.
     julia> # Draw the contour plot
     julia> contour(x, y, z)
     julia> # Draw the contour plot using a callable
-    julia> contour(x, y, sin.(x) .+ cos.(y))
+    julia> contour(x, y, (x,y) -> sin(x) + cos(y))
 """
 function contour(args...; kv...)
     create_context(:contour, Dict(kv))
@@ -1726,7 +1726,7 @@ provided points, a value of 0 will be used.
     julia> # Draw the contour plot
     julia> contourf(x, y, z)
     julia> # Draw the contour plot using a callable
-    julia> contourf(x, y, sin.(x) .+ cos.(y))
+    julia> contourf(x, y, (x,y) -> sin(x) + cos(y))
 """
 function contourf(args...; kv...)
     create_context(:contourf, Dict(kv))
@@ -1845,7 +1845,7 @@ provided points, a value of 0 will be used.
     julia> # Draw the wireframe plot
     julia> wireframe(x, y, z)
     julia> # Draw the wireframe plot using a callable
-    julia> wireframe(x, y, sin.(x) .+ cos.(y))
+    julia> wireframe(x, y, (x,y) -> sin(x) + cos(y))
 """
 function wireframe(args...; kv...)
     create_context(:wireframe, Dict(kv))
@@ -1890,7 +1890,7 @@ provided points, a value of 0 will be used.
     julia> # Draw the surface plot
     julia> surface(x, y, z)
     julia> # Draw the surface plot using a callable
-    julia> surface(x, y, sin.(x) .+ cos.(y))
+    julia> surface(x, y, (x,y) -> sin(x) + cos(y))
 """
 function surface(args...; kv...)
     create_context(:surface, Dict(kv))
@@ -2261,7 +2261,7 @@ This function can receive one or more of the following:
     julia> # Plot angles and radii
     julia> polar(angles, radii)
     julia> # Plot angles and a callable
-    julia> polar(angles, cos.(radii) .^ 2)
+    julia> polar(angles, r -> cos(r) ^ 2)
 """
 function polar(args...; kv...)
     create_context(:polar, Dict(kv))
