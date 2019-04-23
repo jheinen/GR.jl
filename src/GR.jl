@@ -2000,7 +2000,7 @@ Data is ordered as shown in the following table:
 function surface(px, py, pz, option::Int)
   nx = length(px)
   ny = length(py)
-  if typeof(pz) == Function
+  if isa(pz, Function)
     f = pz
     pz = Float64[f(x,y) for y in py, x in px]
   end
@@ -2053,7 +2053,7 @@ function contour(px, py, h, pz, major_h::Int)
   nx = length(px)
   ny = length(py)
   nh = length(h)
-  if typeof(pz) == Function
+  if isa(pz, Function)
     f = pz
     pz = Float64[f(x,y) for y in py, x in px]
   end
@@ -2103,7 +2103,7 @@ function contourf(px, py, h, pz, major_h::Int)
   nx = length(px)
   ny = length(py)
   nh = length(h)
-  if typeof(pz) == Function
+  if isa(pz, Function)
     f = pz
     pz = Float64[f(x,y) for y in py, x in px]
   end
@@ -3284,7 +3284,7 @@ end
 function interp2(X, Y, Z, Xq, Yq, method::Int=0, extrapval=0)
   nx = length(X)
   ny = length(Y)
-  if typeof(Z) == Function
+  if isa(Z, Function)
     f = Z
     Z = Float64[f(x,y) for y in Y, x in X]
   end
