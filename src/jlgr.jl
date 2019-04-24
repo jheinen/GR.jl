@@ -60,6 +60,14 @@ const distinct_cmap = [ 0, 1, 984, 987, 989, 983, 994, 988 ]
   repmat(A::AbstractArray, m::Int, n::Int) = repeat(A::AbstractArray, m::Int, n::Int)
 end
 
+function _min(a)
+  minimum(filter(!isnan, a))
+end
+
+function _max(a)
+  maximum(filter(!isnan, a))
+end
+
 mutable struct PlotObject
   obj
   args
@@ -766,8 +774,8 @@ function plot_img(I)
         width, height, data = GR.readimage(I)
     else
         width, height = size(I)
-        minI = minimum(I)
-        maxI = maximum(I)
+        minI = _min(I)
+        maxI = _max(I)
         data = float(I) .- minI
         if minI != maxI
             data ./= maxI .- minI
@@ -833,9 +841,9 @@ function plot_iso(V)
     end
 
     GR.selntran(0)
-    values = round.(UInt16, (V .- minimum(V)) ./ (maximum(V) .- minimum(V)) .* (2^16-1))
+    values = round.(UInt16, (V .- _min(V)) ./ (_max(V) .- _min(V)) .* (2^16-1))
     nx, ny, nz = size(V)
-    isovalue = (get(plt.kvs, :isovalue, 0.5) - minimum(V)) / (maximum(V) - minimum(V))
+    isovalue = (get(plt.kvs, :isovalue, 0.5) - _min(V)) / (_max(V) - _min(V))
     rotation = get(plt.kvs, :rotation, 40) * π / 180.0
     tilt = get(plt.kvs, :tilt, 70) * π / 180.0
     r = 2.5
@@ -1047,7 +1055,7 @@ function plot_data(flag=true)
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             if given(z) || given(c)
                 if given(c)
-                    c = (c .- minimum(c)) ./ (maximum(c) .- minimum(c))
+                    c = (c .- _min(c)) ./ (_max(c) .- _min(c))
                     cind = Int[round(Int, 1000 + _i * 255) for _i in c]
                 end
                 for i in 1:length(x)
@@ -1096,7 +1104,7 @@ function plot_data(flag=true)
             zmin, zmax = plt.kvs[:zrange]
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
-                zmin, zmax = get(plt.kvs, :zlim, (minimum(z), maximum(z)))
+                zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 0)
@@ -1113,7 +1121,7 @@ function plot_data(flag=true)
             zmin, zmax = plt.kvs[:zrange]
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
-                zmin, zmax = get(plt.kvs, :zlim, (minimum(z), maximum(z)))
+                zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 0)
@@ -1136,7 +1144,7 @@ function plot_data(flag=true)
         elseif kind == :heatmap
             w, h = size(z)
             cmap = colormap()
-            data = (float(z) .- minimum(z)) ./ (maximum(z) .- minimum(z))
+            data = (float(z) .- _min(z)) ./ (_max(z) .- _min(z))
             if get(plt.kvs, :xflip, false)
                 data = reverse(data, dims=1)
             end
@@ -1178,7 +1186,7 @@ function plot_data(flag=true)
         elseif kind == :scatter3
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             if given(c)
-                c = (c .- minimum(c)) ./ (maximum(c) .- minimum(c))
+                c = (c .- _min(c)) ./ (_max(c) .- _min(c))
                 cind = Int[round(Int, 1000 + _i * 255) for _i in c]
                 for i in 1:length(x)
                     GR.setmarkercolorind(cind[i])
