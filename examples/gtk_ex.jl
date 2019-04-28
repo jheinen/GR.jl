@@ -1,4 +1,4 @@
-using Gtk.ShortNames, GtkReactive, Gtk.GConstants
+using Gtk.ShortNames, Gtk.GConstants
 
 using Printf
 using GR
@@ -14,7 +14,7 @@ function plot(ctx, w, h)
 
     plt = gcf()
     plt[:size] = (w, h)
-    nbins = sl.signal.value
+    nbins = Int64(Gtk.GAccessor.value(sl))
 
     hexbin(x, y, nbins=nbins)
 end
@@ -29,11 +29,6 @@ function draw(widget)
     Gtk.fill(ctx)
 
     plot(ctx, w, h)
-
-    Gtk.select_font_face(ctx, "Sans", 0, 0)
-    Gtk.move_to(ctx, 15, 15)
-    Gtk.set_font_size(ctx, 14)
-    Gtk.show_text(ctx, "Contour Plot using Gtk ...")
 end
 
 function resize_event(widget)
@@ -48,15 +43,21 @@ function motion_notify_event(widget::Gtk.GtkCanvas, event::Gtk.GdkEventMotion)
     @show event.x, event.y
 end
 
+function value_changed(widget::Gtk.GtkScale)
+    global canvas
+    draw(canvas)
+end
+
 win = Window("Gtk") |> (bx = Box(:v))
-sl = slider(10:100)
-push!(sl, 30)
+Gtk.set_gtk_property!(win, :double_buffered, false)
+sl = Scale(false, 10, 100, 1)
+Gtk.GAccessor.value(sl, 30)
 canvas = Canvas(500, 500)
 push!(bx, sl)
 push!(bx, canvas)
 
-Gtk.add_events(canvas, GConstants.GdkEventMask.POINTER_MOTION_HINT)
 signal_connect(motion_notify_event, canvas, "motion-notify-event")
+signal_connect(value_changed, sl, "value_changed")
 
 canvas.resize = resize_event
 canvas.draw = draw
