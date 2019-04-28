@@ -1,22 +1,18 @@
 using Gtk.ShortNames
+using Gtk.GConstants
+
 using Printf
 import GR
 
-function paint(w)
-    ctx = Gtk.getgc(w)
-    h = Gtk.height(w)
-    w = Gtk.width(w)
-
-    Gtk.move_to(ctx, 15, 15)
-    Gtk.set_font_size(ctx, 14)
-    Gtk.show_text(ctx, "Contour Plot using Gtk ...")
-
+function plot(ctx)
     ENV["GKS_WSTYPE"] = "142"
     ENV["GKSconid"] = @sprintf("%lu", UInt64(ctx.ptr))
 
     xd = -2 .+ 4 .* rand(100)
     yd = -2 .+ 4 .* rand(100)
     zd = [xd[i] * exp(-xd[i]^2 - yd[i]^2) for i = 1:100]
+
+    GR.clearws()
 
     GR.setviewport(0.15, 0.95, 0.1, 0.9)
     GR.setwindow(-2, 2, -2, 2)
@@ -37,8 +33,35 @@ function paint(w)
     GR.updatews()
 end
 
+function paint(widget)
+    ctx = Gtk.getgc(widget)
+
+    Gtk.move_to(ctx, 15, 15)
+    Gtk.set_font_size(ctx, 14)
+    Gtk.show_text(ctx, "Contour Plot using Gtk ...")
+
+    plot(ctx)
+end
+
+function resize_event(widget)
+    ctx = Gtk.getgc(widget)
+    h = Gtk.height(widget)
+    w = Gtk.width(widget)
+    @show w, h
+
+    plot(ctx)
+end
+
+function motion_notify_event(widget::Gtk.GtkCanvas, event::Gtk.GdkEventMotion)
+    @show event.x, event.y
+end
+
 win = Gtk.GtkWindow("Gtk", 500, 500)
 canvas = Gtk.GtkCanvas()
+Gtk.add_events(canvas, GConstants.GdkEventMask.POINTER_MOTION_HINT)
+signal_connect(motion_notify_event, canvas, "motion-notify-event")
+
+canvas.resize = resize_event
 Gtk.push!(win, canvas)
 
 Gtk.draw(paint, canvas)
