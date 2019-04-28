@@ -7,13 +7,9 @@ function paint(w)
     h = Gtk.height(w)
     w = Gtk.width(w)
 
-    if !Sys.isapple()
-        Gtk.select_font_face(ctx, "Sans",
-                             Cairo.FONT_SLANT_NORMAL, Cairo.FONT_WEIGHT_NORMAL);
-        Gtk.move_to(ctx, 15, 15)
-        Gtk.set_font_size(ctx, 14)
-        Gtk.show_text(ctx, "Contour Plot using Gtk ...")
-    end
+    Gtk.move_to(ctx, 15, 15)
+    Gtk.set_font_size(ctx, 14)
+    Gtk.show_text(ctx, "Contour Plot using Gtk ...")
 
     ENV["GKS_WSTYPE"] = "142"
     ENV["GKSconid"] = @sprintf("%lu", UInt64(ctx.ptr))
