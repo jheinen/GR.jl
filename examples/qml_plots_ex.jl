@@ -31,7 +31,6 @@ function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
 end
 
 function mousePosition(eventx, eventy, deltay)
-  println(deltay)
   if w > h
     xn = eventx / w
     yn = (h - eventy) / w

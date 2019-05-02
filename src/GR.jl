@@ -16,9 +16,6 @@ end
 @static if VERSION < v"0.7.0-DEV.3155"
   const popfirst! = shift!
 end
-@static if VERSION > v"0.7-"
-  const STDOUT = stdout
-end
 @static if VERSION >= v"0.7.0-DEV.2338"
     import Base64
 else
@@ -26,6 +23,7 @@ else
 end
 
 export
+  initgr,
   opengks,
   closegks,
   inqdspsize,
@@ -92,6 +90,7 @@ export
   axes3d,
   titles3d,
   surface,
+  volume,
   contour,
   hexbin,
   setcolormap,
@@ -145,6 +144,7 @@ export
   closemeta,
   shadepoints,
   shadelines,
+  setcolormapfromrgb,
   # Convenience functions
   jlgr,
   colormap,
@@ -162,6 +162,7 @@ export
   scatter,
   stem,
   histogram,
+  polarhistogram,
   contourf,
   heatmap,
   wireframe,
@@ -200,6 +201,7 @@ file_path = None
 figure_count = None
 send_c = C_NULL
 recv_c = C_NULL
+encoding = "latin1"
 
 @static if os == :Windows
   const libGR = "libGR.dll"
@@ -209,11 +211,11 @@ else
   const libGR3 = "libGR3.so"
 end
 
-isijulia() = isdefined(Main, :IJulia) && isdefined(Main.IJulia, :clear_output)
-isatom() = isdefined(Main, :Atom) && Main.Atom.isconnected()
+isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
+isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected()
 
 function __init__()
-    global display_name, mime_type, file_path, send_c, recv_c
+    global display_name, mime_type, file_path, send_c, recv_c, encoding
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
         if grdir == ""
@@ -263,12 +265,26 @@ function __init__()
         ENV["GKS_FILEPATH"] = file_path
     elseif isatom()
         if Main.Atom.PlotPaneEnabled[] == true
-            mime_type = "atom"
+            mime_type = "svg"
             file_path = tempname() * ".svg"
             ENV["GKSwstype"] = "svg"
             ENV["GKS_FILEPATH"] = file_path
         end
     end
+    if "GKS_IGNORE_ENCODING" in keys(ENV)
+        encoding = "utf8"
+    elseif "GKS_ENCODING" in keys(ENV)
+        if ENV["GKS_ENCODING"] in ("utf8", "utf-8")
+            encoding = "utf8"
+        end
+    end
+end
+
+function initgr()
+  ccall( (:gr_initgr, libGR),
+        Nothing,
+        ()
+        )
 end
 
 function opengks()
@@ -495,6 +511,9 @@ function polymarker(x, y)
 end
 
 function latin1(string)
+  if encoding != "latin1"
+    return string
+  end
   b = unsafe_wrap(Array{UInt8,1}, pointer(string), sizeof(string))
   s = zeros(UInt8, sizeof(string) * 2)
   len = 0
@@ -1981,7 +2000,7 @@ Data is ordered as shown in the following table:
 function surface(px, py, pz, option::Int)
   nx = length(px)
   ny = length(py)
-  if typeof(pz) == Function
+  if isa(pz, Function)
     f = pz
     pz = Float64[f(x,y) for y in py, x in px]
   end
@@ -2034,7 +2053,7 @@ function contour(px, py, h, pz, major_h::Int)
   nx = length(px)
   ny = length(py)
   nh = length(h)
-  if typeof(pz) == Function
+  if isa(pz, Function)
     f = pz
     pz = Float64[f(x,y) for y in py, x in px]
   end
@@ -2084,7 +2103,7 @@ function contourf(px, py, h, pz, major_h::Int)
   nx = length(px)
   ny = length(py)
   nh = length(h)
-  if typeof(pz) == Function
+  if isa(pz, Function)
     f = pz
     pz = Float64[f(x,y) for y in py, x in px]
   end
@@ -2411,7 +2430,7 @@ function fillrect(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
 end
 
 """
-    drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
+    drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Real, a2::Real)
 
 Draw a circular or elliptical arc covering the specified rectangle.
 
@@ -2435,15 +2454,15 @@ such that 0 degrees is at the 3 o'clock position. The center of the arc is the c
 of the given rectangle.
 
 """
-function drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
+function drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Real, a2::Real)
   ccall( (:gr_drawarc, libGR),
         Nothing,
-        (Float64, Float64, Float64, Float64, Int32, Int32),
+        (Float64, Float64, Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax, a1, a2)
 end
 
 """
-    fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
+    fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Real, a2::Real)
 
 Fill a circular or elliptical arc covering the specified rectangle.
 
@@ -2467,10 +2486,10 @@ such that 0 degrees is at the 3 o'clock position. The center of the arc is the c
 of the given rectangle.
 
 """
-function fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Int, a2::Int)
+function fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Real, a2::Real)
   ccall( (:gr_fillarc, libGR),
         Nothing,
-        (Float64, Float64, Float64, Float64, Int32, Int32),
+        (Float64, Float64, Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax, a1, a2)
 end
 
@@ -3057,12 +3076,14 @@ step(args...; kwargs...) = jlgr.step(args...; kwargs...)
 scatter(args...; kwargs...) = jlgr.scatter(args...; kwargs...)
 stem(args...; kwargs...) = jlgr.stem(args...; kwargs...)
 histogram(x; kwargs...) = jlgr.histogram(x; kwargs...)
+polarhistogram(x; kwargs...) = jlgr.polarhistogram(x; kwargs...)
 contour(args...; kwargs...) = jlgr.contour(args...; kwargs...)
 contourf(args...; kwargs...) = jlgr.contourf(args...; kwargs...)
 hexbin(args...; kwargs...) = jlgr.hexbin(args...; kwargs...)
 heatmap(D; kwargs...) = jlgr.heatmap(D; kwargs...)
 wireframe(args...; kwargs...) = jlgr.wireframe(args...; kwargs...)
 surface(args...; kwargs...) = jlgr.surface(args...; kwargs...)
+volume(V; kwargs...) = jlgr.volume(V; kwargs...)
 plot3(args...; kwargs...) = jlgr.plot3(args...; kwargs...)
 scatter3(args...; kwargs...) = jlgr.scatter3(args...; kwargs...)
 title(s) = jlgr.title(s)
@@ -3135,9 +3156,6 @@ function inline(mime="svg", scroll=true)
         elseif mime == "mlterm"
             file_path = tempname() * ".six"
             ENV["GKS_WSTYPE"] = "six"
-        elseif mime == "atom"
-            file_path = tempname() * ".svg"
-            ENV["GKS_WSTYPE"] = "svg"
         elseif mime == "js"
             file_path = None
             ENV["GRDISPLAY"] = "js"
@@ -3182,20 +3200,10 @@ function show()
         rm(file_path)
         return nothing
     elseif mime_type == "mlterm"
-        content = read(file_path)
-        write(STDOUT, content)
+        content = read(file_path, String)
+        println(content)
         rm(file_path)
         return nothing
-    elseif mime_type == "atom"
-        bg = jlgr.background
-        content = Base.HTML(string("""<div style="display: inline-block; background: #""", Base.hex(UInt64(bg), 6, false), """;">""", String(read(file_path)), """</div>"""))
-        rm(file_path)
-        if Main.Atom.PlotPaneEnabled[] == true
-            Main.Atom.render(Main.Atom.PlotPane(), content)
-            return nothing
-        else
-            return content
-        end
     end
     return None
 end
@@ -3276,7 +3284,7 @@ end
 function interp2(X, Y, Z, Xq, Yq, method::Int=0, extrapval=0)
   nx = length(X)
   ny = length(Y)
-  if typeof(Z) == Function
+  if isa(Z, Function)
     f = Z
     Z = Float64[f(x,y) for y in Y, x in X]
   end
@@ -3530,6 +3538,22 @@ function shadelines(x, y; dims=[1200, 1200], xform=1)
           (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32),
           n, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
           xform, w, h)
+end
+
+function setcolormapfromrgb(r, g, b; positions=Nothing)
+    @assert length(r) == length(g) == length(b)
+    n = length(r)
+    if positions === Nothing
+        positions = C_NULL
+    else
+        @assert length(positions) == n
+        positions = convert(Vector{Float64}, positions)
+    end
+    ccall( (:gr_setcolormapfromrgb, libGR),
+          Nothing,
+          (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
+          n, convert(Vector{Float64}, r), convert(Vector{Float64}, g),
+          convert(Vector{Float64}, b), positions)
 end
 
 function panzoom(x, y, zoom)

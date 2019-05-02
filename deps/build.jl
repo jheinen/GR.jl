@@ -32,7 +32,7 @@ function check_grdir()
 end
 
 function get_version()
-    version = v"0.37.0"
+    version = v"0.39.0"
     try
 @static if VERSION >= v"0.7.0-DEV.3656"
         v = installed()["GR"]
@@ -89,17 +89,22 @@ if !check_grdir()
   tarball = "gr-$version-$os-$arch.tar.gz"
   rm("downloads", force=true, recursive=true)
   @info("Downloading pre-compiled GR $version $os binary")
-  url = "gr-framework.org/downloads/$tarball"
-  file = "downloads/$tarball"
   mkpath("downloads")
+  file = "downloads/$tarball"
   try
+    url = "github.com/sciapp/gr/releases/download/v$version/$tarball"
     download("https://$url", file)
   catch
-    @info("Using insecure connection")
+    url = "gr-framework.org/downloads/$tarball"
     try
-      download("http://$url", file)
+      download("https://$url", file)
     catch
-      @info("Cannot download GR run-time")
+      @info("Using insecure connection")
+      try
+        download("http://$url", file)
+      catch
+        @info("Cannot download GR run-time")
+      end
     end
   end
   if os == :Windows

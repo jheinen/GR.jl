@@ -1,51 +1,67 @@
-using Gtk.ShortNames
+using Gtk.ShortNames, Gtk.GConstants
+
 using Printf
-import GR
+using GR
 
-function paint(w)
-    ctx = Gtk.getgc(w)
-    h = Gtk.height(w)
-    w = Gtk.width(w)
+x = randn(1000000)
+y = randn(1000000)
 
-    if !Sys.isapple()
-        Gtk.select_font_face(ctx, "Sans",
-                             Cairo.FONT_SLANT_NORMAL, Cairo.FONT_WEIGHT_NORMAL);
-        Gtk.move_to(ctx, 15, 15)
-        Gtk.set_font_size(ctx, 14)
-        Gtk.show_text(ctx, "Contour Plot using Gtk ...")
-    end
+function plot(ctx, w, h)
+    global sl
 
     ENV["GKS_WSTYPE"] = "142"
     ENV["GKSconid"] = @sprintf("%lu", UInt64(ctx.ptr))
 
-    xd = -2 .+ 4 .* rand(100)
-    yd = -2 .+ 4 .* rand(100)
-    zd = [xd[i] * exp(-xd[i]^2 - yd[i]^2) for i = 1:100]
+    plt = gcf()
+    plt[:size] = (w, h)
+    nbins = Int64(Gtk.GAccessor.value(sl))
 
-    GR.setviewport(0.15, 0.95, 0.1, 0.9)
-    GR.setwindow(-2, 2, -2, 2)
-    GR.setspace(-0.5, 0.5, 0, 90)
-    GR.setmarkersize(1)
-    GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
-    GR.setcharheight(0.024)
-    GR.settextalign(2, 0)
-    GR.settextfontprec(3, 0)
-
-    x, y, z = GR.gridit(xd, yd, zd, 200, 200)
-    levels = LinRange(-0.5, 0.5, 20)
-    GR.contourf(x, y, levels, z, 0)
-    GR.polymarker(xd, yd)
-    GR.settextfontprec(1, 2)
-    GR.axes(0.25, 0.25, -2, -2, 2, 2, 0.01)
-
-    GR.updatews()
+    hexbin(x, y, nbins=nbins)
 end
 
-win = Gtk.GtkWindow("Gtk", 500, 500)
-canvas = Gtk.GtkCanvas()
-Gtk.push!(win, canvas)
+function draw(widget)
+    ctx = Gtk.getgc(widget)
+    w = Gtk.width(widget)
+    h = Gtk.height(widget)
 
-Gtk.draw(paint, canvas)
+    Gtk.rectangle(ctx, 0, 0, w, h)
+    Gtk.set_source_rgb(ctx, 1, 1, 1)
+    Gtk.fill(ctx)
+
+    plot(ctx, w, h)
+end
+
+function resize_event(widget)
+    ctx = Gtk.getgc(widget)
+    h = Gtk.height(widget)
+    w = Gtk.width(widget)
+
+    Gtk.paint(ctx)
+end
+
+function motion_notify_event(widget::Gtk.GtkCanvas, event::Gtk.GdkEventMotion)
+    @show event.x, event.y
+end
+
+function value_changed(widget::Gtk.GtkScale)
+    global canvas
+    draw(canvas)
+end
+
+win = Window("Gtk") |> (bx = Box(:v))
+Gtk.set_gtk_property!(win, :double_buffered, false)
+sl = Scale(false, 10, 100, 1)
+Gtk.GAccessor.value(sl, 30)
+canvas = Canvas(500, 500)
+push!(bx, sl)
+push!(bx, canvas)
+
+signal_connect(motion_notify_event, canvas, "motion-notify-event")
+signal_connect(value_changed, sl, "value_changed")
+
+canvas.resize = resize_event
+canvas.draw = draw
+
 Gtk.showall(win)
 
 if !isinteractive()

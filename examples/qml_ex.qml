@@ -1,5 +1,5 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.0
+import QtQuick 2.12
+import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.0
 import org.julialang 1.1
 
@@ -35,8 +35,8 @@ ApplicationWindow {
         id: nbinsSlider
         width: 100
         value: 30
-        minimumValue: 10
-        maximumValue: 60
+        from: 10
+        to: 60
         stepSize: 1
       }
     }

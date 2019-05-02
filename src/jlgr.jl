@@ -41,11 +41,11 @@ const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :trisurf, :tricont, :shade]
+const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :trisurf, :tricont, :shade, :volume]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
-const kw_args = [:accelerate, :alpha, :backgroundcolor, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :clabels, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
@@ -58,6 +58,14 @@ const distinct_cmap = [ 0, 1, 984, 987, 989, 983, 994, 988 ]
     range(start, stop=stop, length=length)
   end
   repmat(A::AbstractArray, m::Int, n::Int) = repeat(A::AbstractArray, m::Int, n::Int)
+end
+
+function _min(a)
+  minimum(filter(!isnan, a))
+end
+
+function _max(a)
+  maximum(filter(!isnan, a))
 end
 
 mutable struct PlotObject
@@ -123,7 +131,7 @@ function set_viewport(kind, subplot)
         vp[1] *= ratio
         vp[2] *= ratio
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         extent = min(vp[2] - vp[1], vp[4] - vp[3])
         vp1 = 0.5 * (vp[1] + vp[2] - extent)
         vp2 = 0.5 * (vp[1] + vp[2] + extent)
@@ -137,8 +145,15 @@ function set_viewport(kind, subplot)
     viewport[3] = vp3 + 0.125 * (vp4 - vp3)
     viewport[4] = vp3 + 0.925 * (vp4 - vp3)
 
-    if kind in (:contour, :contourf, :hexbin, :heatmap, :surface, :trisurf)
+    if kind in (:contour, :contourf, :hexbin, :heatmap, :surface, :trisurf, :volume)
         viewport[2] -= 0.1
+    end
+    if kind in (:line, :step, :scatter, :stem) && haskey(plt.kvs, :labels)
+        location = get(plt.kvs, :location, 1)
+        if location in (11, 12, 13)
+            w, h = legend_size()
+            viewport[2] -= w + 0.1
+        end
     end
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
 
@@ -162,7 +177,7 @@ function set_viewport(kind, subplot)
         GR.restorestate()
     end
 
-    if kind == :polar
+    if kind in (:polar, :polarhist)
         xmin, xmax, ymin, ymax = viewport
         xcenter = 0.5 * (xmin + xmax)
         ycenter = 0.5 * (ymin + ymax)
@@ -277,7 +292,7 @@ end
 
 function set_window(kind)
     scale = 0
-    if kind != :polar
+    if !(kind in (:polar, :polarhist))
         get(plt.kvs, :xlog, false) && (scale |= GR.OPTION_X_LOG)
         get(plt.kvs, :ylog, false) && (scale |= GR.OPTION_Y_LOG)
         get(plt.kvs, :zlog, false) && (scale |= GR.OPTION_Z_LOG)
@@ -294,7 +309,7 @@ function set_window(kind)
         minmax()
     end
 
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :polarhist, :trisurf, :volume)
         major_count = 2
     else
         major_count = 5
@@ -318,8 +333,8 @@ function set_window(kind)
     plt.kvs[:xaxis] = xtick, xorg, majorx
 
     ymin, ymax = plt.kvs[:yrange]
-    if kind in (:stem, :hist) && !haskey(plt.kvs, :ylim)
-        ymin = 0
+    if kind == :hist && !haskey(plt.kvs, :ylim)
+        ymin = scale & GR.OPTION_Y_LOG == 0 ? 0 : 1
     end
     if scale & GR.OPTION_Y_LOG == 0
         if !haskey(plt.kvs, :ylim) && plt.kvs[:panzoom] == None
@@ -337,7 +352,7 @@ function set_window(kind)
     end
     plt.kvs[:yaxis] = ytick, yorg, majory
 
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         zmin, zmax = plt.kvs[:zrange]
         if scale & GR.OPTION_Z_LOG == 0
             if !haskey(plt.kvs, :zlim)
@@ -357,12 +372,12 @@ function set_window(kind)
     end
 
     plt.kvs[:window] = xmin, xmax, ymin, ymax
-    if kind != :polar
+    if !(kind in (:polar, :polarhist))
         GR.setwindow(xmin, xmax, ymin, ymax)
     else
         GR.setwindow(-1, 1, -1, 1)
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         rotation = get(plt.kvs, :rotation, 40)
         tilt = get(plt.kvs, :tilt, 70)
         GR.setspace(zmin, zmax, rotation, tilt)
@@ -378,14 +393,20 @@ function draw_axes(kind, pass=1)
     ratio = plt.kvs[:ratio]
     xtick, xorg, majorx = plt.kvs[:xaxis]
     ytick, yorg, majory = plt.kvs[:yaxis]
-
+    # enforce scientific notation for logarithmic axes labels
+    if plt.kvs[:scale] & GR.OPTION_X_LOG != 0
+        xtick = 10
+    end
+    if plt.kvs[:scale] & GR.OPTION_Y_LOG != 0
+        ytick = 10
+    end
     GR.setlinecolorind(1)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     GR.setlinewidth(1)
     charheight = max(0.018 * diag, 0.012)
     GR.setcharheight(charheight)
     ticksize = 0.0075 * diag
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         ztick, zorg, majorz = plt.kvs[:zaxis]
         if pass == 1
             GR.grid3d(xtick, 0, ztick, xorg[1], yorg[2], zorg[1], 2, 0, 2)
@@ -410,7 +431,7 @@ function draw_axes(kind, pass=1)
         text(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
         GR.restorestate()
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         xlabel = get(plt.kvs, :xlabel, "")
         ylabel = get(plt.kvs, :ylabel, "")
         zlabel = get(plt.kvs, :zlabel, "")
@@ -493,11 +514,8 @@ function text(x, y, s)
     end
 end
 
-function draw_legend()
-    viewport = plt.kvs[:viewport]
-    location = get(plt.kvs, :location, 1)
-    num_labels = length(plt.kvs[:labels])
-    GR.savestate()
+function legend_size()
+    scale = Int(GR.inqscale())
     GR.selntran(0)
     GR.setscale(0)
     w = 0
@@ -507,17 +525,36 @@ function draw_legend()
         w  = max(w, tbx[3])
         h += max(tby[3] - tby[1], 0.03)
     end
-    if location in (8, 9, 10)
-        px = 0.5 * (viewport[1] + viewport[2] - w)
+    GR.setscale(scale)
+    GR.selntran(1)
+    w, h
+end
+
+function draw_legend()
+    w, h = legend_size()
+    viewport = plt.kvs[:viewport]
+    location = get(plt.kvs, :location, 1)
+    num_labels = length(plt.kvs[:labels])
+    GR.savestate()
+    GR.selntran(0)
+    GR.setscale(0)
+    if location in (11, 12, 13)
+        px = viewport[2] + 0.11
+    elseif location in (8, 9, 10)
+        px = 0.5 * (viewport[1] + viewport[2] - w + 0.05)
     elseif location in (2, 3, 6)
         px = viewport[1] + 0.11
     else
         px = viewport[2] - 0.05 - w
     end
-    if location in (5, 6, 7, 10)
-        py = 0.5 * (viewport[3] + viewport[4] + h) - 0.03
-    elseif location in (3, 4, 8)
+    if location in (5, 6, 7, 10, 12)
+        py = 0.5 * (viewport[3] + viewport[4] + h - 0.03)
+    elseif location == 13
         py = viewport[3] + h
+    elseif location in (3, 4, 8)
+        py = viewport[3] + h + 0.03
+    elseif location == 11
+        py = viewport[4] - 0.03
     else
         py = viewport[4] - 0.06
     end
@@ -827,9 +864,9 @@ function plot_iso(V)
     end
 
     GR.selntran(0)
-    values = round.(UInt16, (V .- minimum(V)) ./ (maximum(V) .- minimum(V)) .* (2^16-1))
+    values = round.(UInt16, (V .- _min(V)) ./ (_max(V) .- _min(V)) .* (2^16-1))
     nx, ny, nz = size(V)
-    isovalue = (get(plt.kvs, :isovalue, 0.5) - minimum(V)) / (maximum(V) - minimum(V))
+    isovalue = (get(plt.kvs, :isovalue, 0.5) - _min(V)) / (_max(V) - _min(V))
     rotation = get(plt.kvs, :rotation, 40) * π / 180.0
     tilt = get(plt.kvs, :tilt, 70) * π / 180.0
     r = 2.5
@@ -968,7 +1005,7 @@ function plot_data(flag=true)
     set_viewport(kind, plt.kvs[:subplot])
     if !plt.kvs[:ax]
         set_window(kind)
-        if kind == :polar
+        if kind in (:polar, :polarhist)
             draw_polar_axes()
         elseif kind != :imshow && kind != :isosurface
             draw_axes(kind)
@@ -1072,35 +1109,54 @@ function plot_data(flag=true)
                 GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
                 GR.fillrect(x[i], x[i+1], ymin, y[i])
             end
+        elseif kind == :polarhist
+            xmin, xmax = extrema(x)
+            ymax = plt.kvs[:window][4]
+            ρ = 2 .* (y ./ ymax .- 0.5)
+            θ = 2pi .* (x .- xmin) ./ (xmax - xmin)
+            for i = 1:length(ρ)
+                GR.setfillcolorind(989)
+                GR.setfillintstyle(GR.INTSTYLE_SOLID)
+                GR.fillarea([0, ρ[i] * cos(θ[i]), ρ[i] * cos(θ[i+1])],
+                            [0, ρ[i] * sin(θ[i]), ρ[i] * sin(θ[i+1])])
+                GR.setfillcolorind(1)
+                GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
+                GR.fillarea([0, ρ[i] * cos(θ[i]), ρ[i] * cos(θ[i+1])],
+                            [0, ρ[i] * sin(θ[i]), ρ[i] * sin(θ[i+1])])
+            end
         elseif kind == :contour
             zmin, zmax = plt.kvs[:zrange]
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
-                zmin, zmax = get(plt.kvs, :zlim, (minimum(z), maximum(z)))
+                zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
             GR.setspace(zmin, zmax, 0, 90)
-            levels = get(plt.kvs, :levels, 20)
+            levels = get(plt.kvs, :levels, 0)
+            clabels = get(plt.kvs, :clabels, false)
             if typeof(levels) <: Int
-                h = linspace(zmin, zmax, levels)
+                hmin, hmax = GR.adjustrange(zmin, zmax)
+                h = linspace(hmin, hmax, levels == 0 ? 21 : levels + 1)
             else
                 h = float(levels)
             end
-            GR.contour(x, y, h, z, 1000)
+            GR.contour(x, y, h, z, clabels ? 1 : 1000)
             colorbar(0, length(h))
         elseif kind == :contourf
             zmin, zmax = plt.kvs[:zrange]
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
-                zmin, zmax = get(plt.kvs, :zlim, (minimum(z), maximum(z)))
+                zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
             GR.setspace(zmin, zmax, 0, 90)
-            levels = get(plt.kvs, :levels, 20)
+            levels = get(plt.kvs, :levels, 0)
+            clabels = get(plt.kvs, :clabels, false)
             if typeof(levels) <: Int
-                h = linspace(zmin, zmax, levels)
+                hmin, hmax = GR.adjustrange(zmin, zmax)
+                h = linspace(hmin, hmax, levels == 0 ? 21 : levels + 1)
             else
                 h = float(levels)
             end
-            GR.contourf(x, y, h, z, 0)
+            GR.contourf(x, y, h, z, clabels ? 1 : 0)
             colorbar(0, length(h))
         elseif kind == :hexbin
             nbins = get(plt.kvs, :nbins, 40)
@@ -1141,6 +1197,13 @@ function plot_data(flag=true)
                 GR.surface(x, y, z, GR.OPTION_COLORED_MESH)
             end
             draw_axes(kind, 2)
+            colorbar(0.05)
+        elseif kind == :volume
+            algorithm = get(plt.kvs, :algorithm, 0)
+            gr3.clear()
+            dmin, dmax = GR.gr3.volume(z, algorithm)
+            draw_axes(kind, 2)
+            plt.kvs[:zrange] = dmin, dmax
             colorbar(0.05)
         elseif kind == :plot3
             GR.polyline3d(x, y, z)
@@ -1308,13 +1371,13 @@ function plot_args(args; fmt=:xys)
 
         isvector(x) && (x = vec(x))
 
-        if typeof(y) == Function
+        if isa(y, Function)
             y = [y(a) for a in x]
         else
             isvector(y) && (y = vec(y))
         end
         if given(z)
-            if fmt == :xyzc && typeof(z) == Function
+            if fmt == :xyzc && isa(z, Function)
                 z = [z(a,b) for a in x, b in y]
             else
                 isvector(z) && (z = vec(z))
@@ -1414,7 +1477,7 @@ This function can receive one or more of the following:
     julia> # Draw the first plot
     julia> plot(x, y)
     julia> # Plot graph over it
-    julia> oplot(x, x.^3 .+ x.^2 .+ x)
+    julia> oplot(x, x -> x^3 + x^2 + x)
 """
 function oplot(args::PlotArg...; kv...)
     create_context(:line, Dict(kv))
@@ -1445,7 +1508,7 @@ This function can receive one or more of the following:
     julia> # Plot x and y
     julia> step(x, y)
     julia> # Plot x and a callable
-    julia> step(x, x -> x .^ 3 .+ x .^ 2 .+ x)
+    julia> step(x, x -> x^3 + x^2 + x)
     julia> # Plot y, using its indices for the x values
     julia> step(y)
     julia> # Use next y step directly after x each position
@@ -1489,7 +1552,7 @@ current colormap.
     julia> # Plot x and y
     julia> scatter(x, y)
     julia> # Plot x and a callable
-    julia> scatter(x, 0.2 .* x .+ 0.4)
+    julia> scatter(x, x -> 0.2 * x + 0.4)
     julia> # Plot y, using its indices for the x values
     julia> scatter(y)
     julia> # Plot a diagonal with increasing size and color
@@ -1528,7 +1591,7 @@ This function can receive one or more of the following:
     julia> # Plot x and y
     julia> stem(x, y)
     julia> # Plot x and a callable
-    julia> stem(x, x.^3 .+ x.^2 .+ x .+ 6)
+    julia> stem(x, x -> x^3 + x^2 + x + 6)
     julia> # Plot y, using its indices for the x values
     julia> stem(y)
 """
@@ -1587,6 +1650,37 @@ function histogram(x; kv...)
 end
 
 """
+Draw a polar histogram.
+
+If **nbins** is **Nothing** or 0, this function computes the number of
+bins as 3.3 * log10(n) + 1,  with n as the number of elements in x,
+otherwise the given number of bins is used for the histogram.
+
+:param x: the values to draw as a polar histogram
+:param num_bins: the number of bins in the polar histogram
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Create example data
+    julia> x = 2 .* rand(100) .- 1
+    julia> # Draw the polar histogram
+    julia> polarhistogram(x, alpha=0.5)
+    julia> # Draw the polar histogram with 19 bins
+    julia> polarhistogram(x, nbins=19, alpha=0.5)
+"""
+function polarhistogram(x; kv...)
+    create_context(:polarhist, Dict(kv))
+
+    nbins = get(plt.kvs, :nbins, 0)
+    x, y = hist(x, nbins)
+    plt.args = [(x, y, Nothing, Nothing, "")]
+
+    plot_data()
+end
+
+"""
 Draw a contour plot.
 
 This function uses the current colormap to display a either a series of
@@ -1621,7 +1715,7 @@ provided points, a value of 0 will be used.
     julia> # Draw the contour plot
     julia> contour(x, y, z)
     julia> # Draw the contour plot using a callable
-    julia> contour(x, y, sin.(x) .+ cos.(y))
+    julia> contour(x, y, (x,y) -> sin(x) + cos(y))
 """
 function contour(args...; kv...)
     create_context(:contour, Dict(kv))
@@ -1666,7 +1760,7 @@ provided points, a value of 0 will be used.
     julia> # Draw the contour plot
     julia> contourf(x, y, z)
     julia> # Draw the contour plot using a callable
-    julia> contourf(x, y, sin.(x) .+ cos.(y))
+    julia> contourf(x, y, (x,y) -> sin(x) + cos(y))
 """
 function contourf(args...; kv...)
     create_context(:contourf, Dict(kv))
@@ -1785,7 +1879,7 @@ provided points, a value of 0 will be used.
     julia> # Draw the wireframe plot
     julia> wireframe(x, y, z)
     julia> # Draw the wireframe plot using a callable
-    julia> wireframe(x, y, sin.(x) .+ cos.(y))
+    julia> wireframe(x, y, (x,y) -> sin(x) + cos(y))
 """
 function wireframe(args...; kv...)
     create_context(:wireframe, Dict(kv))
@@ -1830,12 +1924,20 @@ provided points, a value of 0 will be used.
     julia> # Draw the surface plot
     julia> surface(x, y, z)
     julia> # Draw the surface plot using a callable
-    julia> surface(x, y, sin.(x) .+ cos.(y))
+    julia> surface(x, y, (x,y) -> sin(x) + cos(y))
 """
 function surface(args...; kv...)
     create_context(:surface, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyzc)
+
+    plot_data()
+end
+
+function volume(V; kv...)
+    create_context(:volume, Dict(kv))
+
+    plt.args = [(Nothing, Nothing, V, Nothing, "")]
 
     plot_data()
 end
@@ -2193,7 +2295,7 @@ This function can receive one or more of the following:
     julia> # Plot angles and radii
     julia> polar(angles, radii)
     julia> # Plot angles and a callable
-    julia> polar(angles, cos.(radii) .^ 2)
+    julia> polar(angles, r -> cos(r) ^ 2)
 """
 function polar(args...; kv...)
     create_context(:polar, Dict(kv))
