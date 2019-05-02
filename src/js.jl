@@ -39,400 +39,497 @@ function inject_js()
     _gr_js
   end
   _jsterm = """
-    if (typeof grJSTermRunning === 'undefined') {
-      function JSTerm() {
-        this.BOXZOOM_THRESHOLD = 5;
-        this.BOXZOOM_TRIGGER_THRESHHOLD = 1000;
-        this.MAX_KERNEL_CONNECTION_ATTEMPTS = 25;
-        this.KERNEL_CONNECT_WAIT_TIME = 100;
+    if (typeof grJSTermRunning === 'undefined' || !grJstermReady) {
+      BOXZOOM_THRESHOLD = 5;
+      BOXZOOM_TRIGGER_THRESHHOLD = 1000;
+      MAX_KERNEL_CONNECTION_ATTEMPTS = 25;
+      KERNEL_CONNECT_WAIT_TIME = 100;
+      REFRESH_PLOT_TIMEOUT = 100;
 
-        function init() {
-          this.onready = [];
-          this.gr = [];
-          this.args = [];
-          this.canvas = [];
-          this.overlay_canvas = [];
-          this.comm = undefined;
-          this.waiting = [];
-          this.oncanv = [];
-          this.panning = false;
-          this.prev_mouse_pos = undefined;
-          this.boxzoom = false;
-          this.keep_aspect_ratio = true;
-          this.boxzoom_point = [0, 0];
-          this.boxzoomTriggerTimeout = undefined;
+      let comm = undefined;
+      let idcount = 0;
+      let widgets = [];
+      let jupyterRunning = false;
 
-          this.jupyterRunning = false;
-        }
-
-        init();
-
-        function saveLoad(url, callback, maxtime) {
-          let script = document.createElement('script');
-          script.onload = function() {
-            callback();
-          };
-          script.onerror = function() {
+      function saveLoad(url, callback, maxtime) {
+        let script = document.createElement('script');
+        script.onload = function() {
+          callback();
+        };
+        script.onerror = function() {
+          console.error(url + ' can not be loaded.');
+        };
+        script.src = url;
+        document.head.appendChild(script);
+        setTimeout(function() {
+          if (!grJstermReady) {
             console.error(url + ' can not be loaded.');
-          };
-          script.src = url;
-          document.head.appendChild(script);
-          setTimeout(function() {
-            if (!grJstermReady) {
-              console.error(url + ' can not be loaded.');
+          }
+        }, maxtime);
+      }
+
+      function sendEvt(data) {
+        if (jupyterRunning) {
+          comm.send({
+            "type": "evt",
+            "content": data
+          });
+        }
+      }
+
+      function jsLoaded() {
+        grJstermReady = true;
+        for (let or in onready) {
+          or();
+          onready = [];
+        }
+      }
+
+      function canvasRemoved(id) {
+        if (jupyterRunning) {
+          comm.send({
+            "type": "removed",
+            "content": id
+          });
+        }
+      }
+
+      function saveData(data, id) {
+        if (jupyterRunning) {
+          comm.send({
+            "type": "save",
+            "content": {
+              "id": id,
+              "data": JSON.stringify(data)
             }
-          }, maxtime);
+          });
         }
+      }
 
-        function getCoords(canv, event) {
-          let rect = canv.getBoundingClientRect();
-          //TODO mind the canvas-padding if necessary!
-          return [event.clientX - rect.left, event.clientY - rect.top];
-        }
-
-        function jsLoaded() {
-          grJstermReady = true;
-          for (let i = 0; i < this.onready.length; i++) {
-            this.onready[i]();
-          }
-          this.onready = [];
-        }
-
-        function canvas_removed(id) {
-          if (this.jupyterRunning) {
-            this.comm.send({
-              "type": "removed",
-              "content": id
-              });
-          }
-        }
-
-        function save_data(data, id) {
-          if (this.jupyterRunning) {
-            this.comm.send({
-              "type": "save",
-              "content": {
-                "id": id,
-                "data": JSON.stringify(data)
+      function registerComm(kernel) {
+        kernel.comm_manager.register_target('jsterm_comm', function(c) {
+          c.on_msg(function(msg) {
+            if(typeof msg.content.data.type !== 'undefined' && msg.content.data.type == 'evt') {
+              if (typeof widgets[msg.content.data.json.plot] !== 'undefined') {
+                widgets[msg.content.data.json.plot].msgHandleEvent(msg.content.data.json);
               }
-            });
-          }
-        }
+            } else {
+              draw(msg);
+            }
+          });
+          c.on_close(function() {});
+          window.addEventListener('beforeunload', function(e) {
+            c.close();
+          });
+          comm = c;
+        });
+      }
 
-        function handlewheel(event, canv, gr, args) {
+      function onLoad() {
+        if (typeof Jupyter !== 'undefined') {
+          jupyterRunning = true;
+          initKernel(1);
+        } else {
+          drawSavedData();
+        }
+      };
+
+      function initKernel(attempt) {
+        let kernel = Jupyter.notebook.kernel;
+        if (typeof kernel === 'undefined' || kernel == null) {
+          console.error('JSTerm: No kernel detected');
+          if (attempt < MAX_KERNEL_CONNECTION_ATTEMPTS) {
+            setTimeout(function() {
+              initKernel(attempt + 1);
+            }, KERNEL_CONNECT_WAIT_TIME);
+          }
+        } else {
+          registerComm(kernel);
+          Jupyter.notebook.events.on('kernel_ready.Kernel', function() {
+            kernel = IPython.notebook.kernel;
+            //init();
+            drawSavedData();
+            registerComm(kernel);
+          });
+          drawSavedData();
+        }
+      }
+
+      function draw(msg) {
+        if (!grJstermReady) {
+          onready.push(function() {
+            return draw(msg);
+          });
+        } else if (!GR.is_ready) {
+          GR.ready(function() {
+            return draw(msg);
+          });
+        } else {
+          if (typeof widgets[msg.content.data.canvasid] === 'undefined') {
+            widgets[msg.content.data.canvasid] = new JSTermWidget(idcount, msg.content.data.canvasid);
+            idcount += 1;
+          }
+          widgets[msg.content.data.canvasid].draw(msg);
+        }
+      }
+
+      function drawSavedData() {
+        let data = document.getElementsByClassName("jsterm-data");
+        for (let i = 0; i < data.length; i++) {
+          let msg = data[i].innerText;
+          this.draw(JSON.parse(msg));
+        }
+      }
+
+      if (document.readyState!='loading') {
+        onLoad();
+      } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', onLoad);
+      } else document.attachEvent('onreadystatechange', function() {
+        if (document.readyState=='complete') {
+          onLoad();
+        }
+      });
+
+
+      function JSTermWidget(id, htmlId) {
+        this.canvas = undefined;
+        this.overlayCanvas = undefined;
+        this.args = undefined;
+        this.id = id;  // context id for meta.c (switchmeta)
+        this.gr = undefined;
+        this.htmlId = htmlId;
+
+        this.waiting = false;
+        this.oncanvas = function() {};
+
+        // event handling
+        this.pinching = false;
+        this.panning = false;
+        this.prevMousePos = undefined;
+        this.boxzoom = false;
+        this.keepAspectRatio = true;
+        this.boxzoomTriggerTimeout = undefined;
+        this.boxzoomPoint = [0, 0];
+
+        this.getCoords = function(event) {
+          let rect = this.canvas.getBoundingClientRect();
+          //TODO mind the canvas-padding if necessary!
+          return [Math.floor(event.clientX - rect.left), Math.floor(event.clientY - rect.top)];
+        };
+
+        this.grEventinput = function(mouseargs) {
+          this.gr.switchmeta(this.id);
+          this.gr.inputmeta(mouseargs);
+          this.gr.current_canvas = this.canvas;
+          this.gr.current_context = this.gr.current_canvas.getContext('2d');
+          this.gr.select_canvas();
+          this.gr.plotmeta();
+        };
+
+        this.handleWheel = function(x, y, angle_delta) {
           if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
             clearTimeout(this.boxzoomTriggerTimeout);
           }
-          let mouseargs = gr.newmeta();
-          let coords = getCoords(canv, event);
-          gr.meta_args_push(mouseargs, "x", "i", [coords[0]]);
-          gr.meta_args_push(mouseargs, "y", "i", [coords[1]]);
-          gr.meta_args_push(mouseargs, "angle_delta", "d", [event.deltaY]);
-          gr.inputmeta(mouseargs);
-          gr.plotmeta();
+          let mouseargs = this.gr.newmeta();
+          this.gr.meta_args_push(mouseargs, "x", "i", [x]);
+          this.gr.meta_args_push(mouseargs, "y", "i", [y]);
+          this.gr.meta_args_push(mouseargs, "angle_delta", "d", [angle_delta]);
+          this.grEventinput(mouseargs);
+        };
+
+        this.mouseHandleWheel = function (event) {
+          let coords = this.getCoords(event);
+          sendEvt({
+            "x": coords[0],
+            "y": coords[1],
+            "angle_delta": event.deltaY,
+            "type": "mousewheel",
+            "plot": this.htmlId  // HTML canvas` string id
+          });
+          this.handleWheel(coords[0], coords[1], event.deltaY);
           event.preventDefault();
-        }
+        };
 
-        function handleMousedown(event, canv, gr, args) {
+        this.handleMousedown = function(x, y, button, ctrlKey) {
           if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
             clearTimeout(this.boxzoomTriggerTimeout);
           }
-          if (event.button == 0) {
-            canv.style.cursor = 'move';
+          if (button == 0) {
+            this.overlayCanvas.style.cursor = 'move';
             this.panning = true;
             this.boxzoom = false;
-            this.prev_mouse_pos = getCoords(canv, event);
-            this.boxzoomTriggerTimeout = setTimeout(function() {startBoxzoom(event, canv);}, this.BOXZOOM_TRIGGER_THRESHHOLD);
-          } else if (event.button == 2) {
-            startBoxzoom(event, canv);
+            this.prevMousePos = [x, y];
+            this.boxzoomTriggerTimeout = setTimeout(function() {this.startBoxzoom(x, y, ctrlKey);}.bind(this), BOXZOOM_TRIGGER_THRESHHOLD);
+          } else if (button == 2) {
+            this.startBoxzoom(x, y, ctrlKey);
           }
-        }
+        };
 
-        function startBoxzoom(event, canv) {
+        this.mouseHandleMousedown = function (event) {
+          let coords = this.getCoords(event);
+          sendEvt({
+            "x": coords[0],
+            "y": coords[1],
+            "button": event.button,
+            "ctrlKey": event.ctrlKey,
+            "type": "mousedown",
+            "plot": this.htmlId  // HTML canvas` string id
+          });
+          this.handleMousedown(coords[0], coords[1], event.button, event.ctrlKey);
+          event.preventDefault();
+        };
+
+        this.startBoxzoom = function(x, y, ctrlKey) {
           this.panning = false;
           this.boxzoom = true;
-          if (event.ctrlKey) {
-            this.keep_aspect_ratio = false;
+          if (ctrlKey) {
+            this.keepAspectRatio = false;
           }
-          this.boxzoom_point = getCoords(canv, event);
-          canv.style.cursor = 'nwse-resize';
-        }
+          this.boxzoomPoint = [x, y];
+          this.overlayCanvas.style.cursor = 'nwse-resize';
+        };
 
-        function handleMouseup(event, canv, gr, args) {
+        this.handleMouseup = function(x, y, button) {
           if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
             clearTimeout(this.boxzoomTriggerTimeout);
           }
           if (this.boxzoom) {
-            let coords = getCoords(canv, event);
-            if ((Math.abs(this.boxzoom_point[0] - coords[0]) >= this.BOXZOOM_THRESHOLD) && (Math.abs(this.boxzoom_point[1] - coords[1]) >= this.BOXZOOM_THRESHOLD)) {
-              let mouseargs = gr.newmeta();
-              if (this.boxzoom_point[0] < coords[0]) {
-                gr.meta_args_push(mouseargs, "left", "i", [this.boxzoom_point[0]]);
-                gr.meta_args_push(mouseargs, "right", "i", [coords[0]]);
+            if ((Math.abs(this.boxzoomPoint[0] - x) >= BOXZOOM_THRESHOLD) && (Math.abs(this.boxzoomPoint[1] - y) >= BOXZOOM_THRESHOLD)) {
+              let mouseargs = this.gr.newmeta();
+              if (this.boxzoomPoint[0] < x) {
+                this.gr.meta_args_push(mouseargs, "left", "i", [this.boxzoomPoint[0]]);
+                this.gr.meta_args_push(mouseargs, "right", "i", [x]);
               } else {
-                gr.meta_args_push(mouseargs, "right", "i", [this.boxzoom_point[0]]);
-                gr.meta_args_push(mouseargs, "left", "i", [coords[0]]);
+                this.gr.meta_args_push(mouseargs, "right", "i", [this.boxzoomPoint[0]]);
+                this.gr.meta_args_push(mouseargs, "left", "i", [x]);
               }
-              if (this.boxzoom_point[1] < coords[1]) {
-                gr.meta_args_push(mouseargs, "top", "i", [this.boxzoom_point[1]]);
-                gr.meta_args_push(mouseargs, "bottom", "i", [coords[1]]);
+              if (this.boxzoomPoint[1] < y) {
+                this.gr.meta_args_push(mouseargs, "top", "i", [this.boxzoomPoint[1]]);
+                this.gr.meta_args_push(mouseargs, "bottom", "i", [y]);
               } else {
-                gr.meta_args_push(mouseargs, "bottom", "i", [this.boxzoom_point[1]]);
-                gr.meta_args_push(mouseargs, "top", "i", [coords[1]]);
+                this.gr.meta_args_push(mouseargs, "bottom", "i", [this.boxzoomPoint[1]]);
+                this.gr.meta_args_push(mouseargs, "top", "i", [y]);
               }
-              if (this.keep_aspect_ratio) {
-                gr.meta_args_push(mouseargs, "keep_aspect_ratio", "i", [1]);
+              if (this.keepAspectRatio) {
+                this.gr.meta_args_push(mouseargs, "keepAspectRatio", "i", [1]);
               } else {
-                gr.meta_args_push(mouseargs, "keep_aspect_ratio", "i", [0]);
+                this.gr.meta_args_push(mouseargs, "keepAspectRatio", "i", [0]);
               }
-              gr.inputmeta(mouseargs);
-              gr.plotmeta();
+              this.grEventinput(mouseargs);
             }
-          } else if (this.panning) {
-            this.prev_mouse_pos = undefined;
           }
-          canv.style.cursor = 'auto';
+          this.prevMousePos = undefined;
+          this.overlayCanvas.style.cursor = 'auto';
           this.panning = false;
           this.boxzoom = false;
-          this.keep_aspect_ratio = true;
-          let context = canv.getContext('2d');
-          context.clearRect(0, 0, canv.width, canv.height);
-        }
+          this.keepAspectRatio = true;
+          let context = this.overlayCanvas.getContext('2d');
+          context.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
+        };
 
-        function handleMouseleave(event, canv, gr, args) {
+        this.mouseHandleMouseup = function (event) {
+          let coords = this.getCoords(event);
+          sendEvt({
+            "x": coords[0],
+            "y": coords[1],
+            "button": event.button,
+            "type": "mouseup",
+            "plot": this.htmlId  // HTML canvas` string id
+          });
+          this.handleMouseup(coords[0], coords[1], event.button);
+          event.preventDefault();
+        };
+
+        this.handleLeave = function() {
           if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
             clearTimeout(this.boxzoomTriggerTimeout);
           }
-          canv.style.cursor = 'auto';
+          this.overlayCanvas.style.cursor = 'auto';
           this.panning = false;
-          this.prev_mouse_pos = undefined;
+          this.prevMousePos = undefined;
           if (this.boxzoom) {
-            let context = canv.getContext('2d');
-            context.clearRect(0, 0, canv.width, canv.height);
+            let context = this.overlayCanvas.getContext('2d');
+            context.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
           }
           this.boxzoom = false;
-          this.keep_aspect_ratio = true;
-        }
+          this.keepAspectRatio = true;
+        };
 
-        function handleMousemove(event, canv, gr, args) {
-          let coords = getCoords(canv, event);
+        this.mouseHandleMouseleave = function(event) {
+          this.handleLeave();
+        };
+
+        this.handleMousemove = function(x, y) {
           if (this.panning) {
             if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
               clearTimeout(this.boxzoomTriggerTimeout);
             }
-            let mouseargs = gr.newmeta();
-            gr.meta_args_push(mouseargs, "x", "i", [this.prev_mouse_pos[0]]);
-            gr.meta_args_push(mouseargs, "y", "i", [this.prev_mouse_pos[1]]);
-            gr.meta_args_push(mouseargs, "xshift", "i", [coords[0] - this.prev_mouse_pos[0]]);
-            gr.meta_args_push(mouseargs, "yshift", "i", [coords[1] - this.prev_mouse_pos[1]]);
-            gr.inputmeta(mouseargs);
-            gr.plotmeta();
-            this.prev_mouse_pos = [coords[0], coords[1]];
-            event.preventDefault();
+            let mouseargs = this.gr.newmeta();
+            this.gr.meta_args_push(mouseargs, "x", "i", [this.prevMousePos[0]]);
+            this.gr.meta_args_push(mouseargs, "y", "i", [this.prevMousePos[1]]);
+            this.gr.meta_args_push(mouseargs, "xshift", "i", [x - this.prevMousePos[0]]);
+            this.gr.meta_args_push(mouseargs, "yshift", "i", [y - this.prevMousePos[1]]);
+            this.grEventinput(mouseargs);
+            this.prevMousePos = [x, y];
           } else if (this.boxzoom) {
-            let context = canv.getContext('2d');
-            let mousex = coords[0];
-            let mousey = coords[1];
-            let diff = [mousex - this.boxzoom_point[0], mousey - this.boxzoom_point[1]];
-            if (this.keep_aspect_ratio) {
-              if (Math.abs(diff[0]) / canv.width > Math.abs(diff[1]) / canv.height) {
-                let factor = Math.abs(coords[0] - this.boxzoom_point[0]) / canv.width;
-                diff[1] = Math.sign(diff[1]) * factor * canv.height;
+            let context = this.overlayCanvas.getContext('2d');
+            let diff = [x - this.boxzoomPoint[0], y - this.boxzoomPoint[1]];
+            if (this.keepAspectRatio) {
+              if (Math.abs(diff[0]) / this.overlayCanvas.width > Math.abs(diff[1]) / this.overlayCanvas.height) {
+                let factor = Math.abs(x - this.boxzoomPoint[0]) / this.overlayCanvas.width;
+                diff[1] = Math.sign(diff[1]) * factor * this.overlayCanvas.height;
               } else {
-                let factor = Math.abs(coords[1] - this.boxzoom_point[1]) / canv.height;
-                diff[0] = Math.sign(diff[0]) * factor * canv.width;
+                let factor = Math.abs(y - this.boxzoomPoint[1]) / this.overlayCanvas.height;
+                diff[0] = Math.sign(diff[0]) * factor * this.overlayCanvas.width;
               }
             }
-            context.clearRect(0, 0, canv.width, canv.height);
+            context.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
             if (diff[0] * diff[1] >= 0) {
-              canv.style.cursor = 'nwse-resize';
+              this.overlayCanvas.style.cursor = 'nwse-resize';
             } else {
-              canv.style.cursor = 'nesw-resize';
+              this.overlayCanvas.style.cursor = 'nesw-resize';
             }
             context.fillStyle = '#FFAAAA';
             context.strokeStyle = '#FF0000';
             context.beginPath();
-            context.rect(this.boxzoom_point[0], this.boxzoom_point[1], diff[0], diff[1]);
+            context.rect(this.boxzoomPoint[0], this.boxzoomPoint[1], diff[0], diff[1]);
             context.globalAlpha = 0.2;
             context.fill();
             context.globalAlpha = 1.0;
             context.stroke();
             context.closePath();
-            event.preventDefault();
           }
-        }
+        };
 
-        function handleDoubleclick(event, canv, gr, args) {
-          let mouseargs = gr.newmeta();
-          let coords = getCoords(canv, event);
-          gr.meta_args_push(mouseargs, "x", "i", [coords[0]]);
-          gr.meta_args_push(mouseargs, "y", "i", [coords[1]]);
-          gr.meta_args_push(mouseargs, "key", "s", "r");
-          gr.inputmeta(mouseargs);
-          gr.plotmeta();
+        this.mouseHandleMousemove = function (event) {
+          let coords = this.getCoords(event);
+          sendEvt({
+            "x": coords[0],
+            "y": coords[1],
+            "type": "mousemove",
+            "plot": this.htmlId  // HTML canvas` string id
+          });
+          this.handleMousemove(coords[0], coords[1]);
           event.preventDefault();
-        }
+        };
 
-        function draw(msg) {
-          if (typeof this.waiting['jsterm-' + msg.content.data.canvasid] === 'undefined') {
-            this.waiting['jsterm-' + msg.content.data.canvasid] = false;
+        this.handleDoubleclick = function(x, y) {
+          let mouseargs = this.gr.newmeta();
+          this.gr.meta_args_push(mouseargs, "x", "i", [x]);
+          this.gr.meta_args_push(mouseargs, "y", "i", [y]);
+          this.gr.meta_args_push(mouseargs, "key", "s", "r");
+          this.grEventinput(mouseargs);
+        };
+
+        this.mouseHandleDoubleclick = function(event) {
+          let coords = this.getCoords(event);
+          sendEvt({
+            "x": coords[0],
+            "y": coords[1],
+            "type": "doubleclick",
+            "plot": this.htmlId  // HTML canvas` string id
+          });
+          this.handleDoubleclick(coords[0], coords[1]);
+          event.preventDefault();
+        };
+
+        this.msgHandleEvent = function(msg) {
+          switch (msg.type) {
+            case "mousewheel":
+              this.handleWheel(msg.x, msg.y, msg.angle_delta);
+              break;
+            case "mouseup":
+              this.handleMouseup(msg.x, msg.y, msg.button);
+              break;
+            case "mousedown":
+              this.handleMousedown(msg.x, msg.y, msg.button, msg.ctrlKey);
+              break;
+            case "mousemove":
+              this.handleMousemove(msg.x, msg.y);
+              break;
+            case "doubleclick":
+              this.handleDoubleclick(msg.x, msg.y);
+              break;
+            default:
+              break;
           }
-          if (!grJstermReady) {
-            this.onready.push(function() {
-              return draw(msg);
-            });
-          } else if (!GR.is_ready) {
-            GR.ready(function() {
-              return draw(msg);
-            });
-          } else if (this.waiting['jsterm-' + msg.content.data.canvasid]) {
-            this.oncanv['jsterm-' + msg.content.data.canvasid] = function() {
-              return draw(msg);
+        };
+
+        this.draw = function(msg) {
+          if (this.waiting) {
+            this.oncanvas = function() {
+              return this.draw(msg);
             };
           } else {
             if (document.getElementById('jsterm-' + msg.content.data.canvasid) == null) {
-              canvas_removed(msg.content.data.canvasid);
-              this.canvas['jsterm-' + msg.content.data.canvasid] = undefined;
-              this.waiting['jsterm-' + msg.content.data.canvasid] = true;
-              this.oncanv['jsterm-' + msg.content.data.canvasid] = undefined;
-              this.oncanv['jsterm-' + msg.content.data.canvasid] = function() {
+              canvasRemoved(msg.content.data.canvasid);
+              this.canvas = undefined;
+              this.waiting = true;
+              this.oncanvas = function() {
                 return draw(msg);
               };
               setTimeout(function() {
-                refr_plot('jsterm-' + msg.content.data.canvasid, msg, 0);
-              }, 100);
+                this.refreshPlot(msg, 0);
+              }.bind(this), REFRESH_PLOT_TIMEOUT);
             } else {
-              if (document.getElementById('jsterm-data-' + msg.content.data.canvasid) == null) {
-                save_data(msg, msg.content.data.canvasid);
+              if (document.getElementById('jsterm-data-' + this.htmlId) == null) {
+                saveData(msg, msg.content.data.canvasid);
               }
-              if (typeof this.canvas['jsterm-' + msg.content.data.canvasid] === 'undefined' || typeof this.overlay_canvas['jsterm-' + msg.content.data.canvasid] === 'undefined') {
-                this.canvas['jsterm-' + msg.content.data.canvasid] = document.getElementById('jsterm-' + msg.content.data.canvasid);
-                this.overlay_canvas['jsterm-' + msg.content.data.canvasid] = document.getElementById('jsterm-overlay-' + msg.content.data.canvasid);
-                this.overlay_canvas['jsterm-' + msg.content.data.canvasid].addEventListener('DOMNodeRemoved', function() {
-                  canvas_removed(msg.content.data.canvasid);
-                  this.waiting['jsterm-' + msg.content.data.canvasid] = true;
-                  this.oncanv['jsterm-' + msg.content.data.canvasid] = undefined;
+              if (typeof this.canvas === 'undefined' || typeof this.overlayCanvas === 'undefined') {
+                this.canvas = document.getElementById('jsterm-' + this.htmlId);
+                this.overlayCanvas = document.getElementById('jsterm-overlay-' + this.htmlId);
+                this.overlayCanvas.addEventListener('DOMNodeRemoved', function() {
+                  canvasRemoved(msg.content.data.canvasid);
+                  this.canvas = undefined;
+                  this.waiting = true;
+                  this.oncanvas = function() {};
                 });
-                this.overlay_canvas['jsterm-' + msg.content.data.canvasid].addEventListener('wheel', function(evt) {
-                  handlewheel(evt, this.overlay_canvas['jsterm-' + msg.content.data.canvasid], this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);
-                }.bind(this));
-                this.overlay_canvas['jsterm-' + msg.content.data.canvasid].addEventListener('mousedown', function(evt) {
-                  handleMousedown(evt, this.overlay_canvas['jsterm-' + msg.content.data.canvasid], this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);
-                }.bind(this));
-                this.overlay_canvas['jsterm-' + msg.content.data.canvasid].addEventListener('mousemove', function(evt) {
-                  handleMousemove(evt, this.overlay_canvas['jsterm-' + msg.content.data.canvasid], this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);
-                }.bind(this));
-                this.overlay_canvas['jsterm-' + msg.content.data.canvasid].addEventListener('mouseup', function(evt) {
-                  handleMouseup(evt, this.overlay_canvas['jsterm-' + msg.content.data.canvasid], this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);
-                }.bind(this));
-                this.overlay_canvas['jsterm-' + msg.content.data.canvasid].addEventListener('mouseleave', function(evt) {
-                  handleMouseleave(evt, this.overlay_canvas['jsterm-' + msg.content.data.canvasid], this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);
-                }.bind(this));
-                this.overlay_canvas['jsterm-' + msg.content.data.canvasid].addEventListener('dblclick', function(evt) {
-                  handleDoubleclick(evt, this.overlay_canvas['jsterm-' + msg.content.data.canvasid], this.gr['jsterm-' + msg.content.data.canvasid], this.args['jsterm-' + msg.content.data.canvasid]);
-                }.bind(this));
-                this.overlay_canvas['jsterm-' + msg.content.data.canvasid].addEventListener('contextmenu', function(event) {
+                this.overlayCanvas.style.cursor = 'auto';
+
+                //registering event handler
+                this.overlayCanvas.addEventListener('wheel', function(evt) { this.mouseHandleWheel(evt); }.bind(this));
+                this.overlayCanvas.addEventListener('mousedown', function(evt) { this.mouseHandleMousedown(evt); }.bind(this));
+                this.overlayCanvas.addEventListener('mousemove', function(evt) { this.mouseHandleMousemove(evt); }.bind(this));
+                this.overlayCanvas.addEventListener('mouseup', function(evt) { this.mouseHandleMouseup(evt); }.bind(this));
+                this.overlayCanvas.addEventListener('mouseleave', function(evt) { this.mouseHandleMouseleave(evt); }.bind(this));
+                this.overlayCanvas.addEventListener('dblclick', function(evt) { this.mouseHandleDoubleclick(evt); }.bind(this));
+                this.overlayCanvas.addEventListener('contextmenu', function(event) {
                   event.preventDefault();
                   return false;
                 });
-                this.overlay_canvas['jsterm-' + msg.content.data.canvasid].style.cursor = 'auto';
               }
-              if (typeof this.gr['jsterm-' + msg.content.data.canvasid] === 'undefined') {
-                this.gr['jsterm-' + msg.content.data.canvasid] = new GR('jsterm-' + msg.content.data.canvasid);
+              if (typeof this.gr === 'undefined') {
+                this.gr = new GR('jsterm-' + this.htmlId);
               }
-              if (!this.args.hasOwnProperty('jsterm-' + msg.content.data.canvasid) || typeof this.args['jsterm-' + msg.content.data.canvasid] === 'undefined') {
-                this.args['jsterm-' + msg.content.data.canvasid] = this.gr['jsterm-' + msg.content.data.canvasid].newmeta();
+              if (typeof this.args === 'undefined') {
+                this.args = this.gr.newmeta();
               }
-              this.waiting['jsterm-' + msg.content.data.canvasid] = false;
-              this.gr['jsterm-' + msg.content.data.canvasid].current_canvas = document.getElementById('jsterm-' + msg.content.data.canvasid);
-              this.gr['jsterm-' + msg.content.data.canvasid].current_context = this.gr['jsterm-' + msg.content.data.canvasid].current_canvas.getContext('2d');
-              this.gr['jsterm-' + msg.content.data.canvasid].select_canvas();
-              this.gr['jsterm-' + msg.content.data.canvasid].meta_args_push(this.args['jsterm-' + msg.content.data.canvasid], "size", "dd", [this.canvas['jsterm-' + msg.content.data.canvasid].width, this.canvas['jsterm-' + msg.content.data.canvasid].height]);
-              this.gr['jsterm-' + msg.content.data.canvasid].readmeta(this.args['jsterm-' + msg.content.data.canvasid], msg.content.data.json);
-              this.gr['jsterm-' + msg.content.data.canvasid].plotmeta(this.args['jsterm-' + msg.content.data.canvasid]);
+              this.waiting = false;
+              this.gr.switchmeta(this.id);
+              this.gr.current_canvas = this.canvas; //TODO is this always set? (check)
+              this.gr.current_context = this.gr.current_canvas.getContext('2d');
+              this.gr.select_canvas();
+              this.gr.meta_args_push(this.args, "size", "dd", [this.canvas.width, this.canvas.height]);
+              this.gr.readmeta(this.args, msg.content.data.json);
+              this.gr.plotmeta(this.args);
             }
           }
-        }
+        };
 
-        function refr_plot(id, msg, count) {
-          /*if (count >= 100) {
-            return;
-          }*/
-          // TODO: global count, that resets on new message / activity
-          if (document.getElementById(id) == null) {
+        this.refreshPlot = function(msg, count) {
+          if (document.getElementById('jsterm-' + this.htmlId) == null) {
             setTimeout(function() {
-              refr_plot(id, msg, count + 1);
-            }, 100);
+              this.refreshPlot(msg, count + 1);
+            }.bind(this), REFRESH_PLOT_TIMEOUT);
           } else {
-            this.waiting['jsterm-' + msg.content.data.canvasid] = false;
-            if (typeof this.oncanv['jsterm-' + msg.content.data.canvasid] !== 'undefined') {
-              this.oncanv['jsterm-' + msg.content.data.canvasid]();
+            this.waiting = false;
+            if (typeof this.oncanvas !== 'undefined') {
+              this.oncanvas();
             }
           }
-        }
-
-        function register_comm(kernel) {
-          kernel.comm_manager.register_target('jsterm_comm', function(comm) {
-            comm.on_msg(function(msg) {
-              draw(msg);
-            });
-            comm.on_close(function() {});
-            window.addEventListener('beforeunload', function(e) {
-              comm.close();
-            });
-            this.comm = comm;
-          });
-        }
-
-        function onLoad() {
-          if (typeof Jupyter !== 'undefined') {
-            this.jupyterRunning = true;
-            initKernel(1);
-          } else {
-            drawSavedData();
-          }
-        }
-
-        function initKernel(attempt) {
-          let kernel = Jupyter.notebook.kernel;
-          if (typeof kernel === 'undefined' || kernel == null) {
-            console.error('JSTerm: No kernel detected');
-            if (attempt < this.MAX_KERNEL_CONNECTION_ATTEMPTS) {
-              setTimeout(function() {
-                initKernel(attempt + 1);
-              }, this.KERNEL_CONNECT_WAIT_TIME);
-            }
-          } else {
-            console.log("JSTerm: Kernel detected");
-            register_comm(kernel);
-            Jupyter.notebook.events.on('kernel_ready.Kernel', function() {
-              kernel = IPython.notebook.kernel;
-              init();
-              drawSavedData();
-              register_comm(kernel);
-            });
-            drawSavedData();
-          }
-        }
-
-        function drawSavedData() {
-          let data = document.getElementsByClassName("jsterm-data");
-          for (let i = 0; i < data.length; i++) {
-            draw(JSON.parse(data[i].innerText));
-          }
-        }
-
-        if (document.readyState!='loading') {
-          onLoad();
-        } else if (document.addEventListener) {
-          document.addEventListener('DOMContentLoaded', onLoad);
-        } else document.attachEvent('onreadystatechange', function() {
-          if (document.readyState=='complete') {
-            onLoad();
-          }
-        });
+        };
       }
-      JSTerm();
     }
     var grJSTermRunning = true;"""
   if _gr_js === nothing
@@ -478,6 +575,24 @@ end
 
 comm = nothing
 
+evthandler = function(data)
+  nothing
+end
+
+function register_evthandler(f)
+  global evthandler
+  evthandler = f
+end
+
+function send_evt(f)
+  global comm
+  if comm === nothing
+    error("JSTerm comm not initialized.")
+  else
+    Main.IJulia.send_comm(comm, Dict("json" => f, "type" => "evt"))
+  end
+end
+
 function jsterm_send(widget::JSTermWidget, data::String)
   global js_running, draw_condition, comm, PXWIDTH, PXHEIGHT, counter
   if GR.isijulia()
@@ -491,9 +606,11 @@ function jsterm_send(widget::JSTermWidget, data::String)
         if haskey(msg.content["data"], "type")
           if msg.content["data"]["type"] == "removed"
             jswidgets[msg.content["data"]["content"]].visible = false
-            jsterm_display(widget)
-          else msg.content["data"]["type"] == "save"
+            jsterm_display(jswidgets[msg.content["data"]["content"]])
+          elseif msg.content["data"]["type"] == "save"
             display(HTML(string("<div style=\"display:none;\" id=\"jsterm-data-", msg.content["data"]["content"]["id"], "\" class=\"jsterm-data\">", msg.content["data"]["content"]["data"], "</div>")))
+          elseif msg.content["data"]["type"] == "evt"
+            evthandler(msg.content["data"]["content"])
           end
         end
       end
