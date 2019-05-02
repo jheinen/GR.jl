@@ -45,7 +45,7 @@ const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :h
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
-const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :clabels, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :clabels, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
@@ -215,8 +215,8 @@ function Extrema64(a)
 end
 
 function minmax()
-    xmin = ymin = zmin =  typemax(Float64)
-    xmax = ymax = zmax = -typemax(Float64)
+    xmin = ymin = zmin = cmin =  typemax(Float64)
+    xmax = ymax = zmax = cmax = -typemax(Float64)
     for (x, y, z, c, spec) in plt.args
         if given(x)
             x0, x1 = Extrema64(x)
@@ -236,6 +236,15 @@ function minmax()
             z0, z1 = Extrema64(z)
             zmin = min(z0, zmin)
             zmax = max(z1, zmax)
+        end
+        if given(c)
+            c0, c1 = Extrema64(c)
+            cmin = min(c0, cmin)
+            cmax = max(c1, cmax)
+        elseif given(z)
+            c0, c1 = Extrema64(z)
+            cmin = min(c0, cmin)
+            cmax = max(c1, cmax)
         end
     end
     xmin, xmax = fix_minmax(xmin, xmax)
@@ -264,6 +273,14 @@ function minmax()
         plt.kvs[:zrange] = (z0, z1)
     else
         plt.kvs[:zrange] = zmin, zmax
+    end
+    if haskey(plt.kvs, :clim)
+        c0, c1 = plt.kvs[:clim]
+        if c0 === Nothing c0 = cmin end
+        if c1 === Nothing c1 = cmax end
+        plt.kvs[:crange] = (c0, c1)
+    else
+        plt.kvs[:crange] = cmin, cmax
     end
 end
 
@@ -763,6 +780,16 @@ function subplot(nr, nc, p)
     plt.kvs[:update] = collect(p)[end] == nr * nc
 end
 
+# Normalize a color c with the range [cmin, cmax]
+#   0 <= normalize_color(c, cmin, cmax) <= 1
+function normalize_color(c, cmin, cmax)
+    c = clamp(float(c), cmin, cmax) - cmin
+    if cmin != cmax
+        c /= cmax - cmin
+    end
+    c
+end
+
 function plot_img(I)
     viewport = plt.kvs[:vp][:]
     if haskey(plt.kvs, :title)
@@ -774,12 +801,8 @@ function plot_img(I)
         width, height, data = GR.readimage(I)
     else
         width, height = size(I)
-        minI = _min(I)
-        maxI = _max(I)
-        data = float(I) .- minI
-        if minI != maxI
-            data ./= maxI .- minI
-        end
+        cmin, cmax = plt.kvs[:crange]
+        data = map(x -> normalize_color(x, cmin, cmax), I)
         data = Int32[round(Int32, 1000 + _i * 255) for _i in data]
     end
 
@@ -1055,7 +1078,8 @@ function plot_data(flag=true)
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             if given(z) || given(c)
                 if given(c)
-                    c = (c .- _min(c)) ./ (_max(c) .- _min(c))
+                    cmin, cmax = plt.kvs[:crange]
+                    c = map(x -> normalize_color(x, cmin, cmax), c)
                     cind = Int[round(Int, 1000 + _i * 255) for _i in c]
                 end
                 for i in 1:length(x)
@@ -1144,7 +1168,8 @@ function plot_data(flag=true)
         elseif kind == :heatmap
             w, h = size(z)
             cmap = colormap()
-            data = (float(z) .- _min(z)) ./ (_max(z) .- _min(z))
+            cmin, cmax = plt.kvs[:crange]
+            data = map(x -> normalize_color(x, cmin, cmax), z)
             if get(plt.kvs, :xflip, false)
                 data = reverse(data, dims=1)
             end
@@ -1186,7 +1211,8 @@ function plot_data(flag=true)
         elseif kind == :scatter3
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             if given(c)
-                c = (c .- _min(c)) ./ (_max(c) .- _min(c))
+                cmin, cmax = plt.kvs[:crange]
+                c = map(x -> normalize_color(x, cmin, cmax), c)
                 cind = Int[round(Int, 1000 + _i * 255) for _i in c]
                 for i in 1:length(x)
                     GR.setmarkercolorind(cind[i])
