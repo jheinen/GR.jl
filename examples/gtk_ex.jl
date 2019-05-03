@@ -40,7 +40,7 @@ function resize_event(widget)
 end
 
 function motion_notify_event(widget::Gtk.GtkCanvas, event::Gtk.GdkEventMotion)
-    @show event.x, event.y
+    Gtk.GAccessor.text(lb, @sprintf("(%g, %g)", event.x, event.y))
 end
 
 function value_changed(widget::Gtk.GtkScale)
@@ -50,11 +50,11 @@ end
 
 win = Window("Gtk") |> (bx = Box(:v))
 Gtk.set_gtk_property!(win, :double_buffered, false)
+lb = Label("(-, -)")
 sl = Scale(false, 10, 100, 1)
 Gtk.GAccessor.value(sl, 30)
-canvas = Canvas(500, 500)
-push!(bx, sl)
-push!(bx, canvas)
+canvas = Canvas(600, 450)
+push!(bx, lb, sl, canvas)
 
 signal_connect(motion_notify_event, canvas, "motion-notify-event")
 signal_connect(value_changed, sl, "value_changed")
