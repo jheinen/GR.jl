@@ -301,6 +301,27 @@ function closegks()
         )
 end
 
+# (Information taken from <https://www.iterm2.com/utilities/imgcat>.)
+# tmux requires unrecognized OSC sequences to be wrapped with DCS
+# tmux; <sequence> ST, and for all ESCs in <sequence> to be replaced
+# with ESC ESC. It only accepts ESC backslash for ST. We use TERM
+# instead of TMUX because TERM gets passed through ssh.
+function osc_seq()
+    if startswith(get(ENV, "TERM", ""), "screen")
+        "\033Ptmux;\033\033]"
+    else
+        "\033]"
+    end
+end
+
+function st_seq()
+    if startswith(get(ENV, "TERM", ""), "screen")
+        "\a\033\\"
+    else
+        "\a"
+    end
+end
+
 function inqdspsize()
   mwidth = Cdouble[0]
   mheight = Cdouble[0]
@@ -3191,7 +3212,7 @@ function show()
         rm(file_path)
         return content
     elseif mime_type == "iterm"
-        content = string("\033]1337;File=inline=1;height=24;preserveAspectRatio=0:", Base64.base64encode(open(read,file_path)), "\a")
+        content = string(osc_seq(), "1337;File=inline=1;height=24;preserveAspectRatio=0:", Base64.base64encode(open(read,file_path)), st_seq())
         if figure_count != None
             figure_count += 1
             (figure_count > 1) && print("\e[24A")
