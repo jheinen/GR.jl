@@ -46,10 +46,10 @@ function inject_js()
       KERNEL_CONNECT_WAIT_TIME = 100;
       REFRESH_PLOT_TIMEOUT = 100;
 
-      let comm = undefined;
-      let idcount = 0;
-      let widgets = [];
-      let jupyterRunning = false;
+      var comm = undefined;
+      var idcount = 0;
+      var widgets = [];
+      var jupyterRunning = false;
 
       function saveLoad(url, callback, maxtime) {
         let script = document.createElement('script');
