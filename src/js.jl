@@ -137,7 +137,6 @@ function inject_js()
       function initKernel(attempt) {
         let kernel = Jupyter.notebook.kernel;
         if (typeof kernel === 'undefined' || kernel == null) {
-          console.error('JSTerm: No kernel detected');
           if (attempt < MAX_KERNEL_CONNECTION_ATTEMPTS) {
             setTimeout(function() {
               initKernel(attempt + 1);
@@ -146,10 +145,10 @@ function inject_js()
         } else {
           registerComm(kernel);
           Jupyter.notebook.events.on('kernel_ready.Kernel', function() {
-            kernel = IPython.notebook.kernel;
-            //init();
-            drawSavedData();
             registerComm(kernel);
+            for (let key in widgets) {
+              widgets[key].init();
+            }
           });
           drawSavedData();
         }
@@ -177,7 +176,7 @@ function inject_js()
         let data = document.getElementsByClassName("jsterm-data");
         for (let i = 0; i < data.length; i++) {
           let msg = data[i].innerText;
-          this.draw(JSON.parse(msg));
+          draw(JSON.parse(msg));
         }
       }
 
@@ -193,24 +192,28 @@ function inject_js()
 
 
       function JSTermWidget(id, htmlId) {
-        this.canvas = undefined;
-        this.overlayCanvas = undefined;
-        this.args = undefined;
-        this.id = id;  // context id for meta.c (switchmeta)
-        this.gr = undefined;
-        this.htmlId = htmlId;
 
-        this.waiting = false;
-        this.oncanvas = function() {};
+        this.init = function() {
+          this.canvas = undefined;
+          this.overlayCanvas = undefined;
+          this.args = undefined;
+          this.id = id;  // context id for meta.c (switchmeta)
+          this.gr = undefined;
+          this.htmlId = htmlId;
 
-        // event handling
-        this.pinching = false;
-        this.panning = false;
-        this.prevMousePos = undefined;
-        this.boxzoom = false;
-        this.keepAspectRatio = true;
-        this.boxzoomTriggerTimeout = undefined;
-        this.boxzoomPoint = [0, 0];
+          this.waiting = false;
+          this.oncanvas = function() {};
+
+          // event handling
+          this.pinching = false;
+          this.panning = false;
+          this.prevMousePos = undefined;
+          this.boxzoom = false;
+          this.keepAspectRatio = true;
+          this.boxzoomTriggerTimeout = undefined;
+          this.boxzoomPoint = [0, 0];
+        }
+        this.init();
 
         this.getCoords = function(event) {
           let rect = this.canvas.getBoundingClientRect();
