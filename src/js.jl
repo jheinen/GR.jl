@@ -45,6 +45,8 @@ function inject_js()
       MAX_KERNEL_CONNECTION_ATTEMPTS = 25;
       KERNEL_CONNECT_WAIT_TIME = 100;
       REFRESH_PLOT_TIMEOUT = 100;
+      BOXZOOM_FILL_STYLE = '#FFAAAA';
+      BOXZOOM_STROKE_STYLE = '#FF0000';
 
       var comm = undefined;
       var idcount = 0;
@@ -68,11 +70,12 @@ function inject_js()
         }, maxtime);
       }
 
-      function sendEvt(data) {
+      function sendEvt(data, id) {
         if (jupyterRunning) {
           comm.send({
             "type": "evt",
-            "content": data
+            "content": data,
+            "id": id
           });
         }
       }
@@ -109,11 +112,22 @@ function inject_js()
       function registerComm(kernel) {
         kernel.comm_manager.register_target('jsterm_comm', function(c) {
           c.on_msg(function(msg) {
-            if(typeof msg.content.data.type !== 'undefined' && msg.content.data.type == 'evt') {
-              if (typeof widgets[msg.content.data.json.plot] !== 'undefined') {
-                widgets[msg.content.data.json.plot].msgHandleEvent(msg.content.data.json);
+            let data = msg.content.data;
+            if (data.type == 'evt') {
+              if (typeof widgets[data.id] !== 'undefined') {
+                widgets[data.id].msgHandleEvent(data);
               }
-            } else {
+            } else if (msg.content.data.type == 'cmd') {
+              if (typeof data.id !== 'undefined') {
+                if (typeof widgets[data.id] !== 'undefined') {
+                  widgets[data.id].msgHandleCommand(data);
+                }
+              } else {
+                for (let key in widgets) {
+                  widgets[key].msgHandleCommand(data);
+                }
+              }
+            } else if (data.type == 'draw') {
               draw(msg);
             }
           });
@@ -164,11 +178,11 @@ function inject_js()
             return draw(msg);
           });
         } else {
-          if (typeof widgets[msg.content.data.canvasid] === 'undefined') {
-            widgets[msg.content.data.canvasid] = new JSTermWidget(idcount, msg.content.data.canvasid);
+          if (typeof widgets[msg.content.data.id] === 'undefined') {
+            widgets[msg.content.data.id] = new JSTermWidget(idcount, msg.content.data.id);
             idcount += 1;
           }
-          widgets[msg.content.data.canvasid].draw(msg);
+          widgets[msg.content.data.id].draw(msg);
         }
       }
 
@@ -212,8 +226,18 @@ function inject_js()
           this.keepAspectRatio = true;
           this.boxzoomTriggerTimeout = undefined;
           this.boxzoomPoint = [0, 0];
+
+          this.sendEvents = false;
+          this.handleEvents = true;
         }
+
         this.init();
+
+        this.sendEvt = function(data) {
+          if (this.sendEvents) {
+            sendEvt(data, this.htmlId);
+          }
+        }
 
         this.getCoords = function(event) {
           let rect = this.canvas.getBoundingClientRect();
@@ -243,14 +267,15 @@ function inject_js()
 
         this.mouseHandleWheel = function (event) {
           let coords = this.getCoords(event);
-          sendEvt({
+          this.sendEvt({
             "x": coords[0],
             "y": coords[1],
             "angle_delta": event.deltaY,
-            "type": "mousewheel",
-            "plot": this.htmlId  // HTML canvas` string id
+            "event": "mousewheel",
           });
-          this.handleWheel(coords[0], coords[1], event.deltaY);
+          if (this.handleEvents) {
+            this.handleWheel(coords[0], coords[1], event.deltaY);
+          }
           event.preventDefault();
         };
 
@@ -271,15 +296,16 @@ function inject_js()
 
         this.mouseHandleMousedown = function (event) {
           let coords = this.getCoords(event);
-          sendEvt({
+          this.sendEvt({
             "x": coords[0],
             "y": coords[1],
             "button": event.button,
             "ctrlKey": event.ctrlKey,
-            "type": "mousedown",
-            "plot": this.htmlId  // HTML canvas` string id
+            "event": "mousedown",
           });
-          this.handleMousedown(coords[0], coords[1], event.button, event.ctrlKey);
+          if (this.handleEvents) {
+            this.handleMousedown(coords[0], coords[1], event.button, event.ctrlKey);
+          }
           event.preventDefault();
         };
 
@@ -333,18 +359,19 @@ function inject_js()
 
         this.mouseHandleMouseup = function (event) {
           let coords = this.getCoords(event);
-          sendEvt({
+          this.sendEvt({
             "x": coords[0],
             "y": coords[1],
             "button": event.button,
-            "type": "mouseup",
-            "plot": this.htmlId  // HTML canvas` string id
+            "event": "mouseup",
           });
-          this.handleMouseup(coords[0], coords[1], event.button);
+          if (this.handleEvents) {
+            this.handleMouseup(coords[0], coords[1], event.button);
+          }
           event.preventDefault();
         };
 
-        this.handleLeave = function() {
+        this.handleMouseleave = function() {
           if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
             clearTimeout(this.boxzoomTriggerTimeout);
           }
@@ -360,7 +387,12 @@ function inject_js()
         };
 
         this.mouseHandleMouseleave = function(event) {
-          this.handleLeave();
+          this.sendEvt({
+            "event": "mouseleave",
+          });
+          if (this.handleEvents) {
+            this.handleMouseleave();
+          }
         };
 
         this.handleMousemove = function(x, y) {
@@ -393,8 +425,8 @@ function inject_js()
             } else {
               this.overlayCanvas.style.cursor = 'nesw-resize';
             }
-            context.fillStyle = '#FFAAAA';
-            context.strokeStyle = '#FF0000';
+            context.fillStyle = BOXZOOM_FILL_STYLE;
+            context.strokeStyle = BOXZOOM_STROKE_STYLE;
             context.beginPath();
             context.rect(this.boxzoomPoint[0], this.boxzoomPoint[1], diff[0], diff[1]);
             context.globalAlpha = 0.2;
@@ -407,13 +439,14 @@ function inject_js()
 
         this.mouseHandleMousemove = function (event) {
           let coords = this.getCoords(event);
-          sendEvt({
+          this.sendEvt({
             "x": coords[0],
             "y": coords[1],
-            "type": "mousemove",
-            "plot": this.htmlId  // HTML canvas` string id
+            "event": "mousemove",
           });
-          this.handleMousemove(coords[0], coords[1]);
+          if (this.handleEvents) {
+            this.handleMousemove(coords[0], coords[1]);
+          }
           event.preventDefault();
         };
 
@@ -427,32 +460,55 @@ function inject_js()
 
         this.mouseHandleDoubleclick = function(event) {
           let coords = this.getCoords(event);
-          sendEvt({
+          this.sendEvt({
             "x": coords[0],
             "y": coords[1],
-            "type": "doubleclick",
-            "plot": this.htmlId  // HTML canvas` string id
+            "event": "doubleclick",
           });
-          this.handleDoubleclick(coords[0], coords[1]);
+          if (this.handleEvents) {
+            this.handleDoubleclick(coords[0], coords[1]);
+          }
           event.preventDefault();
         };
 
         this.msgHandleEvent = function(msg) {
-          switch (msg.type) {
+          switch(msg.event) {
             case "mousewheel":
               this.handleWheel(msg.x, msg.y, msg.angle_delta);
               break;
-            case "mouseup":
-              this.handleMouseup(msg.x, msg.y, msg.button);
-              break;
             case "mousedown":
               this.handleMousedown(msg.x, msg.y, msg.button, msg.ctrlKey);
+              break;
+            case "mouseup":
+              this.handleMouseup(msg.x, msg.y, msg.button);
               break;
             case "mousemove":
               this.handleMousemove(msg.x, msg.y);
               break;
             case "doubleclick":
               this.handleDoubleclick(msg.x, msg.y);
+              break;
+            case "mouseleave":
+              this.handleMouseleave();
+              break;
+            default:
+              break;
+          }
+        };
+
+        this.msgHandleCommand = function(msg) {
+          switch(msg.command) {
+            case 'enable_events':
+              this.sendEvents = true;
+              break;
+            case 'disable_events':
+              this.sendEvents = false;
+              break;
+            case 'enable_jseventhandling':
+              this.handleEvents = true;
+              break;
+            case 'disable_jseventhandling':
+              this.handleEvents = false;
               break;
             default:
               break;
@@ -465,8 +521,8 @@ function inject_js()
               return this.draw(msg);
             };
           } else {
-            if (document.getElementById('jsterm-' + msg.content.data.canvasid) == null) {
-              canvasRemoved(msg.content.data.canvasid);
+            if (document.getElementById('jsterm-' + msg.content.data.id) == null) {
+              canvasRemoved(msg.content.data.id);
               this.canvas = undefined;
               this.waiting = true;
               this.oncanvas = function() {
@@ -477,13 +533,13 @@ function inject_js()
               }.bind(this), REFRESH_PLOT_TIMEOUT);
             } else {
               if (document.getElementById('jsterm-data-' + this.htmlId) == null) {
-                saveData(msg, msg.content.data.canvasid);
+                saveData(msg, msg.content.data.id);
               }
               if (typeof this.canvas === 'undefined' || typeof this.overlayCanvas === 'undefined') {
                 this.canvas = document.getElementById('jsterm-' + this.htmlId);
                 this.overlayCanvas = document.getElementById('jsterm-overlay-' + this.htmlId);
                 this.overlayCanvas.addEventListener('DOMNodeRemoved', function() {
-                  canvasRemoved(msg.content.data.canvasid);
+                  canvasRemoved(msg.content.data.id);
                   this.canvas = undefined;
                   this.waiting = true;
                   this.oncanvas = function() {};
@@ -578,21 +634,82 @@ end
 
 comm = nothing
 
-evthandler = function(data)
-  nothing
-end
+evthandler = Dict()
 
-function register_evthandler(f)
+function register_evthandler(f::Function, device="localhost", port=8002)
   global evthandler
-  evthandler = f
+  if GR.isijulia()
+    send_command(Dict("command" => "enable_events"), "cmd", string(device, port))
+    evthandler[string(device, port)] = f
+  else
+    error("register_evthandler is only available in IJulia environments")
+  end
 end
 
-function send_evt(f)
-  global comm
-  if comm === nothing
-    error("JSTerm comm not initialized.")
+function unregister_evthandler(device="localhost", port=8002)
+  global evthandler
+  if GR.isijulia()
+    send_command(Dict("command" => "disable_events"), "cmd", string(device, port))
+    evthandler[string(device, port)] = nothing
   else
-    Main.IJulia.send_comm(comm, Dict("json" => f, "type" => "evt"))
+    error("unregister_evthandler is only available in IJulia environments")
+  end
+end
+
+function send_command(msg, type, id=nothing)
+  global comm
+  if GR.isijulia()
+    if comm === nothing
+      error("JSTerm comm not initialized.")
+    else
+      if id !== nothing
+        Main.IJulia.send_comm(comm, merge(msg, Dict("type" => type, "id" => id)))
+      else
+        Main.IJulia.send_comm(comm, merge(msg, Dict("type" => type)))
+      end
+    end
+  else
+    error("send_command is only available in IJulia environments")
+  end
+end
+
+function send_evt(msg, device, port)
+  if GR.isijulia()
+    send_command(msg, "evt", string(device, port))
+  else
+    error("send_evt is only available in IJulia environments")
+  end
+end
+
+function disable_jseventhandling(device, port)
+  if GR.isijulia()
+    send_command(Dict("command" => "disable_jseventhandling"), "cmd", string(device, port))
+  else
+    error("disable_jseventhandling is only available in IJulia environments")
+  end
+end
+
+function enable_jseventhandling(device, port)
+  if GR.isijulia()
+    send_command(Dict("command" => "enable_jseventhandling"), "cmd", string(device, port))
+  else
+    error("enable_jseventhandling is only available in IJulia environments")
+  end
+end
+
+function disable_jseventhandling()
+  if GR.isijulia()
+    send_command(Dict("command" => "disable_jseventhandling"), "cmd", nothing)
+  else
+    error("disable_jseventhandling is only available in IJulia environments")
+  end
+end
+
+function enable_jseventhandling()
+  if GR.isijulia()
+    send_command(Dict("command" => "enable_jseventhandling"), "cmd", nothing)
+  else
+    error("enable_jseventhandling is only available in IJulia environments")
   end
 end
 
@@ -613,12 +730,14 @@ function jsterm_send(widget::JSTermWidget, data::String)
           elseif msg.content["data"]["type"] == "save"
             display(HTML(string("<div style=\"display:none;\" id=\"jsterm-data-", msg.content["data"]["content"]["id"], "\" class=\"jsterm-data\">", msg.content["data"]["content"]["data"], "</div>")))
           elseif msg.content["data"]["type"] == "evt"
-            evthandler(msg.content["data"]["content"])
+            if evthandler[msg.content["data"]["id"]] !== nothing
+              evthandler[msg.content["data"]["id"]](msg.content["data"]["content"])
+            end
           end
         end
       end
     end
-    Main.IJulia.send_comm(comm, Dict("json" => data, "canvasid" => widget.identifier))
+    Main.IJulia.send_comm(comm, Dict("json" => data, "type"=>"draw", "id" => widget.identifier))
   else
     error("jsterm_send is only available in IJulia environments")
   end
