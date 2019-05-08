@@ -656,16 +656,16 @@ function unregister_evthandler(device="localhost", port=8002)
   end
 end
 
-function send_command(msg, type, id=nothing)
+function send_command(msg, msgtype, id=nothing)
   global comm
   if GR.isijulia()
     if comm === nothing
       error("JSTerm comm not initialized.")
     else
       if id !== nothing
-        Main.IJulia.send_comm(comm, merge(msg, Dict("type" => type, "id" => id)))
+        Main.IJulia.send_comm(comm, merge(msg, Dict("type" => msgtype, "id" => id)))
       else
-        Main.IJulia.send_comm(comm, merge(msg, Dict("type" => type)))
+        Main.IJulia.send_comm(comm, merge(msg, Dict("type" => msgtype)))
       end
     end
   else
