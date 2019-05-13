@@ -635,8 +635,9 @@ end
 comm = nothing
 
 evthandler = Dict()
+global_evthandler = nothing
 
-function register_evthandler(f::Function, device="localhost", port=8002)
+function register_evthandler(f::Function, device, port)
   global evthandler
   if GR.isijulia()
     send_command(Dict("command" => "enable_events"), "cmd", string(device, port))
@@ -646,11 +647,38 @@ function register_evthandler(f::Function, device="localhost", port=8002)
   end
 end
 
-function unregister_evthandler(device="localhost", port=8002)
+function unregister_evthandler(device, port)
   global evthandler
   if GR.isijulia()
-    send_command(Dict("command" => "disable_events"), "cmd", string(device, port))
+    if global_evthandler === nothing
+      send_command(Dict("command" => "disable_events"), "cmd", string(device, port))
+    end
     evthandler[string(device, port)] = nothing
+  else
+    error("unregister_evthandler is only available in IJulia environments")
+  end
+end
+
+function register_evthandler(f::Function)
+  global global_evthandler
+  if GR.isijulia()
+    send_command(Dict("command" => "enable_events"), "cmd", nothing)
+    global_evthandler = f
+  else
+    error("register_evthandler is only available in IJulia environments")
+  end
+end
+
+function unregister_evthandler()
+  global global_evthandler, evthandler
+  if GR.isijulia()
+    send_command(Dict("command" => "disable_events"), "cmd", nothing)
+    for key in keys(evthandler)
+      if evthandler[key] !== nothing
+        send_command(Dict("command" => "enable_events"), "cmd", key)
+      end
+    end
+    global_evthandler = nothing
   else
     error("unregister_evthandler is only available in IJulia environments")
   end
@@ -676,6 +704,14 @@ end
 function send_evt(msg, device, port)
   if GR.isijulia()
     send_command(msg, "evt", string(device, port))
+  else
+    error("send_evt is only available in IJulia environments")
+  end
+end
+
+function send_evt(msg, identifier)
+  if GR.isijulia()
+    send_command(msg, "evt", identifier)
   else
     error("send_evt is only available in IJulia environments")
   end
@@ -709,6 +745,7 @@ function enable_jseventhandling()
   if GR.isijulia()
     send_command(Dict("command" => "enable_jseventhandling"), "cmd", nothing)
   else
+    Main.IJulia.send_comm(comm, Dict("json" => f, "type" => "evt"))
     error("enable_jseventhandling is only available in IJulia environments")
   end
 end
@@ -723,15 +760,17 @@ function jsterm_send(widget::JSTermWidget, data::String)
         js_running = false
       end
       comm.on_msg = function comm_msg_callback(msg)
-        if haskey(msg.content["data"], "type")
-          if msg.content["data"]["type"] == "removed"
-            jswidgets[msg.content["data"]["content"]].visible = false
-            jsterm_display(jswidgets[msg.content["data"]["content"]])
-          elseif msg.content["data"]["type"] == "save"
-            display(HTML(string("<div style=\"display:none;\" id=\"jsterm-data-", msg.content["data"]["content"]["id"], "\" class=\"jsterm-data\">", msg.content["data"]["content"]["data"], "</div>")))
-          elseif msg.content["data"]["type"] == "evt"
-            if evthandler[msg.content["data"]["id"]] !== nothing
-              evthandler[msg.content["data"]["id"]](msg.content["data"]["content"])
+        data = msg.content["data"]
+        if haskey(data, "type")
+          if data["type"] == "removed"
+            jswidgets[data["content"]].visible = false
+            jsterm_display(jswidgets[data["content"]])
+          elseif data["type"] == "save"
+            display(HTML(string("<div style=\"display:none;\" id=\"jsterm-data-", data["content"]["id"], "\" class=\"jsterm-data\">", data["content"]["data"], "</div>")))
+          elseif data["type"] == "evt"
+            global_evthandler(data["content"])
+            if haskey(evthandler, data["id"]) && evthandler[data["id"]] !== nothing
+              evthandler[data["id"]](data["content"])
             end
           end
         end
