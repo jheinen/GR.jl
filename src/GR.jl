@@ -3160,7 +3160,7 @@ end
 
 function isinline()
     global mime_type
-    return !(mime_type in (None, "mov"))
+    return !(mime_type in (None, "mov", "mp4", "webm"))
 end
 
 function displayname()
@@ -3207,7 +3207,7 @@ function show()
         content = PNG(_readfile(file_path))
         rm(file_path)
         return content
-    elseif mime_type == "mov"
+    elseif mime_type in ("mov", "mp4", "webm")
         content = HTML(string("""<video autoplay controls><source type="video/mp4" src="data:video/mp4;base64,""", Base64.base64encode(open(read,file_path)),""""></video>"""))
         rm(file_path)
         return content
