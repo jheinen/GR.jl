@@ -168,6 +168,7 @@ export
   wireframe,
   plot3,
   scatter3,
+  redraw,
   title,
   xlabel,
   ylabel,
@@ -3108,6 +3109,7 @@ volume(V; kwargs...) = jlgr.volume(V; kwargs...)
 plot3(args...; kwargs...) = jlgr.plot3(args...; kwargs...)
 scatter3(args...; kwargs...) = jlgr.scatter3(args...; kwargs...)
 title(s) = jlgr.title(s)
+redraw(; kwargs...) = jlgr.redraw(; kwargs...)
 xlabel(s) = jlgr.xlabel(s)
 ylabel(s) = jlgr.ylabel(s)
 legend(args...; kwargs...) = jlgr.legend(args...; kwargs...)

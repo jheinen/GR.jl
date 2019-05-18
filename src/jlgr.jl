@@ -647,8 +647,12 @@ function to_rgba(value, cmap)
     round(UInt32, g * 255) << 8  + round(UInt32, r * 255)
 end
 
-function create_context(kind, dict)
+function create_context(kind::Symbol, dict=plt.kvs)
     plt.kvs[:kind] = kind
+    create_context(dict)
+end
+
+function create_context(dict::AbstractDict)
     plt.obj = copy(plt.kvs)
     for (k, v) in dict
         if ! (k in kw_args)
@@ -1998,6 +2002,32 @@ function scatter3(args...; kv...)
 
     plt.args = plot_args(args, fmt=:xyzc)
 
+    plot_data()
+end
+
+"""
+Redraw current plot
+
+This can be used to update the current plot, after setting some
+attributes like the title, axes labels, legend, etc.
+
+**Usage examples:**
+
+.. code-block:: julia-repl
+
+    julia> # Create example data
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = 2 .* x .+ 4
+    julia> # Add title and labels
+    julia> title("Example plot")
+    julia> xlabel("x")
+    julia> ylabel("y")
+    julia> # Redraw the plot with the new attributes
+    julia> redraw()
+
+"""
+function redraw(; kv...)
+    create_context(Dict(kv))
     plot_data()
 end
 
