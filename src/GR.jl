@@ -171,6 +171,7 @@ export
   title,
   xlabel,
   ylabel,
+  drawgrid,
   legend,
   xlim,
   ylim,
@@ -3110,6 +3111,7 @@ scatter3(args...; kwargs...) = jlgr.scatter3(args...; kwargs...)
 title(s) = jlgr.title(s)
 xlabel(s) = jlgr.xlabel(s)
 ylabel(s) = jlgr.ylabel(s)
+drawgrid(flag) = jlgr.drawgrid(flag)
 legend(args...; kwargs...) = jlgr.legend(args...; kwargs...)
 xlim(a) = jlgr.xlim(a)
 ylim(a) = jlgr.ylim(a)

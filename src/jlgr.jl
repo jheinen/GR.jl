@@ -393,6 +393,7 @@ function draw_axes(kind, pass=1)
     ratio = plt.kvs[:ratio]
     xtick, xorg, majorx = plt.kvs[:xaxis]
     ytick, yorg, majory = plt.kvs[:yaxis]
+    drawgrid = get(plt.kvs, :grid, true)
     # enforce scientific notation for logarithmic axes labels
     if plt.kvs[:scale] & GR.OPTION_X_LOG != 0
         xtick = 10
@@ -408,7 +409,7 @@ function draw_axes(kind, pass=1)
     ticksize = 0.0075 * diag
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         ztick, zorg, majorz = plt.kvs[:zaxis]
-        if pass == 1
+        if pass == 1 && drawgrid
             GR.grid3d(xtick, 0, ztick, xorg[1], yorg[2], zorg[1], 2, 0, 2)
             GR.grid3d(0, ytick, 0, xorg[1], yorg[2], zorg[1], 0, 2, 0)
         else
@@ -419,7 +420,7 @@ function draw_axes(kind, pass=1)
         if kind in (:heatmap, :shade)
             ticksize = -ticksize
         else
-            GR.grid(xtick, ytick, 0, 0, majorx, majory)
+            drawgrid && GR.grid(xtick, ytick, 0, 0, majorx, majory)
         end
         GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
         GR.axes(xtick, ytick, xorg[2], yorg[2], -majorx, -majory, -ticksize)
@@ -779,6 +780,22 @@ function subplot(nr, nc, p)
     plt.kvs[:clear] = collect(p)[1] == 1
     plt.kvs[:update] = collect(p)[end] == nr * nc
 end
+
+"""
+Set the flag to draw a grid in the plot axes.
+
+:param flag: the value of the grid flag (`true` by default)
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Hid the grid on the next plot
+    julia> grid(false)
+    julia> # Restore the grid
+    julia> grid(true)
+"""
+drawgrid(flag) = (plt.kvs[:grid] = flag)
 
 # Normalize a color c with the range [cmin, cmax]
 #   0 <= normalize_color(c, cmin, cmax) <= 1
