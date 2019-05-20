@@ -322,7 +322,6 @@ function set_window(kind)
         end
         if haskey(plt.kvs, :xticks)
             xtick, majorx = plt.kvs[:xticks]
-            (majorx == 0) && (majorx = major_count)
         else
             majorx = major_count
             xtick = GR.tick(xmin, xmax) / majorx
@@ -347,7 +346,6 @@ function set_window(kind)
         end
         if haskey(plt.kvs, :yticks)
             ytick, majory = plt.kvs[:yticks]
-            (majory == 0) && (majory = major_count)
         else
             majory = major_count
             ytick = GR.tick(ymin, ymax) / majory
@@ -370,7 +368,6 @@ function set_window(kind)
             end
             if haskey(plt.kvs, :zticks)
                 ztick, majorz = plt.kvs[:zticks]
-                (majorz == 0) && (majorz = major_count)
             else
                 majorz = major_count
                 ztick = GR.tick(zmin, zmax) / majorz
@@ -827,7 +824,7 @@ Set the intervals of the ticks for the x axis.
     julia> # Major ticks every 1 unit (5 minor ticks)
     julia> xticks(0.2, 5)
 """
-xticks(minor, major::Int=0) = (plt.kvs[:xticks] = (minor, major))
+xticks(minor, major::Int=1) = (plt.kvs[:xticks] = (minor, major))
 
 """
 Set the intervals of the ticks for the y axis.
@@ -844,7 +841,7 @@ Set the intervals of the ticks for the y axis.
     julia> # Major ticks every 1 unit (5 minor ticks)
     julia> yticks(0.2, 5)
 """
-yticks(minor, major::Int=0) = (plt.kvs[:yticks] = (minor, major))
+yticks(minor, major::Int=1) = (plt.kvs[:yticks] = (minor, major))
 
 """
 Set the intervals of the ticks for the z axis.
@@ -861,7 +858,7 @@ Set the intervals of the ticks for the z axis.
     julia> # Major ticks every 1 unit (5 minor ticks)
     julia> zticks(0.2, 5)
 """
-zticks(minor, major::Int=0) = (plt.kvs[:zticks] = (minor, major))
+zticks(minor, major::Int=1) = (plt.kvs[:zticks] = (minor, major))
 
 
 # Normalize a color c with the range [cmin, cmax]
