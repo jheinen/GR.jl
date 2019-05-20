@@ -320,8 +320,13 @@ function set_window(kind)
         if !haskey(plt.kvs, :xlim) && plt.kvs[:panzoom] == None
             xmin, xmax = GR.adjustlimits(xmin, xmax)
         end
-        majorx = major_count
-        xtick = GR.tick(xmin, xmax) / majorx
+        if haskey(plt.kvs, :xticks)
+            xtick, majorx = plt.kvs[:xticks]
+            (majorx == 0) && (majorx = major_count)
+        else
+            majorx = major_count
+            xtick = GR.tick(xmin, xmax) / majorx
+        end
     else
         xtick = majorx = 1
     end
@@ -340,8 +345,13 @@ function set_window(kind)
         if !haskey(plt.kvs, :ylim) && plt.kvs[:panzoom] == None
             ymin, ymax = GR.adjustlimits(ymin, ymax)
         end
-        majory = major_count
-        ytick = GR.tick(ymin, ymax) / majory
+        if haskey(plt.kvs, :yticks)
+            ytick, majory = plt.kvs[:yticks]
+            (majory == 0) && (majory = major_count)
+        else
+            majory = major_count
+            ytick = GR.tick(ymin, ymax) / majory
+        end
     else
         ytick = majory = 1
     end
@@ -358,8 +368,13 @@ function set_window(kind)
             if !haskey(plt.kvs, :zlim)
                 zmin, zmax = GR.adjustlimits(zmin, zmax)
             end
-            majorz = major_count
-            ztick = GR.tick(zmin, zmax) / majorz
+            if haskey(plt.kvs, :zticks)
+                ztick, majorz = plt.kvs[:zticks]
+                (majorz == 0) && (majorz = major_count)
+            else
+                majorz = major_count
+                ztick = GR.tick(zmin, zmax) / majorz
+            end
         else
             ztick = majorz = 1
         end
@@ -393,6 +408,7 @@ function draw_axes(kind, pass=1)
     ratio = plt.kvs[:ratio]
     xtick, xorg, majorx = plt.kvs[:xaxis]
     ytick, yorg, majory = plt.kvs[:yaxis]
+    drawgrid = get(plt.kvs, :grid, true)
     # enforce scientific notation for logarithmic axes labels
     if plt.kvs[:scale] & GR.OPTION_X_LOG != 0
         xtick = 10
@@ -408,7 +424,7 @@ function draw_axes(kind, pass=1)
     ticksize = 0.0075 * diag
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         ztick, zorg, majorz = plt.kvs[:zaxis]
-        if pass == 1
+        if pass == 1 && drawgrid
             GR.grid3d(xtick, 0, ztick, xorg[1], yorg[2], zorg[1], 2, 0, 2)
             GR.grid3d(0, ytick, 0, xorg[1], yorg[2], zorg[1], 0, 2, 0)
         else
@@ -419,7 +435,7 @@ function draw_axes(kind, pass=1)
         if kind in (:heatmap, :shade)
             ticksize = -ticksize
         else
-            GR.grid(xtick, ytick, 0, 0, majorx, majory)
+            drawgrid && GR.grid(xtick, ytick, 0, 0, majorx, majory)
         end
         GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
         GR.axes(xtick, ytick, xorg[2], yorg[2], -majorx, -majory, -ticksize)
@@ -779,6 +795,74 @@ function subplot(nr, nc, p)
     plt.kvs[:clear] = collect(p)[1] == 1
     plt.kvs[:update] = collect(p)[end] == nr * nc
 end
+
+"""
+Set the flag to draw a grid in the plot axes.
+
+:param flag: the value of the grid flag (`true` by default)
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Hid the grid on the next plot
+    julia> grid(false)
+    julia> # Restore the grid
+    julia> grid(true)
+"""
+drawgrid(flag) = (plt.kvs[:grid] = flag)
+
+"""
+Set the intervals of the ticks for the x axis.
+
+:param minor: the interval between minor ticks.
+:param major: (optional) the number of minor ticks between major ticks.
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Minor ticks every 0.2 units
+    julia> xticks(0.2)
+    julia> # Major ticks every 1 unit (5 minor ticks)
+    julia> xticks(0.2, 5)
+"""
+xticks(minor, major::Int=0) = (plt.kvs[:xticks] = (minor, major))
+
+"""
+Set the intervals of the ticks for the y axis.
+
+:param minor: the interval between minor ticks.
+:param major: (optional) the number of minor ticks between major ticks.
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Minor ticks every 0.2 units
+    julia> yticks(0.2)
+    julia> # Major ticks every 1 unit (5 minor ticks)
+    julia> yticks(0.2, 5)
+"""
+yticks(minor, major::Int=0) = (plt.kvs[:yticks] = (minor, major))
+
+"""
+Set the intervals of the ticks for the z axis.
+
+:param minor: the interval between minor ticks.
+:param major: (optional) the number of minor ticks between major ticks.
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Minor ticks every 0.2 units
+    julia> zticks(0.2)
+    julia> # Major ticks every 1 unit (5 minor ticks)
+    julia> zticks(0.2, 5)
+"""
+zticks(minor, major::Int=0) = (plt.kvs[:zticks] = (minor, major))
+
 
 # Normalize a color c with the range [cmin, cmax]
 #   0 <= normalize_color(c, cmin, cmax) <= 1
