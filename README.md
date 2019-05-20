@@ -3,7 +3,6 @@
 [![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE.md)
 [![GitHub tag](https://img.shields.io/github/tag/jheinen/GR.jl.svg)](https://github.com/jheinen/GR.jl/releases)
 [![Build Status](https://travis-ci.org/jheinen/GR.jl.svg?branch=master)](https://travis-ci.org/jheinen/GR.jl)
-[![GR](http://pkg.julialang.org/badges/GR_0.6.svg)](http://pkg.julialang.org/?pkg=GR&ver=0.6)
 [![Join the chat at https://gitter.im/jheinen/GR.jl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jheinen/GR.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![Screenshots](https://gr-framework.org/_images/screenshots.png)](https://gr-framework.org)
