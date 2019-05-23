@@ -226,6 +226,8 @@ function inject_js()
           this.keepAspectRatio = true;
           this.boxzoomTriggerTimeout = undefined;
           this.boxzoomPoint = [0, 0];
+          this.pinchDiff = 0;
+          this.prevTouches = undefined;
 
           this.sendEvents = false;
           this.handleEvents = true;
@@ -357,7 +359,7 @@ function inject_js()
           context.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
         };
 
-        this.mouseHandleMouseup = function (event) {
+        this.mouseHandleMouseup = function(event) {
           let coords = this.getCoords(event);
           this.sendEvt({
             "x": coords[0],
@@ -367,6 +369,60 @@ function inject_js()
           });
           if (this.handleEvents) {
             this.handleMouseup(coords[0], coords[1], event.button);
+          }
+          event.preventDefault();
+        };
+
+        this.touchHandleTouchstart = function(event) {
+          if (event.touches.length == 1) {
+            let coords = this.getCoords(event.touches[0])
+            this.handleMousedown(coords[0], coords[1], 0, false);
+          } else if (event.touches.length == 2) {
+            this.pinching = true;
+            this.pinchDiff = Math.abs(event.touches[0].clientX - event.touches[1].clientX) + Math.abs(event.touches[0].clientY - event.touches[1].clientY);
+            let c1 = this.getCoords(event.touches[0]);
+            let c2 = this.getCoords(event.touches[1]);
+            this.prevTouches = [c1, c2];
+          } else if (event.touches.length == 3) {
+            let coords1 = this.getCoords(event.touches[0])
+            let coords2 = this.getCoords(event.touches[1])
+            let coords3 = this.getCoords(event.touches[2])
+            let x = 1. / 3. * coords1[0] + coords2[0] + coords3[0];
+            let y = 1. / 3. * coords1[1] + coords2[1] + coords3[1];
+            this.handleDoubleclick(x, y);
+          }
+          event.preventDefault();
+        };
+
+        this.touchHandleTouchend = function(event) {
+          this.handleMouseleave();
+        };
+
+        this.touchHandleTouchmove = function(event) {
+          if (event.touches.length == 1) {
+            let coords = this.getCoords(event.touches[0]);
+            this.handleMousemove(coords[0], coords[1]);
+          } else if (this.pinching && event.touches.length == 2) {
+            let c1 = this.getCoords(event.touches[0]);
+            let c2 = this.getCoords(event.touches[1]);
+            let diff = Math.sqrt(Math.pow(Math.abs(c1[0] - c2[0]), 2) + Math.pow(Math.abs(c1[1] - c2[1]), 2));
+            let factor = this.pinchDiff / diff;
+
+            let mouseargs = this.gr.newmeta();
+            this.gr.meta_args_push(mouseargs, "x", "i", [(c1[0] + c2[0]) / 2]);
+            this.gr.meta_args_push(mouseargs, "y", "i", [(c1[1] + c2[1]) / 2]);
+            this.gr.meta_args_push(mouseargs, "factor", "d", [factor]);
+            this.grEventinput(mouseargs);
+
+            let panmouseargs = this.gr.newmeta();
+            this.gr.meta_args_push(panmouseargs, "x", "i", [(c1[0] + c2[0]) / 2]);
+            this.gr.meta_args_push(panmouseargs, "y", "i", [(c1[1] + c2[1]) / 2]);
+            this.gr.meta_args_push(panmouseargs, "xshift", "i", [(c1[0] - this.prevTouches[0][0] + c2[0] - this.prevTouches[1][0]) / 2.0]);
+            this.gr.meta_args_push(panmouseargs, "yshift", "i", [(c1[1] - this.prevTouches[0][1] + c2[1] - this.prevTouches[1][1]) / 2.0]);
+            this.grEventinput(panmouseargs);
+
+            this.pinchDiff = diff;
+            this.prevTouches = [c1, c2];
           }
           event.preventDefault();
         };
@@ -549,6 +605,9 @@ function inject_js()
                 //registering event handler
                 this.overlayCanvas.addEventListener('wheel', function(evt) { this.mouseHandleWheel(evt); }.bind(this));
                 this.overlayCanvas.addEventListener('mousedown', function(evt) { this.mouseHandleMousedown(evt); }.bind(this));
+                this.overlayCanvas.addEventListener('touchstart', function(evt) { this.touchHandleTouchstart(evt); }.bind(this));
+                this.overlayCanvas.addEventListener('touchmove', function(evt) { this.touchHandleTouchmove(evt); }.bind(this));
+                this.overlayCanvas.addEventListener('touchend', function(evt) { this.touchHandleTouchend(evt); }.bind(this));
                 this.overlayCanvas.addEventListener('mousemove', function(evt) { this.mouseHandleMousemove(evt); }.bind(this));
                 this.overlayCanvas.addEventListener('mouseup', function(evt) { this.mouseHandleMouseup(evt); }.bind(this));
                 this.overlayCanvas.addEventListener('mouseleave', function(evt) { this.mouseHandleMouseleave(evt); }.bind(this));
