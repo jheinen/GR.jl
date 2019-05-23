@@ -434,7 +434,15 @@ function draw_axes(kind, pass=1)
         else
             drawgrid && GR.grid(xtick, ytick, 0, 0, majorx, majory)
         end
-        GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
+        if haskey(plt.kvs, :xticklabels) || haskey(plt.kvs, :yticklabels)
+            xtfun = get(plt.kvs, :xticklabels, identity)
+            @eval fx = (x, y, svalue, value) -> GR.textext(x, y, string($xtfun(value)))
+            ytfun = get(plt.kvs, :yticklabels, identity)
+            @eval fy = (x, y, svalue, value) -> GR.textext(x, y, string($ytfun(value)))
+            GR.axeslbl(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize, fx, fy)
+        else
+            GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
+        end
         GR.axes(xtick, ytick, xorg[2], yorg[2], -majorx, -majory, -ticksize)
     end
 
