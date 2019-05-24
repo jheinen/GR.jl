@@ -831,8 +831,10 @@ Set the flag to draw a grid in the plot axes.
 """
 drawgrid(flag) = (plt.kvs[:grid] = flag)
 
-"""
-Set the intervals of the ticks for the x axis.
+const doc_ticks = """
+Set the intervals of the ticks for the X, Y or Z axis.
+
+Use the function `xticks`, `yticks` or `zticks` for the corresponding axis.
 
 :param minor: the interval between minor ticks.
 :param major: (optional) the number of minor ticks between major ticks.
@@ -841,46 +843,15 @@ Set the intervals of the ticks for the x axis.
 
 .. code-block:: julia
 
-    julia> # Minor ticks every 0.2 units
+    julia> # Minor ticks every 0.2 units in the X axis
     julia> xticks(0.2)
-    julia> # Major ticks every 1 unit (5 minor ticks)
-    julia> xticks(0.2, 5)
-"""
-xticks(minor, major::Int=1) = (plt.kvs[:xticks] = (minor, major))
-
-"""
-Set the intervals of the ticks for the y axis.
-
-:param minor: the interval between minor ticks.
-:param major: (optional) the number of minor ticks between major ticks.
-
-**Usage examples:**
-
-.. code-block:: julia
-
-    julia> # Minor ticks every 0.2 units
-    julia> yticks(0.2)
-    julia> # Major ticks every 1 unit (5 minor ticks)
+    julia> # Major ticks every 1 unit (5 minor ticks) in the Y axis
     julia> yticks(0.2, 5)
 """
-yticks(minor, major::Int=1) = (plt.kvs[:yticks] = (minor, major))
 
-"""
-Set the intervals of the ticks for the z axis.
-
-:param minor: the interval between minor ticks.
-:param major: (optional) the number of minor ticks between major ticks.
-
-**Usage examples:**
-
-.. code-block:: julia
-
-    julia> # Minor ticks every 0.2 units
-    julia> zticks(0.2)
-    julia> # Major ticks every 1 unit (5 minor ticks)
-    julia> zticks(0.2, 5)
-"""
-zticks(minor, major::Int=1) = (plt.kvs[:zticks] = (minor, major))
+@doc doc_ticks xticks(minor, major::Int=1) = (plt.kvs[:xticks] = (minor, major))
+@doc doc_ticks yticks(minor, major::Int=1) = (plt.kvs[:yticks] = (minor, major))
+@doc doc_ticks zticks(minor, major::Int=1) = (plt.kvs[:zticks] = (minor, major))
 
 const doc_ticklabels = """
 Customize the string of the X and Y axes tick labels.
