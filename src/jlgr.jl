@@ -399,6 +399,18 @@ function set_window(kind)
     GR.setscale(scale)
 end
 
+function ticklabel_fun(f::Function)
+    return (x, y, svalue, value) -> GR.textext(x, y, string(f(value)))
+end
+
+function ticklabel_fun(labels::AbstractVecOrMat{T}) where T <: AbstractString
+    (x, y, svalue, value) -> begin
+        pos = findfirst(t->(value≈t), collect(1:length(labels)))
+        lab = (pos == nothing) ? "" : labels[pos]
+        GR.textext(x, y, lab)
+    end
+end
+
 function draw_axes(kind, pass=1)
     viewport = plt.kvs[:viewport]
     vp = plt.kvs[:vp]
@@ -435,10 +447,8 @@ function draw_axes(kind, pass=1)
             drawgrid && GR.grid(xtick, ytick, 0, 0, majorx, majory)
         end
         if haskey(plt.kvs, :xticklabels) || haskey(plt.kvs, :yticklabels)
-            xtfun = get(plt.kvs, :xticklabels, identity)
-            @eval fx = (x, y, svalue, value) -> GR.textext(x, y, string($xtfun(value)))
-            ytfun = get(plt.kvs, :yticklabels, identity)
-            @eval fy = (x, y, svalue, value) -> GR.textext(x, y, string($ytfun(value)))
+            fx = get(plt.kvs, :xticklabels, identity) |> ticklabel_fun
+            fy = get(plt.kvs, :yticklabels, identity) |> ticklabel_fun
             GR.axeslbl(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize, fx, fy)
         else
             GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
@@ -872,6 +882,27 @@ Set the intervals of the ticks for the z axis.
 """
 zticks(minor, major::Int=1) = (plt.kvs[:zticks] = (minor, major))
 
+const doc_ticklabels = """
+Customize the string of the X and Y axes tick labels.
+
+The labels of the tick axis can be defined through a function
+with one argument (the numeric value of the tick position) and
+returns a string, or through an array of strings that are located
+sequentially at X = 1, 2, etc.
+
+:param s: function or array of strings that define the tick labels.
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # Label the range (0-1) of the Y-axis as percent values
+    julia> yticklabels(p -> Base.Printf.@sprintf("%0.0f%%", 100p))
+    julia> # Label the X-axis with a sequence of strings
+    julia> xticklabels(["first", "second", "third"])
+"""
+@doc doc_ticklabels xticklabels(s) = (plt.kvs[:xticklabels] = s)
+@doc doc_ticklabels yticklabels(s) = (plt.kvs[:yticklabels] = s)
 
 # Normalize a color c with the range [cmin, cmax]
 #   0 <= normalize_color(c, cmin, cmax) <= 1

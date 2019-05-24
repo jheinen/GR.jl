@@ -176,6 +176,8 @@ export
   xticks,
   yticks,
   zticks,
+  xticklabels,
+  yticklabels,
   legend,
   xlim,
   ylim,
@@ -3170,6 +3172,8 @@ drawgrid(flag) = jlgr.drawgrid(flag)
 xticks(args...) = jlgr.xticks(args...)
 yticks(args...) = jlgr.yticks(args...)
 zticks(args...) = jlgr.zticks(args...)
+xticklabels(s) = jlgr.xticklabels(s)
+yticklabels(s) = jlgr.yticklabels(s)
 legend(args...; kwargs...) = jlgr.legend(args...; kwargs...)
 xlim(a) = jlgr.xlim(a)
 ylim(a) = jlgr.ylim(a)
