@@ -81,6 +81,7 @@ export
   textext,
   inqtextext,
   axes2d, # to avoid WARNING: both GR and Base export "axes"
+  axeslbl,
   grid,
   grid3d,
   verrorbars,
