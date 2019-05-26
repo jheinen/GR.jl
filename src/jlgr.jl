@@ -45,7 +45,7 @@ const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :h
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
-const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :clabels, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
@@ -1339,6 +1339,15 @@ function plot_data(flag=true)
             else
                 GR.shadepoints(x, y, xform=xform)
             end
+        elseif kind == :bar
+            for i = 1:2:length(x)
+                GR.setfillcolorind(989)
+                GR.setfillintstyle(GR.INTSTYLE_SOLID)
+                GR.fillrect(x[i], x[i+1], y[i], y[i+1])
+                GR.setfillcolorind(1)
+                GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
+                GR.fillrect(x[i], x[i+1], y[i], y[i+1])
+            end
         end
         GR.restorestate()
     end
@@ -1697,6 +1706,68 @@ function stem(args...; kv...)
 
     plot_data()
 end
+
+function barcoordinates(heights; barwidth=0.8, baseline=0.0, kv...)
+    n = length(heights)
+    halfw = barwidth/2
+    wc = zeros(2n)
+    hc  = zeros(2n)
+    for (i, value) in enumerate(heights)
+        wc[2i-1] = i - halfw
+        wc[2i]   = i + halfw
+        hc[2i-1] = baseline
+        hc[2i]   = value
+    end
+    (wc, hc)
+end
+
+"""
+Draw a bar plot.
+
+If no specific labels are given, the axis is labelled with integer
+numbers starting from 1.
+
+Use the keyword arguments **barwidth**, **baseline** or **horizontal**
+to modify the default width of the bars (by default 0.8 times the separation
+between bars), the baseline value (by default zero), or the direction of
+the bars (by default vertical).
+
+:param labels: the labels of the bars
+:param heights: the heights of the bars
+
+**Usage examples:**
+
+.. code-block:: julia
+
+    julia> # World population by continents (millions)
+    julia> population = Dict("Africa" => 1216,
+                             "America" => 1002,
+                             "Asia" => 4436,
+                             "Europe" => 739,
+                             "Oceania" => 38)
+    julia> barplot(keys(population), values(population))
+    julia> # Horizontal bar plot
+    julia> barplot(keys(population), values(population), horizontal=true)
+"""
+function barplot(labels, heights; kv...)
+    kv = Dict(kv)
+    wc, hc = barcoordinates(heights; kv...)
+    horizontal = pop!(kv, :horizontal, false)
+    create_context(:bar, kv)
+    if horizontal
+        plt.args = [(hc, wc, Nothing, Nothing, "")]
+        yticks(1,1)
+        yticklabels(string.(labels))
+    else
+        plt.args = [(wc, hc, Nothing, Nothing, "")]
+        xticks(1,1)
+        xticklabels(string.(labels))
+    end
+
+    plot_data()
+end
+
+barplot(heights; kv...) = barplot(string.(1:length(heights)), heights; kv...)
 
 function hist(x, nbins::Integer=0)
     if nbins <= 1
