@@ -81,6 +81,7 @@ export
   textext,
   inqtextext,
   axes2d, # to avoid WARNING: both GR and Base export "axes"
+  axeslbl,
   grid,
   grid3d,
   verrorbars,
@@ -176,6 +177,8 @@ export
   xticks,
   yticks,
   zticks,
+  xticklabels,
+  yticklabels,
   legend,
   xlim,
   ylim,
@@ -1817,6 +1820,56 @@ end
 axes(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real) = axes2d(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real)
 
 """
+    function axeslbl(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real, fpx::Function, fpy::Function)
+
+Draw X and Y coordinate axes with linearly and/or logarithmically spaced tick marks.
+
+Tick marks are positioned along each axis so that major tick marks fall on the
+axes origin (whether visible or not). Major tick marks are labeled with the
+corresponding data values. Axes are drawn according to the scale of the window.
+Axes and tick marks are drawn using solid lines; line color and width can be
+modified using the `setlinetype` and `setlinewidth` functions.
+Axes are drawn according to the linear or logarithmic transformation established
+by the `setscale` function.
+
+**Parameters:**
+
+`x_tick`, `y_tick` :
+    The interval between minor tick marks on each axis.
+`x_org`, `y_org` :
+    The world coordinates of the origin (point of intersection) of the X
+    and Y axes.
+`major_x`, `major_y` :
+    Unitless integer values specifying the number of minor tick intervals
+    between major tick marks. Values of 0 or 1 imply no minor ticks.
+    Negative values specify no labels will be drawn for the associated axis.
+`tick_size` :
+    The length of minor tick marks specified in a normalized device
+    coordinate unit. Major tick marks are twice as long as minor tick marks.
+    A negative value reverses the tick marks on the axes from inward facing
+    to outward facing (or vice versa).
+`fx`, `fy` :
+    Functions that returns a label for a given tick on the X or Y axis.
+    Those functions should have the following arguments:
+`x`, `y` :
+    Normalized device coordinates of the label in X and Y directions.
+`svalue` :
+    Internal string representation of the text drawn at `(x,y).
+`value` :
+    Floating point representation of the label drawn at `(x,y)`.
+
+"""
+function axeslbl(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real, fx::Function, fy::Function)
+  fx_c = @cfunction($fx, Nothing, (Float64, Float64, Cstring, Float64))
+  fy_c = @cfunction($fy, Nothing, (Float64, Float64, Cstring, Float64))
+  ccall( (:gr_axeslbl, libGR),
+        Nothing,
+        (Float64, Float64, Float64, Float64, Int32, Int32, Float64, Ptr{Nothing}, Ptr{Nothing}),
+        x_tick, y_tick, x_org, y_org, major_x, major_y, tick_size, fx_c, fy_c)
+end
+
+
+"""
     grid(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int)
 
 Draw a linear and/or logarithmic grid.
@@ -3120,6 +3173,8 @@ drawgrid(flag) = jlgr.drawgrid(flag)
 xticks(args...) = jlgr.xticks(args...)
 yticks(args...) = jlgr.yticks(args...)
 zticks(args...) = jlgr.zticks(args...)
+xticklabels(s) = jlgr.xticklabels(s)
+yticklabels(s) = jlgr.yticklabels(s)
 legend(args...; kwargs...) = jlgr.legend(args...; kwargs...)
 xlim(a) = jlgr.xlim(a)
 ylim(a) = jlgr.ylim(a)

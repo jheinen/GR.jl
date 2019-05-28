@@ -399,6 +399,18 @@ function set_window(kind)
     GR.setscale(scale)
 end
 
+function ticklabel_fun(f::Function)
+    return (x, y, svalue, value) -> GR.textext(x, y, string(f(value)))
+end
+
+function ticklabel_fun(labels::AbstractVecOrMat{T}) where T <: AbstractString
+    (x, y, svalue, value) -> begin
+        pos = findfirst(t->(value≈t), collect(1:length(labels)))
+        lab = (pos == nothing) ? "" : labels[pos]
+        GR.textext(x, y, lab)
+    end
+end
+
 function draw_axes(kind, pass=1)
     viewport = plt.kvs[:viewport]
     vp = plt.kvs[:vp]
@@ -434,7 +446,13 @@ function draw_axes(kind, pass=1)
         else
             drawgrid && GR.grid(xtick, ytick, 0, 0, majorx, majory)
         end
-        GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
+        if haskey(plt.kvs, :xticklabels) || haskey(plt.kvs, :yticklabels)
+            fx = get(plt.kvs, :xticklabels, identity) |> ticklabel_fun
+            fy = get(plt.kvs, :yticklabels, identity) |> ticklabel_fun
+            GR.axeslbl(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize, fx, fy)
+        else
+            GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
+        end
         GR.axes(xtick, ytick, xorg[2], yorg[2], -majorx, -majory, -ticksize)
     end
 
@@ -816,8 +834,10 @@ Set the flag to draw a grid in the plot axes.
 """
 drawgrid(flag) = (plt.kvs[:grid] = flag)
 
-"""
-Set the intervals of the ticks for the x axis.
+const doc_ticks = """
+Set the intervals of the ticks for the X, Y or Z axis.
+
+Use the function `xticks`, `yticks` or `zticks` for the corresponding axis.
 
 :param minor: the interval between minor ticks.
 :param major: (optional) the number of minor ticks between major ticks.
@@ -826,47 +846,37 @@ Set the intervals of the ticks for the x axis.
 
 .. code-block:: julia
 
-    julia> # Minor ticks every 0.2 units
+    julia> # Minor ticks every 0.2 units in the X axis
     julia> xticks(0.2)
-    julia> # Major ticks every 1 unit (5 minor ticks)
-    julia> xticks(0.2, 5)
-"""
-xticks(minor, major::Int=1) = (plt.kvs[:xticks] = (minor, major))
-
-"""
-Set the intervals of the ticks for the y axis.
-
-:param minor: the interval between minor ticks.
-:param major: (optional) the number of minor ticks between major ticks.
-
-**Usage examples:**
-
-.. code-block:: julia
-
-    julia> # Minor ticks every 0.2 units
-    julia> yticks(0.2)
-    julia> # Major ticks every 1 unit (5 minor ticks)
+    julia> # Major ticks every 1 unit (5 minor ticks) in the Y axis
     julia> yticks(0.2, 5)
 """
-yticks(minor, major::Int=1) = (plt.kvs[:yticks] = (minor, major))
 
-"""
-Set the intervals of the ticks for the z axis.
+@doc doc_ticks xticks(minor, major::Int=1) = (plt.kvs[:xticks] = (minor, major))
+@doc doc_ticks yticks(minor, major::Int=1) = (plt.kvs[:yticks] = (minor, major))
+@doc doc_ticks zticks(minor, major::Int=1) = (plt.kvs[:zticks] = (minor, major))
 
-:param minor: the interval between minor ticks.
-:param major: (optional) the number of minor ticks between major ticks.
+const doc_ticklabels = """
+Customize the string of the X and Y axes tick labels.
+
+The labels of the tick axis can be defined through a function
+with one argument (the numeric value of the tick position) and
+returns a string, or through an array of strings that are located
+sequentially at X = 1, 2, etc.
+
+:param s: function or array of strings that define the tick labels.
 
 **Usage examples:**
 
 .. code-block:: julia
 
-    julia> # Minor ticks every 0.2 units
-    julia> zticks(0.2)
-    julia> # Major ticks every 1 unit (5 minor ticks)
-    julia> zticks(0.2, 5)
+    julia> # Label the range (0-1) of the Y-axis as percent values
+    julia> yticklabels(p -> Base.Printf.@sprintf("%0.0f%%", 100p))
+    julia> # Label the X-axis with a sequence of strings
+    julia> xticklabels(["first", "second", "third"])
 """
-zticks(minor, major::Int=1) = (plt.kvs[:zticks] = (minor, major))
-
+@doc doc_ticklabels xticklabels(s) = (plt.kvs[:xticklabels] = s)
+@doc doc_ticklabels yticklabels(s) = (plt.kvs[:yticklabels] = s)
 
 # Normalize a color c with the range [cmin, cmax]
 #   0 <= normalize_color(c, cmin, cmax) <= 1
