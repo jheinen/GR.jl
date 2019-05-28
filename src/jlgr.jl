@@ -543,6 +543,9 @@ function legend_size()
     w, h
 end
 
+hasline(mask) = ( mask == 0x00 || (mask & 0x01 != 0) )
+hasmarker(mask) = ( mask & 0x02 != 0)
+
 function draw_legend()
     w, h = legend_size()
     viewport = plt.kvs[:viewport]
@@ -589,8 +592,8 @@ function draw_legend()
         end
         GR.savestate()
         mask = GR.uselinespec(spec)
-        mask in (0, 1, 3, 4, 5) && GR.polyline([px - 0.07, px - 0.01], [py, py])
-        mask & 0x02 != 0 && GR.polymarker([px - 0.06, px - 0.02], [py, py])
+        hasline(mask) && GR.polyline([px - 0.07, px - 0.01], [py, py])
+        hasmarker(mask) && GR.polymarker([px - 0.06, px - 0.02], [py, py])
         GR.restorestate()
         GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
         if i <= num_labels
@@ -1111,11 +1114,11 @@ function plot_data(flag=true)
         end
         if kind == :line
             mask = GR.uselinespec(spec)
-            mask in (0, 1, 3, 4, 5) && GR.polyline(x, y)
-            mask & 0x02 != 0 && GR.polymarker(x, y)
+            hasline(mask) && GR.polyline(x, y)
+            hasmarker(mask) && GR.polymarker(x, y)
         elseif kind == :step
             mask = GR.uselinespec(spec)
-            if mask in (0, 1, 3, 4, 5)
+            if hasline(mask)
                 where = get(plt.kvs, :where, "mid")
                 if where == "pre"
                     n = length(x)
