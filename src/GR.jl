@@ -162,6 +162,7 @@ export
   step,
   scatter,
   stem,
+  barplot,
   histogram,
   polarhistogram,
   contourf,
@@ -3154,6 +3155,7 @@ loglog(args...; kwargs...) = jlgr.plot(args...; kwargs..., xlog=true, ylog=true)
 step(args...; kwargs...) = jlgr.step(args...; kwargs...)
 scatter(args...; kwargs...) = jlgr.scatter(args...; kwargs...)
 stem(args...; kwargs...) = jlgr.stem(args...; kwargs...)
+barplot(args...; kwargs...) = jlgr.barplot(args...; kwargs...)
 histogram(x; kwargs...) = jlgr.histogram(x; kwargs...)
 polarhistogram(x; kwargs...) = jlgr.polarhistogram(x; kwargs...)
 contour(args...; kwargs...) = jlgr.contour(args...; kwargs...)
