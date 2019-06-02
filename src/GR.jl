@@ -168,6 +168,7 @@ export
   polarhistogram,
   contourf,
   heatmap,
+  polarheatmap,
   wireframe,
   plot3,
   scatter3,
@@ -3205,6 +3206,7 @@ contour(args...; kwargs...) = jlgr.contour(args...; kwargs...)
 contourf(args...; kwargs...) = jlgr.contourf(args...; kwargs...)
 hexbin(args...; kwargs...) = jlgr.hexbin(args...; kwargs...)
 heatmap(D; kwargs...) = jlgr.heatmap(D; kwargs...)
+polarheatmap(D; kwargs...) = jlgr.polarheatmap(D; kwargs...)
 wireframe(args...; kwargs...) = jlgr.wireframe(args...; kwargs...)
 surface(args...; kwargs...) = jlgr.surface(args...; kwargs...)
 volume(V; kwargs...) = jlgr.volume(V; kwargs...)

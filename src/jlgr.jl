@@ -41,7 +41,7 @@ const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :trisurf, :tricont, :shade, :volume]
+const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :polarheatmap, :trisurf, :tricont, :shade, :volume]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -145,7 +145,7 @@ function set_viewport(kind, subplot)
     viewport[3] = vp3 + 0.125 * (vp4 - vp3)
     viewport[4] = vp3 + 0.925 * (vp4 - vp3)
 
-    if kind in (:contour, :contourf, :hexbin, :heatmap, :surface, :trisurf, :volume)
+    if kind in (:contour, :contourf, :hexbin, :heatmap, :polarheatmap, :surface, :trisurf, :volume)
         viewport[2] -= 0.1
     end
     if kind in (:line, :step, :scatter, :stem) && haskey(plt.kvs, :labels)
@@ -177,7 +177,7 @@ function set_viewport(kind, subplot)
         GR.restorestate()
     end
 
-    if kind in (:polar, :polarhist)
+    if kind in (:polar, :polarhist, :polarheatmap)
         xmin, xmax, ymin, ymax = viewport
         xcenter = 0.5 * (xmin + xmax)
         ycenter = 0.5 * (ymin + ymax)
@@ -292,7 +292,7 @@ end
 
 function set_window(kind)
     scale = 0
-    if !(kind in (:polar, :polarhist))
+    if !(kind in (:polar, :polarhist, :polarheatmap))
         get(plt.kvs, :xlog, false) && (scale |= GR.OPTION_X_LOG)
         get(plt.kvs, :ylog, false) && (scale |= GR.OPTION_Y_LOG)
         get(plt.kvs, :zlog, false) && (scale |= GR.OPTION_Z_LOG)
@@ -309,7 +309,7 @@ function set_window(kind)
         minmax()
     end
 
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :polarhist, :trisurf, :volume)
+    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :polarhist, :polarheatmap, :trisurf, :volume)
         major_count = 2
     else
         major_count = 5
@@ -384,7 +384,7 @@ function set_window(kind)
     end
 
     plt.kvs[:window] = xmin, xmax, ymin, ymax
-    if !(kind in (:polar, :polarhist))
+    if !(kind in (:polar, :polarhist, :polarheatmap))
         GR.setwindow(xmin, xmax, ymin, ymax)
     else
         GR.setwindow(-1, 1, -1, 1)
@@ -1105,7 +1105,7 @@ function plot_data(flag=true)
         set_window(kind)
         if kind in (:polar, :polarhist)
             draw_polar_axes()
-        elseif kind != :imshow && kind != :isosurface
+        elseif !(kind in (:imshow, :isosurface, :polarheatmap))
             draw_axes(kind)
         end
     end
@@ -1222,6 +1222,22 @@ function plot_data(flag=true)
                 GR.fillarea([0, ρ[i] * cos(θ[i]), ρ[i] * cos(θ[i+1])],
                             [0, ρ[i] * sin(θ[i]), ρ[i] * sin(θ[i+1])])
             end
+        elseif kind == :polarheatmap
+            w, h = size(z)
+            cmap = colormap()
+            cmin, cmax = plt.kvs[:zrange]
+            data = map(x -> normalize_color(x, cmin, cmax), z)
+            colors = Int[round(Int, 1000 + _i * 255) for _i in data]
+            if get(plt.kvs, :xflip, false)
+                data = reverse(data, dims=1)
+            end
+            if get(plt.kvs, :yflip, false)
+                data = reverse(data, dims=2)
+            end
+            GR.polarcellarray(0, 0, 0, 360, 0, 1, w, h, colors)
+            draw_polar_axes()
+            plt.kvs[:zrange] = cmin, cmax
+            colorbar()
         elseif kind == :contour
             zmin, zmax = plt.kvs[:zrange]
             if length(x) == length(y) == length(z)
@@ -2001,6 +2017,23 @@ function heatmap(D; kv...)
 
     if ndims(D) == 2
         z = D'
+        width, height = size(z)
+        if !haskey(plt.kvs, :xlim) plt.kvs[:xlim] = (0.5, width + 0.5) end
+        if !haskey(plt.kvs, :ylim) plt.kvs[:ylim] = (0.5, height + 0.5) end
+
+        plt.args = [(1:width, 1:height, z, Nothing, "")]
+
+        plot_data()
+    else
+        error("expected 2-D array")
+    end
+end
+
+function polarheatmap(D; kv...)
+    create_context(:polarheatmap, Dict(kv))
+
+    if ndims(D) == 2
+        z = D
         width, height = size(z)
         if !haskey(plt.kvs, :xlim) plt.kvs[:xlim] = (0.5, width + 0.5) end
         if !haskey(plt.kvs, :ylim) plt.kvs[:ylim] = (0.5, height + 0.5) end
