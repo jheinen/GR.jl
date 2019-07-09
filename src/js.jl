@@ -40,20 +40,25 @@ function inject_js()
   end
   _jsterm = """
     if (typeof grJSTermRunning === 'undefined' || !grJstermReady) {
-      BOXZOOM_THRESHOLD = 5;
-      BOXZOOM_TRIGGER_THRESHHOLD = 1000;
-      MAX_KERNEL_CONNECTION_ATTEMPTS = 25;
-      KERNEL_CONNECT_WAIT_TIME = 100;
-      REFRESH_PLOT_TIMEOUT = 100;
-      BOXZOOM_FILL_STYLE = '#FFAAAA';
-      BOXZOOM_STROKE_STYLE = '#FF0000';
+      BOXZOOM_THRESHOLD = 3;  // Minimal size in pixels of the boxzoom-box to trigger a boxzoom-event
+      BOXZOOM_TRIGGER_THRESHHOLD = 1000;  // Time to wait (in ms) before triggering boxzoom event instead
+                              // of panning when pressing the left mouse button without moving the mouse
+      MAX_KERNEL_CONNECTION_ATTEMPTS = 25;  // Maximum number of kernel initialisation attempts
+      KERNEL_CONNECT_WAIT_TIME = 100; // Time to wait between kernel initialisation attempts
+      RECONNECT_PLOT_TIMEOUT = 100; // Time to wait between attempts to connect to a plot's canvas
+      RECONNECT_PLOT_MAX_ATTEMPTS = 50; // Maximum number of canvas reconnection attempts
+      BOXZOOM_FILL_STYLE = '#FFAAAA'; // Fill style of the boxzoom box
+      BOXZOOM_STROKE_STYLE = '#FF0000'; // Outline style of the boxzoom box
 
-      var comm = undefined;
-      var idcount = 0;
-      var widgets = [];
-      var jupyterRunning = false;
+      var gr, comm, idcount = 0, widgets = [], jupyterRunning = false;
 
-      function saveLoad(url, callback, maxtime) {
+      /**
+       * Loads a javascript file from `url` and calls `callback` when loading has been finished.
+       * @param  {string}   url      URL to load script from
+       * @param  {Function} callback Function to call when loading is finished
+       * @param  {number}   maxtime  Maximum time in ms to wait for script-loading
+       */
+      saveLoad = function(url, callback, maxtime) {
         let script = document.createElement('script');
         script.onload = function() {
           callback();
@@ -68,9 +73,14 @@ function inject_js()
             console.error(url + ' can not be loaded.');
           }
         }, maxtime);
-      }
+      };
 
-      function sendEvt(data, id) {
+      /**
+       * Sends an object describing a event via jupyter-comm
+       * @param  {Object} data Data describing the event
+       * @param  {string} id   Identifikator of the calling plot
+       */
+      sendEvt = function(data, id) {
         if (jupyterRunning) {
           comm.send({
             "type": "evt",
@@ -78,26 +88,38 @@ function inject_js()
             "id": id
           });
         }
-      }
+      };
 
-      function jsLoaded() {
+      /**
+       * Runs draw-events cached during javascript startup
+       */
+      jsLoaded = function() {
         grJstermReady = true;
         for (let or in onready) {
           or();
           onready = [];
         }
-      }
+      };
 
-      function canvasRemoved(id) {
+      /**
+       * Sends a canvas-removed-event via jupyter-comm
+       * @param  {string} id The removed plot's identificator
+       */
+      canvasRemoved = function(id) {
         if (jupyterRunning) {
           comm.send({
             "type": "removed",
             "content": id
           });
         }
-      }
+      };
 
-      function saveData(data, id) {
+      /**
+       * Sends a save-data-event via jupyter-comm
+       * @param  {Object} data Data to save
+       * @param  {string} id   plot identificator
+       */
+      saveData = function(data, id) {
         if (jupyterRunning) {
           comm.send({
             "type": "save",
@@ -107,9 +129,13 @@ function inject_js()
             }
           });
         }
-      }
+      };
 
-      function registerComm(kernel) {
+      /**
+       * Registration/initialisation of the jupyter-comm
+       * @param  {[type]} kernel Jupyter kernel object
+       */
+      registerComm = function(kernel) {
         kernel.comm_manager.register_target('jsterm_comm', function(c) {
           c.on_msg(function(msg) {
             let data = msg.content.data;
@@ -137,9 +163,13 @@ function inject_js()
           });
           comm = c;
         });
-      }
+      };
 
-      function onLoad() {
+      /**
+       * Function to call when page has been loaded.
+       * Determines if running in a jupyter environment.
+       */
+      onLoad = function() {
         if (typeof Jupyter !== 'undefined') {
           jupyterRunning = true;
           initKernel(1);
@@ -148,7 +178,12 @@ function inject_js()
         }
       };
 
-      function initKernel(attempt) {
+      /**
+       * Jupyter specific initialisation.
+       * Retrying maximum `MAX_KERNEL_CONNECTION_ATTEMPTS` times
+       * @param  {number} attempt number of attempt
+       */
+      initKernel = function(attempt) {
         let kernel = Jupyter.notebook.kernel;
         if (typeof kernel === 'undefined' || kernel == null) {
           if (attempt < MAX_KERNEL_CONNECTION_ATTEMPTS) {
@@ -161,14 +196,18 @@ function inject_js()
           Jupyter.notebook.events.on('kernel_ready.Kernel', function() {
             registerComm(kernel);
             for (let key in widgets) {
-              widgets[key].init();
+              widgets[key].reconnectCanvas();
             }
           });
           drawSavedData();
         }
-      }
+      };
 
-      function draw(msg) {
+      /**
+       * Handles a draw command.
+       * @param  {[type]} msg The input message containing the draw command
+       */
+      draw = function(msg) {
         if (!grJstermReady) {
           onready.push(function() {
             return draw(msg);
@@ -184,15 +223,18 @@ function inject_js()
           }
           widgets[msg.content.data.id].draw(msg);
         }
-      }
+      };
 
-      function drawSavedData() {
+      /**
+       * Draw data that has been saved in the loaded page
+       */
+      drawSavedData = function() {
         let data = document.getElementsByClassName("jsterm-data");
         for (let i = 0; i < data.length; i++) {
           let msg = data[i].innerText;
           draw(JSON.parse(msg));
         }
-      }
+      };
 
       if (document.readyState!='loading') {
         onLoad();
@@ -204,15 +246,22 @@ function inject_js()
         }
       });
 
+      /**
+       * Creates a JSTermWidget-Object describing and managing a canvas
+       * @param       {number} id     The widget's numerical identificator (belonging context in `meta.c`)
+       * @param       {string} htmlId Identificator of the plot/canvas
+       * @constructor
+       */
+      JSTermWidget = function(id, htmlId) {
 
-      function JSTermWidget(id, htmlId) {
-
+        /**
+         * Initialize the JSTermWidget
+         */
         this.init = function() {
           this.canvas = undefined;
           this.overlayCanvas = undefined;
           this.args = undefined;
           this.id = id;  // context id for meta.c (switchmeta)
-          this.gr = undefined;
           this.htmlId = htmlId;
 
           this.waiting = false;
@@ -225,48 +274,71 @@ function inject_js()
           this.boxzoom = false;
           this.keepAspectRatio = true;
           this.boxzoomTriggerTimeout = undefined;
-          this.boxzoomPoint = [0, 0];
+          this.boxzoomPoint = [undefined, undefined];
           this.pinchDiff = 0;
           this.prevTouches = undefined;
 
           this.sendEvents = false;
           this.handleEvents = true;
-        }
+        };
 
         this.init();
 
+        /**
+         * Send a event fired by widget via jupyter-comm
+         * @param  {Object} data Event description
+         */
         this.sendEvt = function(data) {
           if (this.sendEvents) {
             sendEvt(data, this.htmlId);
           }
-        }
+        };
 
+        /**
+         * Calculate coordinates on the canvas of the mouseevent.
+         * @param  {Event} event    The mouse event to process
+         * @return {[number, number]}       The calculated [x, y]-coordinates
+         */
         this.getCoords = function(event) {
           let rect = this.canvas.getBoundingClientRect();
           //TODO mind the canvas-padding if necessary!
           return [Math.floor(event.clientX - rect.left), Math.floor(event.clientY - rect.top)];
         };
 
+        /**
+         * Send a event to `meta.c`
+         * @param  {number} mouseargs (Emscripten) address of the argumentcontainer describing a event
+         */
         this.grEventinput = function(mouseargs) {
-          this.gr.switchmeta(this.id);
-          this.gr.inputmeta(mouseargs);
-          this.gr.current_canvas = this.canvas;
-          this.gr.current_context = this.gr.current_canvas.getContext('2d');
-          this.gr.select_canvas();
-          this.gr.plotmeta();
+          gr.switchmeta(this.id);
+          gr.inputmeta(mouseargs);
+          gr.current_canvas = this.canvas;
+          gr.current_context = gr.current_canvas.getContext('2d');
+          gr.select_canvas();
+          gr.plotmeta();
         };
 
+        /**
+         * Handles a wheel event (zoom)
+         * @param  {number} x       x-coordinate on the canvas of the mouse
+         * @param  {number} y       y-coordinate on the canvas of the mouse
+         * @param  {number} angle_delta angle the wheel has been turned
+         */
         this.handleWheel = function(x, y, angle_delta) {
           if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
             clearTimeout(this.boxzoomTriggerTimeout);
           }
-          let mouseargs = this.gr.newmeta();
-          this.gr.meta_args_push(mouseargs, "x", "i", [x]);
-          this.gr.meta_args_push(mouseargs, "y", "i", [y]);
-          this.gr.meta_args_push(mouseargs, "angle_delta", "d", [angle_delta]);
+          let mouseargs = gr.newmeta();
+          gr.meta_args_push(mouseargs, "x", "i", [x]);
+          gr.meta_args_push(mouseargs, "y", "i", [y]);
+          gr.meta_args_push(mouseargs, "angle_delta", "d", [angle_delta]);
           this.grEventinput(mouseargs);
         };
 
+        /**
+         * Handles a wheel event triggered by the mouse
+         * @param  {Event} event The fired mouse event
+         */
         this.mouseHandleWheel = function (event) {
           let coords = this.getCoords(event);
           this.sendEvt({
@@ -281,6 +353,13 @@ function inject_js()
           event.preventDefault();
         };
 
+        /**
+         * Handles a mousedown event
+         * @param  {number} x       x-coordinate on the canvas of the mouse
+         * @param  {number} y       y-coordinate on the canvas of the mouse
+         * @param  {number} button  Integer indicating the button pressed (0: left, 1: middle/wheel, 2: right)
+         * @param  {Boolean} ctrlKey Boolean indicating if the ctrl-key is pressed
+         */
         this.handleMousedown = function(x, y, button, ctrlKey) {
           if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
             clearTimeout(this.boxzoomTriggerTimeout);
@@ -296,6 +375,10 @@ function inject_js()
           }
         };
 
+        /**
+         * Handles a mousedown event triggered by the mouse
+         * @param  {Event} event The fired mouse event
+         */
         this.mouseHandleMousedown = function (event) {
           let coords = this.getCoords(event);
           this.sendEvt({
@@ -311,6 +394,12 @@ function inject_js()
           event.preventDefault();
         };
 
+        /**
+         * Initiate the boxzoom on the canvas.
+         * @param  {number} x       x-coordinate of the mouse
+         * @param  {number} y       y-coordinate of the mouse
+         * @param  {Boolean} ctrlKey Boolean indicating if the ctrl-key is pressed
+         */
         this.startBoxzoom = function(x, y, ctrlKey) {
           this.panning = false;
           this.boxzoom = true;
@@ -321,31 +410,28 @@ function inject_js()
           this.overlayCanvas.style.cursor = 'nwse-resize';
         };
 
+        /**
+         * Handles a mouseup event
+         * @param  {number} x       x-coordinate on the canvas of the mouse
+         * @param  {number} y       y-coordinate on the canvas of the mouse
+         * @param  {number} button  Integer indicating the button pressed (0: left, 1: middle/wheel, 2: right)
+         */
         this.handleMouseup = function(x, y, button) {
           if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
             clearTimeout(this.boxzoomTriggerTimeout);
           }
           if (this.boxzoom) {
             if ((Math.abs(this.boxzoomPoint[0] - x) >= BOXZOOM_THRESHOLD) && (Math.abs(this.boxzoomPoint[1] - y) >= BOXZOOM_THRESHOLD)) {
-              let mouseargs = this.gr.newmeta();
-              if (this.boxzoomPoint[0] < x) {
-                this.gr.meta_args_push(mouseargs, "left", "i", [this.boxzoomPoint[0]]);
-                this.gr.meta_args_push(mouseargs, "right", "i", [x]);
-              } else {
-                this.gr.meta_args_push(mouseargs, "right", "i", [this.boxzoomPoint[0]]);
-                this.gr.meta_args_push(mouseargs, "left", "i", [x]);
-              }
-              if (this.boxzoomPoint[1] < y) {
-                this.gr.meta_args_push(mouseargs, "top", "i", [this.boxzoomPoint[1]]);
-                this.gr.meta_args_push(mouseargs, "bottom", "i", [y]);
-              } else {
-                this.gr.meta_args_push(mouseargs, "bottom", "i", [this.boxzoomPoint[1]]);
-                this.gr.meta_args_push(mouseargs, "top", "i", [y]);
-              }
+              let mouseargs = gr.newmeta();
+              let diff = [x - this.boxzoomPoint[0], y - this.boxzoomPoint[1]];
+              gr.meta_args_push(mouseargs, "x1", "i", [this.boxzoomPoint[0]]);
+              gr.meta_args_push(mouseargs, "x2", "i", [this.boxzoomPoint[0] + diff[0]]);
+              gr.meta_args_push(mouseargs, "y1", "i", [this.boxzoomPoint[1]]);
+              gr.meta_args_push(mouseargs, "y2", "i", [this.boxzoomPoint[1] + diff[1]]);
               if (this.keepAspectRatio) {
-                this.gr.meta_args_push(mouseargs, "keepAspectRatio", "i", [1]);
+                gr.meta_args_push(mouseargs, "keep_aspect_ratio", "i", [1]);
               } else {
-                this.gr.meta_args_push(mouseargs, "keepAspectRatio", "i", [0]);
+                gr.meta_args_push(mouseargs, "keep_aspect_ratio", "i", [0]);
               }
               this.grEventinput(mouseargs);
             }
@@ -354,11 +440,16 @@ function inject_js()
           this.overlayCanvas.style.cursor = 'auto';
           this.panning = false;
           this.boxzoom = false;
+          this.boxzoomPoint = [undefined, undefined];
           this.keepAspectRatio = true;
           let context = this.overlayCanvas.getContext('2d');
           context.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
         };
 
+        /**
+         * Handles a mouseup event triggered by the mouse
+         * @param  {Event} event The fired mouse event
+         */
         this.mouseHandleMouseup = function(event) {
           let coords = this.getCoords(event);
           this.sendEvt({
@@ -373,9 +464,13 @@ function inject_js()
           event.preventDefault();
         };
 
+        /**
+         * Handles a touchstart event triggered by tapping the touchscreen
+         * @param  {Event} event The fired touch event
+         */
         this.touchHandleTouchstart = function(event) {
           if (event.touches.length == 1) {
-            let coords = this.getCoords(event.touches[0])
+            let coords = this.getCoords(event.touches[0]);
             this.handleMousedown(coords[0], coords[1], 0, false);
           } else if (event.touches.length == 2) {
             this.pinching = true;
@@ -384,20 +479,28 @@ function inject_js()
             let c2 = this.getCoords(event.touches[1]);
             this.prevTouches = [c1, c2];
           } else if (event.touches.length == 3) {
-            let coords1 = this.getCoords(event.touches[0])
-            let coords2 = this.getCoords(event.touches[1])
-            let coords3 = this.getCoords(event.touches[2])
-            let x = 1. / 3. * coords1[0] + coords2[0] + coords3[0];
-            let y = 1. / 3. * coords1[1] + coords2[1] + coords3[1];
+            let coords1 = this.getCoords(event.touches[0]);
+            let coords2 = this.getCoords(event.touches[1]);
+            let coords3 = this.getCoords(event.touches[2]);
+            let x = 1 / 3 * coords1[0] + coords2[0] + coords3[0];
+            let y = 1 / 3 * coords1[1] + coords2[1] + coords3[1];
             this.handleDoubleclick(x, y);
           }
           event.preventDefault();
         };
 
+        /**
+         * Handles a touchend event
+         * @param  {Event} event The fired touch event
+         */
         this.touchHandleTouchend = function(event) {
           this.handleMouseleave();
         };
 
+        /**
+         * Handles a touchmove event triggered by moving fingers on the touchscreen
+         * @param  {Event} event The fired touch event
+         */
         this.touchHandleTouchmove = function(event) {
           if (event.touches.length == 1) {
             let coords = this.getCoords(event.touches[0]);
@@ -406,27 +509,31 @@ function inject_js()
             let c1 = this.getCoords(event.touches[0]);
             let c2 = this.getCoords(event.touches[1]);
             let diff = Math.sqrt(Math.pow(Math.abs(c1[0] - c2[0]), 2) + Math.pow(Math.abs(c1[1] - c2[1]), 2));
-            let factor = this.pinchDiff / diff;
+            if (typeof this.pinchDiff !== 'undefined' && typeof this.prevTouches !== 'undefined') {
+              let factor = this.pinchDiff / diff;
 
-            let mouseargs = this.gr.newmeta();
-            this.gr.meta_args_push(mouseargs, "x", "i", [(c1[0] + c2[0]) / 2]);
-            this.gr.meta_args_push(mouseargs, "y", "i", [(c1[1] + c2[1]) / 2]);
-            this.gr.meta_args_push(mouseargs, "factor", "d", [factor]);
-            this.grEventinput(mouseargs);
+              let mouseargs = gr.newmeta();
+              gr.meta_args_push(mouseargs, "x", "i", [(c1[0] + c2[0]) / 2]);
+              gr.meta_args_push(mouseargs, "y", "i", [(c1[1] + c2[1]) / 2]);
+              gr.meta_args_push(mouseargs, "factor", "d", [factor]);
+              this.grEventinput(mouseargs);
 
-            let panmouseargs = this.gr.newmeta();
-            this.gr.meta_args_push(panmouseargs, "x", "i", [(c1[0] + c2[0]) / 2]);
-            this.gr.meta_args_push(panmouseargs, "y", "i", [(c1[1] + c2[1]) / 2]);
-            this.gr.meta_args_push(panmouseargs, "xshift", "i", [(c1[0] - this.prevTouches[0][0] + c2[0] - this.prevTouches[1][0]) / 2.0]);
-            this.gr.meta_args_push(panmouseargs, "yshift", "i", [(c1[1] - this.prevTouches[0][1] + c2[1] - this.prevTouches[1][1]) / 2.0]);
-            this.grEventinput(panmouseargs);
-
+              let panmouseargs = gr.newmeta();
+              gr.meta_args_push(panmouseargs, "x", "i", [(c1[0] + c2[0]) / 2]);
+              gr.meta_args_push(panmouseargs, "y", "i", [(c1[1] + c2[1]) / 2]);
+              gr.meta_args_push(panmouseargs, "xshift", "i", [(c1[0] - this.prevTouches[0][0] + c2[0] - this.prevTouches[1][0]) / 2.0]);
+              gr.meta_args_push(panmouseargs, "yshift", "i", [(c1[1] - this.prevTouches[0][1] + c2[1] - this.prevTouches[1][1]) / 2.0]);
+              this.grEventinput(panmouseargs);
+            }
             this.pinchDiff = diff;
             this.prevTouches = [c1, c2];
           }
           event.preventDefault();
         };
 
+        /**
+         * Handles a mouseleave event
+         */
         this.handleMouseleave = function() {
           if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
             clearTimeout(this.boxzoomTriggerTimeout);
@@ -439,10 +546,17 @@ function inject_js()
             context.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
           }
           this.boxzoom = false;
+          this.boxzoomPoint = [undefined, undefined];
           this.keepAspectRatio = true;
         };
 
+        /**
+         * Handles a mouseleave event triggered by the mouse
+         * @param  {Event} event The fired mouse event
+         */
         this.mouseHandleMouseleave = function(event) {
+          this.pinchDiff = undefined;
+          this.prevTouches = undefined;
           this.sendEvt({
             "event": "mouseleave",
           });
@@ -451,30 +565,28 @@ function inject_js()
           }
         };
 
+        /**
+         * Handles a mousemove event
+         * @param  {number} x       x-coordinate on the canvas of the mouse
+         * @param  {number} y       y-coordinate on the canvas of the mouse
+         */
         this.handleMousemove = function(x, y) {
           if (this.panning) {
             if (typeof this.boxzoomTriggerTimeout !== 'undefined') {
               clearTimeout(this.boxzoomTriggerTimeout);
             }
-            let mouseargs = this.gr.newmeta();
-            this.gr.meta_args_push(mouseargs, "x", "i", [this.prevMousePos[0]]);
-            this.gr.meta_args_push(mouseargs, "y", "i", [this.prevMousePos[1]]);
-            this.gr.meta_args_push(mouseargs, "xshift", "i", [x - this.prevMousePos[0]]);
-            this.gr.meta_args_push(mouseargs, "yshift", "i", [y - this.prevMousePos[1]]);
+            let mouseargs = gr.newmeta();
+            gr.meta_args_push(mouseargs, "x", "i", [this.prevMousePos[0]]);
+            gr.meta_args_push(mouseargs, "y", "i", [this.prevMousePos[1]]);
+            gr.meta_args_push(mouseargs, "xshift", "i", [x - this.prevMousePos[0]]);
+            gr.meta_args_push(mouseargs, "yshift", "i", [y - this.prevMousePos[1]]);
             this.grEventinput(mouseargs);
             this.prevMousePos = [x, y];
           } else if (this.boxzoom) {
             let context = this.overlayCanvas.getContext('2d');
             let diff = [x - this.boxzoomPoint[0], y - this.boxzoomPoint[1]];
-            if (this.keepAspectRatio) {
-              if (Math.abs(diff[0]) / this.overlayCanvas.width > Math.abs(diff[1]) / this.overlayCanvas.height) {
-                let factor = Math.abs(x - this.boxzoomPoint[0]) / this.overlayCanvas.width;
-                diff[1] = Math.sign(diff[1]) * factor * this.overlayCanvas.height;
-              } else {
-                let factor = Math.abs(y - this.boxzoomPoint[1]) / this.overlayCanvas.height;
-                diff[0] = Math.sign(diff[0]) * factor * this.overlayCanvas.width;
-              }
-            }
+            gr.switchmeta(this.id);
+            let box = gr.meta_get_box(this.boxzoomPoint[0], this.boxzoomPoint[1], this.boxzoomPoint[0] + diff[0], this.boxzoomPoint[1] + diff[1], this.keepAspectRatio);
             context.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
             if (diff[0] * diff[1] >= 0) {
               this.overlayCanvas.style.cursor = 'nwse-resize';
@@ -484,7 +596,7 @@ function inject_js()
             context.fillStyle = BOXZOOM_FILL_STYLE;
             context.strokeStyle = BOXZOOM_STROKE_STYLE;
             context.beginPath();
-            context.rect(this.boxzoomPoint[0], this.boxzoomPoint[1], diff[0], diff[1]);
+            context.rect(box[0], box[1], box[2], box[3]);
             context.globalAlpha = 0.2;
             context.fill();
             context.globalAlpha = 1.0;
@@ -493,6 +605,10 @@ function inject_js()
           }
         };
 
+        /**
+         * Handles a mousemove event triggered by the mouse
+         * @param  {Event} event The fired mouse event
+         */
         this.mouseHandleMousemove = function (event) {
           let coords = this.getCoords(event);
           this.sendEvt({
@@ -506,14 +622,24 @@ function inject_js()
           event.preventDefault();
         };
 
+        /**
+         * Handles a doubleclick event
+         * @param  {number} x       x-coordinate on the canvas of the mouse
+         * @param  {number} y       y-coordinate on the canvas of the mouse
+         */
         this.handleDoubleclick = function(x, y) {
-          let mouseargs = this.gr.newmeta();
-          this.gr.meta_args_push(mouseargs, "x", "i", [x]);
-          this.gr.meta_args_push(mouseargs, "y", "i", [y]);
-          this.gr.meta_args_push(mouseargs, "key", "s", "r");
+          let mouseargs = gr.newmeta();
+          gr.meta_args_push(mouseargs, "x", "i", [x]);
+          gr.meta_args_push(mouseargs, "y", "i", [y]);
+          gr.meta_args_push(mouseargs, "key", "s", "r");
           this.grEventinput(mouseargs);
+          this.boxzoomPoint = [undefined, undefined];
         };
 
+        /**
+         * Handles a doubleclick event triggered by the mouse
+         * @param  {Event} event The fired mouse event
+         */
         this.mouseHandleDoubleclick = function(event) {
           let coords = this.getCoords(event);
           this.sendEvt({
@@ -527,6 +653,10 @@ function inject_js()
           event.preventDefault();
         };
 
+        /**
+         * Handles a event triggered by a Jupyter Comm message
+         * @param  {Object} msg The message describing the event
+         */
         this.msgHandleEvent = function(msg) {
           switch(msg.event) {
             case "mousewheel":
@@ -552,6 +682,10 @@ function inject_js()
           }
         };
 
+        /**
+         * Handles a command received cia jupyter comm
+         * @param  {Object} msg Received msg containing the command
+         */
         this.msgHandleCommand = function(msg) {
           switch(msg.command) {
             case 'enable_events':
@@ -571,6 +705,10 @@ function inject_js()
           }
         };
 
+        /**
+         * Draw a lot described by a message received via jupyter comm
+         * @param  {Object} msg message containing the draw-command
+         */
         this.draw = function(msg) {
           if (this.waiting) {
             this.oncanvas = function() {
@@ -586,60 +724,72 @@ function inject_js()
               };
               setTimeout(function() {
                 this.refreshPlot(msg, 0);
-              }.bind(this), REFRESH_PLOT_TIMEOUT);
+              }.bind(this), RECONNECT_PLOT_TIMEOUT);
             } else {
               if (document.getElementById('jsterm-data-' + this.htmlId) == null) {
                 saveData(msg, msg.content.data.id);
               }
-              if (typeof this.canvas === 'undefined' || typeof this.overlayCanvas === 'undefined') {
-                this.canvas = document.getElementById('jsterm-' + this.htmlId);
-                this.overlayCanvas = document.getElementById('jsterm-overlay-' + this.htmlId);
-                this.overlayCanvas.addEventListener('DOMNodeRemoved', function() {
-                  canvasRemoved(msg.content.data.id);
-                  this.canvas = undefined;
-                  this.waiting = true;
-                  this.oncanvas = function() {};
-                });
-                this.overlayCanvas.style.cursor = 'auto';
-
-                //registering event handler
-                this.overlayCanvas.addEventListener('wheel', function(evt) { this.mouseHandleWheel(evt); }.bind(this));
-                this.overlayCanvas.addEventListener('mousedown', function(evt) { this.mouseHandleMousedown(evt); }.bind(this));
-                this.overlayCanvas.addEventListener('touchstart', function(evt) { this.touchHandleTouchstart(evt); }.bind(this));
-                this.overlayCanvas.addEventListener('touchmove', function(evt) { this.touchHandleTouchmove(evt); }.bind(this));
-                this.overlayCanvas.addEventListener('touchend', function(evt) { this.touchHandleTouchend(evt); }.bind(this));
-                this.overlayCanvas.addEventListener('mousemove', function(evt) { this.mouseHandleMousemove(evt); }.bind(this));
-                this.overlayCanvas.addEventListener('mouseup', function(evt) { this.mouseHandleMouseup(evt); }.bind(this));
-                this.overlayCanvas.addEventListener('mouseleave', function(evt) { this.mouseHandleMouseleave(evt); }.bind(this));
-                this.overlayCanvas.addEventListener('dblclick', function(evt) { this.mouseHandleDoubleclick(evt); }.bind(this));
-                this.overlayCanvas.addEventListener('contextmenu', function(event) {
-                  event.preventDefault();
-                  return false;
-                });
+              if (document.getElementById('jsterm-' + msg.content.data.id) !== this.canvas || typeof this.canvas === 'undefined' || typeof this.overlayCanvas === 'undefined') {
+                this.reconnectCanvas();
               }
-              if (typeof this.gr === 'undefined') {
-                this.gr = new GR('jsterm-' + this.htmlId);
+              if (typeof gr === 'undefined') {
+                gr = new GR('jsterm-' + this.htmlId);
               }
               if (typeof this.args === 'undefined') {
-                this.args = this.gr.newmeta();
+                this.args = gr.newmeta();
               }
-              this.waiting = false;
-              this.gr.switchmeta(this.id);
-              this.gr.current_canvas = this.canvas; //TODO is this always set? (check)
-              this.gr.current_context = this.gr.current_canvas.getContext('2d');
-              this.gr.select_canvas();
-              this.gr.meta_args_push(this.args, "size", "dd", [this.canvas.width, this.canvas.height]);
-              this.gr.readmeta(this.args, msg.content.data.json);
-              this.gr.plotmeta(this.args);
+              gr.switchmeta(this.id);
+              gr.current_canvas = this.canvas; //TODO is this always set? (check)
+              gr.current_context = gr.current_canvas.getContext('2d');
+              gr.select_canvas();
+              gr.meta_args_push(this.args, "size", "dd", [this.canvas.width, this.canvas.height]);
+              gr.readmeta(this.args, msg.content.data.json);
+              gr.plotmeta(this.args);
             }
           }
         };
 
+        this.reconnectCanvas = function() {
+          if (document.getElementById('jsterm-' + this.htmlId) != null) {
+            this.canvas = document.getElementById('jsterm-' + this.htmlId);
+            this.overlayCanvas = document.getElementById('jsterm-overlay-' + this.htmlId);
+            this.overlayCanvas.addEventListener('DOMNodeRemoved', function() {
+              canvasRemoved(msg.content.data.id);
+              this.canvas = undefined;
+              this.waiting = true;
+              this.oncanvas = function() {};
+            });
+            this.overlayCanvas.style.cursor = 'auto';
+
+            //registering event handler
+            this.overlayCanvas.addEventListener('wheel', function(evt) { this.mouseHandleWheel(evt); }.bind(this));
+            this.overlayCanvas.addEventListener('mousedown', function(evt) { this.mouseHandleMousedown(evt); }.bind(this));
+            this.overlayCanvas.addEventListener('touchstart', function(evt) { this.touchHandleTouchstart(evt); }.bind(this));
+            this.overlayCanvas.addEventListener('touchmove', function(evt) { this.touchHandleTouchmove(evt); }.bind(this));
+            this.overlayCanvas.addEventListener('touchend', function(evt) { this.touchHandleTouchend(evt); }.bind(this));
+            this.overlayCanvas.addEventListener('mousemove', function(evt) { this.mouseHandleMousemove(evt); }.bind(this));
+            this.overlayCanvas.addEventListener('mouseup', function(evt) { this.mouseHandleMouseup(evt); }.bind(this));
+            this.overlayCanvas.addEventListener('mouseleave', function(evt) { this.mouseHandleMouseleave(evt); }.bind(this));
+            this.overlayCanvas.addEventListener('dblclick', function(evt) { this.mouseHandleDoubleclick(evt); }.bind(this));
+            this.overlayCanvas.addEventListener('contextmenu', function(event) {
+              event.preventDefault();
+              return false;
+            });
+          }
+        };
+
+        /**
+         * Check if a deleted canvas has been recreated.
+         * Calls itself after REFRESH_PLOT_TIMEOUTms if no canvas is found
+         * @param  {numbers} count number of tries to connect with the canvas
+         */
         this.refreshPlot = function(msg, count) {
           if (document.getElementById('jsterm-' + this.htmlId) == null) {
-            setTimeout(function() {
-              this.refreshPlot(msg, count + 1);
-            }.bind(this), REFRESH_PLOT_TIMEOUT);
+            if (count < RECONNECT_PLOT_MAX_ATTEMPTS) {
+              setTimeout(function() {
+                this.refreshPlot(msg, count + 1);
+              }.bind(this), RECONNECT_PLOT_TIMEOUT);
+            }
           } else {
             this.waiting = false;
             if (typeof this.oncanvas !== 'undefined') {
@@ -647,7 +797,7 @@ function inject_js()
             }
           }
         };
-      }
+      };
     }
     var grJSTermRunning = true;"""
   if _gr_js === nothing
