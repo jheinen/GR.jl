@@ -33,7 +33,8 @@ ApplicationWindow {
 
       Slider {
         id: nbinsSlider
-        width: 100
+        implicitWidth: 100
+        implicitHeight: 30
         value: 30
         from: 10
         to: 60
