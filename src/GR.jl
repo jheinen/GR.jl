@@ -215,18 +215,15 @@ send_c = C_NULL
 recv_c = C_NULL
 encoding = "latin1"
 
-@static if os == :Windows
-  const libGR = "libGR.dll"
-  const libGR3 = "libGR3.dll"
-else
-  const libGR = "libGR.so"
-  const libGR3 = "libGR3.so"
-end
+# Include BinaryProvider-sourced binaries
+include(joinpath(@__DIR__, "..", "deps", "deps.jl"))
 
 isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected()
 
 function __init__()
+    check_deps()
+
     global display_name, mime_type, file_path, send_c, recv_c, encoding
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
@@ -245,7 +242,7 @@ function __init__()
         end
     end
     if grdir == None
-        grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
+        grdir = joinpath(dirname(@__FILE__), "..", "deps", "usr")
     end
     ENV["GRDIR"] = grdir
     ENV["GKS_FONTPATH"] = grdir
