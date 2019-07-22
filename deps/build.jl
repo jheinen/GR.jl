@@ -44,6 +44,11 @@ end
         end
     catch
     end
+    if "GRDIR" in keys(ENV)
+        if length(ENV["GRDIR"]) == 0
+            version = "latest"
+        end
+    end
     version
 end
 
