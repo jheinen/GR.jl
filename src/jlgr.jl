@@ -95,6 +95,7 @@ plt = Figure()
 ctx = Dict()
 scheme = 0
 background = 0xffffff
+handle = nothing
 
 isrowvec(x::AbstractArray) = ndims(x) == 2 && size(x, 1) == 1 && size(x, 2) > 1
 
@@ -1010,7 +1011,10 @@ to_double(a) = Float64[float(el) for el in a]
 to_int(a) = Int32[el for el in a]
 
 function send_meta(target)
-    handle = GR.openmeta(target)
+    global handle
+    if handle === nothing
+        handle = GR.openmeta(target)
+    end
     if handle != C_NULL
         for (k, v) in plt.kvs
             if k in [:backgroundcolor, :color, :colormap, :location, :nbins,
@@ -1038,7 +1042,7 @@ function send_meta(target)
         end
         GR.sendmetaref(handle, "kind", 's', string(plt.kvs[:kind]));
         GR.sendmetaref(handle, "", '\0', "", 0);
-        GR.closemeta(handle)
+        #GR.closemeta(handle)
     end
 end
 
