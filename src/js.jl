@@ -16,7 +16,7 @@ js_running = false
 
 
 mutable struct JSTermWidget
-    identifier::String
+    identifier::Int
     width::Int
     height::Int
     visible::Bool
@@ -103,13 +103,15 @@ function inject_js()
 
       /**
        * Sends a canvas-removed-event via jupyter-comm
-       * @param  {string} id The removed plot's identificator
+       * @param  {number} id The removed plot's id
        */
-      canvasRemoved = function(id) {
+      createCanvas = function(id, width, height) {
         if (jupyterRunning) {
           comm.send({
-            "type": "removed",
-            "content": id
+            "type": "createCanvas",
+            "id": id,
+            "width": width,
+            "height": height
           });
         }
       };
@@ -196,7 +198,7 @@ function inject_js()
           Jupyter.notebook.events.on('kernel_ready.Kernel', function() {
             registerComm(kernel);
             for (let key in widgets) {
-              widgets[key].reconnectCanvas();
+              widgets[key].connectCanvas();
             }
           });
           drawSavedData();
@@ -217,11 +219,21 @@ function inject_js()
             return draw(msg);
           });
         } else {
-          if (typeof widgets[msg.content.data.id] === 'undefined') {
-            widgets[msg.content.data.id] = new JSTermWidget(idcount, msg.content.data.id);
-            idcount += 1;
+          if (typeof gr === 'undefined') {
+            let canvas = document.createElement('canvas');
+            canvas.id = 'jsterm-hidden-canvas';
+            canvas.width = 640;
+            canvas.height = 480;
+            canvas.style = 'display: none;';
+            document.body.appendChild(canvas);
+            gr = new GR('jsterm-hidden-canvas');
+            gr.registermeta(gr.GR_META_EVENT_SIZE, sizeCallback);
+            gr.registermeta(gr.GR_META_EVENT_NEW_PLOT, newPlotCallback);
+            gr.registermeta(gr.GR_META_EVENT_UPDATE_PLOT, updatePlotCallback);
           }
-          widgets[msg.content.data.id].draw(msg);
+          let arguments = gr.newmeta();
+          gr.readmeta(arguments, msg.content.data.json);
+          gr.mergemeta(arguments);
         }
       };
 
@@ -247,12 +259,39 @@ function inject_js()
       });
 
       /**
+       * Callback for gr-meta's size event. Handles event and resizes canvas if required.
+       */
+      sizeCallback = function(evt) {
+        widgets[evt.plot_id].resize(evt.width, evt.height);
+      };
+
+      /**
+       * Callback for gr-meta's new plot event. Handles event and creates new canvas.
+       */
+      newPlotCallback = function(evt) {
+        if (typeof widgets[evt.plot_id] === 'undefined') {
+          widgets[evt.plot_id] = new JSTermWidget(evt.plot_id);
+        }
+        widgets[evt.plot_id].draw();
+      };
+
+      /**
+       * Callback for gr-meta's update plot event. Handles event and creates canvas id needed.
+       */
+      updatePlotCallback = function(evt) {
+        if (typeof widgets[evt.plot_id] === 'undefined') {
+          console.error('Updated plot does not exist, creating new object. (id', evt.plot_id, ')');
+          widgets[evt.plot_id] = new JSTermWidget(evt.plot_id);
+        }
+        widgets[evt.plot_id].draw();
+      };
+
+      /**
        * Creates a JSTermWidget-Object describing and managing a canvas
        * @param       {number} id     The widget's numerical identificator (belonging context in `meta.c`)
-       * @param       {string} htmlId Identificator of the plot/canvas
        * @constructor
        */
-      JSTermWidget = function(id, htmlId) {
+      JSTermWidget = function(id) {
 
         /**
          * Initialize the JSTermWidget
@@ -260,9 +299,8 @@ function inject_js()
         this.init = function() {
           this.canvas = undefined;
           this.overlayCanvas = undefined;
-          this.args = undefined;
+          this.div = undefined;
           this.id = id;  // context id for meta.c (switchmeta)
-          this.htmlId = htmlId;
 
           this.waiting = false;
           this.oncanvas = function() {};
@@ -280,9 +318,30 @@ function inject_js()
 
           this.sendEvents = false;
           this.handleEvents = true;
+
+          this.width = 640;
+          this.height = 480;
         };
 
         this.init();
+
+        /**
+         * Resizes the JSTermWidget
+         * @param  {number} width  new canvas width in pixels
+         * @param  {number} height new canvas height in pixels
+         */
+        this.resize = function(width, height) {
+          this.width = width;
+          this.height = height;
+          if (this.canvas !== undefined) {
+            this.canvas.width = width;
+            this.canvas.height = height;
+            this.overlayCanvas.width = width;
+            this.overlayCanvas.height = height;
+            this.div.style = "position: relative; width: " + width + "px; height: " + height + "px;";
+          }
+          this.draw();
+        };
 
         /**
          * Send a event fired by widget via jupyter-comm
@@ -290,7 +349,7 @@ function inject_js()
          */
         this.sendEvt = function(data) {
           if (this.sendEvents) {
-            sendEvt(data, this.htmlId);
+            sendEvt(data, this.id);
           }
         };
 
@@ -706,55 +765,54 @@ function inject_js()
         };
 
         /**
-         * Draw a lot described by a message received via jupyter comm
+         * Draw a plot described by a message received via jupyter comm
          * @param  {Object} msg message containing the draw-command
          */
-        this.draw = function(msg) {
+        this.draw = function() {
           if (this.waiting) {
             this.oncanvas = function() {
-              return this.draw(msg);
+              return this.draw();
             };
           } else {
-            if (document.getElementById('jsterm-' + msg.content.data.id) == null) {
-              canvasRemoved(msg.content.data.id);
+            console.log(document.getElementById('jsterm-' + this.id));
+            if (document.getElementById('jsterm-' + this.id) == null) {
+              createCanvas(this.id, this.width, this.height);
               this.canvas = undefined;
               this.waiting = true;
               this.oncanvas = function() {
-                return draw(msg);
+                return this.draw();
               };
               setTimeout(function() {
-                this.refreshPlot(msg, 0);
+                this.refreshPlot(this.id, 0);
               }.bind(this), RECONNECT_PLOT_TIMEOUT);
             } else {
-              if (document.getElementById('jsterm-data-' + this.htmlId) == null) {
-                saveData(msg, msg.content.data.id);
+              //if (document.getElementById('jsterm-data-' + this.id) == null) {
+                //saveData(msg, msg.content.data.id);
+              //}
+              //Jupyter.notebook.get_selected_cell().metadata.jsterm = msg;
+              if (document.getElementById('jsterm-' + this.id) !== this.canvas || typeof this.canvas === 'undefined' || typeof this.overlayCanvas === 'undefined') {
+                this.connectCanvas();
               }
-              if (document.getElementById('jsterm-' + msg.content.data.id) !== this.canvas || typeof this.canvas === 'undefined' || typeof this.overlayCanvas === 'undefined') {
-                this.reconnectCanvas();
-              }
-              if (typeof gr === 'undefined') {
-                gr = new GR('jsterm-' + this.htmlId);
-              }
-              if (typeof this.args === 'undefined') {
-                this.args = gr.newmeta();
-              }
+
               gr.switchmeta(this.id);
               gr.current_canvas = this.canvas; //TODO is this always set? (check)
               gr.current_context = gr.current_canvas.getContext('2d');
               gr.select_canvas();
-              gr.meta_args_push(this.args, "size", "dd", [this.canvas.width, this.canvas.height]);
-              gr.readmeta(this.args, msg.content.data.json);
-              gr.plotmeta(this.args);
+              gr.plotmeta();
             }
           }
         };
 
-        this.reconnectCanvas = function() {
-          if (document.getElementById('jsterm-' + this.htmlId) != null) {
-            this.canvas = document.getElementById('jsterm-' + this.htmlId);
-            this.overlayCanvas = document.getElementById('jsterm-overlay-' + this.htmlId);
+        /**
+         * Connects a canvas to a JSTermWidget object.
+         */
+        this.connectCanvas = function() {
+          if (document.getElementById('jsterm-' + this.id) != null) {
+            this.div = document.getElementById('jsterm-div-' + this.id);
+            this.canvas = document.getElementById('jsterm-' + this.id);
+            this.overlayCanvas = document.getElementById('jsterm-overlay-' + this.id);
             this.overlayCanvas.addEventListener('DOMNodeRemoved', function() {
-              canvasRemoved(msg.content.data.id);
+              createCanvas(this.id, this.width, this.height);
               this.canvas = undefined;
               this.waiting = true;
               this.oncanvas = function() {};
@@ -781,13 +839,13 @@ function inject_js()
         /**
          * Check if a deleted canvas has been recreated.
          * Calls itself after REFRESH_PLOT_TIMEOUTms if no canvas is found
-         * @param  {numbers} count number of tries to connect with the canvas
+         * @param  {number} count [description]
          */
-        this.refreshPlot = function(msg, count) {
-          if (document.getElementById('jsterm-' + this.htmlId) == null) {
+        this.refreshPlot = function(count) {
+          if (document.getElementById('jsterm-' + this.id) == null) {
             if (count < RECONNECT_PLOT_MAX_ATTEMPTS) {
               setTimeout(function() {
-                this.refreshPlot(msg, count + 1);
+                this.refreshPlot( count + 1);
               }.bind(this), RECONNECT_PLOT_TIMEOUT);
             }
           } else {
@@ -816,7 +874,8 @@ function inject_js()
   """)))
 end
 
-function JSTermWidget(name::String, id::Int64)
+
+function JSTermWidget(id::Int, width::Int, height::Int)
   global id_count, js_running
   if GR.isijulia()
     id_count += 1
@@ -824,16 +883,15 @@ function JSTermWidget(name::String, id::Int64)
       inject_js()
       js_running = true
     end
-    JSTermWidget(string(name, id), pxwidth, pxheight, false)
+    JSTermWidget(id, width, height, false)
   else
     error("JSTermWidget is only available in IJulia environments")
   end
 end
 
 function jsterm_display(widget::JSTermWidget)
-  global pxwidth, pxheight
   if GR.isijulia()
-    display(HTML(string("<div style=\"position: relative; width: ", widget.width, "px; height: ", widget.height, "px;\"><canvas id=\"jsterm-overlay-", widget.identifier, "\" style=\"position:absolute; top: 0; right: 0; z-index: 1;\" width=\"", widget.width, "\" height=\"", widget.height, "\"></canvas>
+    display(HTML(string("<div id=\"jsterm-div-", widget.identifier, "\" style=\"position: relative; width: ", widget.width, "px; height: ", widget.height, "px;\"><canvas id=\"jsterm-overlay-", widget.identifier, "\" style=\"position:absolute; top: 0; right: 0; z-index: 1;\" width=\"", widget.width, "\" height=\"", widget.height, "\"></canvas>
         <canvas id=\"jsterm-", widget.identifier, "\" style=\"position: absolute; top: 0; right: 0; z-index: 0;\"width=\"", widget.width, "\" height=\"", widget.height, "\"></canvas>")))
     widget.visible = true
   else
@@ -959,8 +1017,8 @@ function enable_jseventhandling()
   end
 end
 
-function jsterm_send(widget::JSTermWidget, data::String)
-  global js_running, draw_condition, comm, PXWIDTH, PXHEIGHT, counter
+function jsterm_send(data::String)
+  global js_running, draw_condition, comm, PXWIDTH, PXHEIGHT
   if GR.isijulia()
     if comm === nothing
       comm = Main.IJulia.Comm("jsterm_comm")
@@ -971,9 +1029,18 @@ function jsterm_send(widget::JSTermWidget, data::String)
       comm.on_msg = function comm_msg_callback(msg)
         data = msg.content["data"]
         if haskey(data, "type")
-          if data["type"] == "removed"
-            jswidgets[data["content"]].visible = false
-            jsterm_display(jswidgets[data["content"]])
+          if data["type"] == "createCanvas"
+            id = data["id"]
+            if haskey(jswidgets, id)
+                widget = jswidgets[id]
+                widget.width = data["width"]
+                widget.height = data["height"]
+            else
+                widget = JSTermWidget(id, data["width"], data["height"])
+                jswidgets[id] = widget
+            end
+            jswidgets[id].visible = false
+            jsterm_display(jswidgets[id])
           elseif data["type"] == "save"
             display(HTML(string("<div style=\"display:none;\" id=\"jsterm-data-", data["content"]["id"], "\" class=\"jsterm-data\">", data["content"]["data"], "</div>")))
           elseif data["type"] == "evt"
@@ -985,34 +1052,24 @@ function jsterm_send(widget::JSTermWidget, data::String)
         end
       end
     end
-    Main.IJulia.send_comm(comm, Dict("json" => data, "type"=>"draw", "id" => widget.identifier))
+    Main.IJulia.send_comm(comm, Dict("json" => data, "type"=>"draw"))
   else
     error("jsterm_send is only available in IJulia environments")
   end
 end
 
-function recv(name::Cstring, id::Int64, msg::Cstring)
+function recv(name::Cstring, id::Int32, msg::Cstring)
     # receives string from C and sends it to JS via Comm
     global js_running
     if !js_running
       inject_js()
       js_running = true
     end
-    _name = unsafe_string(name)
-    if haskey(jswidgets, string(_name, id))
-        widget = jswidgets[string(_name, id)]
-    else
-        widget = JSTermWidget(_name, id)
-        jswidgets[string(_name, id)] = widget
-    end
-    if !widget.visible
-      jsterm_display(widget)
-    end
-    jsterm_send(widget, unsafe_string(msg))
+    jsterm_send(unsafe_string(msg))
     return convert(Int32, 1)
 end
 
-function send(name::Cstring, id::Int64)
+function send(name::Cstring, id::Int32)
     # Dummy function, not in use
     return convert(Cstring, "String")
 end
@@ -1024,9 +1081,9 @@ recv_c = nothing
 function initjs()
     global jswidgets, send_c, recv_c
 
-    jswidgets = Dict{String, JSTermWidget}()
-    send_c = @cfunction(send, Cstring, (Cstring, Int64))
-    recv_c = @cfunction(recv, Int32, (Cstring, Int64, Cstring))
+    jswidgets = Dict{Int32, JSTermWidget}()
+    send_c = @cfunction(send, Cstring, (Cstring, Int32))
+    recv_c = @cfunction(recv, Int32, (Cstring, Int32, Cstring))
     send_c, recv_c
 end
 
