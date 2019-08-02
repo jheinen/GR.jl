@@ -40,6 +40,7 @@ export
   fillarea,
   cellarray,
   polarcellarray,
+  nonuniformcellarray,
   gdp,
   spline,
   gridit,
@@ -708,6 +709,36 @@ function polarcellarray(xorg::Real, yorg::Real, phimin::Real, phimax::Real, rmin
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
         xorg, yorg, phimin, phimax, rmin, rmax, dimphi, dimr, 1, 1, dimphi, dimr, convert(Vector{Int32}, color))
+end
+
+"""
+    nonuniformcellarray(x, y, dimx::Int, dimy::Int, color)
+
+ Display a two dimensional color index array with nonuniform cell sizes.
+
+**Parameters:**
+
+`x`, `y` :
+    X and Y coordinates of the cell edges
+`dimx`, `dimy` :
+    X and Y dimension of the color index array
+`color` :
+    Color index array
+
+The values for `x` and `y` are in world coordinates. `x` must contain `dimx`+1 elements
+and `y` must contain `dimy`+1 elements. The elements i and i+1 are respectively the edges
+of the i-th cell in X and Y direction.
+
+"""
+function nonuniformcellarray(x, y, dimx::Int, dimy::Int, color)
+  @assert length(x) == dimx+1 && length(y) == dimy+1
+  if ndims(color) == 2
+    color = reshape(color, dimx * dimy)
+  end
+  ccall( (:gr_nonuniformcellarray, libGR),
+        Nothing,
+        (Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
+        convert(Vector{Float64}, x), convert(Vector{Float64}, y), dimx, dimy, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
 end
 
 """
@@ -3206,6 +3237,7 @@ contour(args...; kwargs...) = jlgr.contour(args...; kwargs...)
 contourf(args...; kwargs...) = jlgr.contourf(args...; kwargs...)
 hexbin(args...; kwargs...) = jlgr.hexbin(args...; kwargs...)
 heatmap(D; kwargs...) = jlgr.heatmap(D; kwargs...)
+heatmap(x, y, z; kwargs...) = jlgr.heatmap(x, y, z; kwargs...)
 polarheatmap(D; kwargs...) = jlgr.polarheatmap(D; kwargs...)
 wireframe(args...; kwargs...) = jlgr.wireframe(args...; kwargs...)
 surface(args...; kwargs...) = jlgr.surface(args...; kwargs...)

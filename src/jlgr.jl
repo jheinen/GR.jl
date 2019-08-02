@@ -41,7 +41,7 @@ const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :polarheatmap, :trisurf, :tricont, :shade, :volume]
+const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :polarheatmap, :trisurf, :tricont, :shade, :volume]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -146,7 +146,7 @@ function set_viewport(kind, subplot)
     viewport[3] = vp3 + 0.125 * (vp4 - vp3)
     viewport[4] = vp3 + 0.925 * (vp4 - vp3)
 
-    if kind in (:contour, :contourf, :hexbin, :heatmap, :polarheatmap, :surface, :trisurf, :volume)
+    if kind in (:contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :polarheatmap, :surface, :trisurf, :volume)
         viewport[2] -= 0.1
     end
     if kind in (:line, :step, :scatter, :stem) && haskey(plt.kvs, :labels)
@@ -442,7 +442,7 @@ function draw_axes(kind, pass=1)
             GR.axes3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, majory, 0, ticksize)
         end
     else
-        if kind in (:heatmap, :shade)
+        if kind in (:heatmap, :nonuniformheatmap, :shade)
             ticksize = -ticksize
         else
             drawgrid && GR.grid(xtick, ytick, 0, 0, majorx, majory)
@@ -630,15 +630,16 @@ function colorbar(off=0, colors=256)
     GR.savestate()
     viewport = plt.kvs[:viewport]
     zmin, zmax = plt.kvs[:zrange]
+    mask = (GR.OPTION_Z_LOG | GR.OPTION_FLIP_Y | GR.OPTION_FLIP_Z)
     if get(plt.kvs, :zflip, false)
-        options = (GR.inqscale() | GR.OPTION_FLIP_Y) & ~GR.OPTION_FLIP_X
-        GR.setscale(options)
+        options = (GR.inqscale() | GR.OPTION_FLIP_Y)
+        GR.setscale(options & mask)
     elseif get(plt.kvs, :yflip, false)
-        options = GR.inqscale() & ~GR.OPTION_FLIP_Y & ~GR.OPTION_FLIP_X
-        GR.setscale(options)
+        options = GR.inqscale() & ~GR.OPTION_FLIP_Y
+        GR.setscale(options & mask)
     else
-        options = GR.inqscale() & ~GR.OPTION_FLIP_X
-        GR.setscale(options)
+        options = GR.inqscale()
+        GR.setscale(options & mask)
     end
     GR.setwindow(0, 1, zmin, zmax)
     GR.setviewport(viewport[2] + 0.02 + off, viewport[2] + 0.05 + off,
@@ -1283,7 +1284,7 @@ function plot_data(flag=true)
                 plt.kvs[:zrange] = 0, cntmax
                 colorbar()
             end
-        elseif kind == :heatmap
+        elseif kind in (:heatmap, :nonuniformheatmap)
             w, h = size(z)
             cmap = colormap()
             cmin, cmax = plt.kvs[:crange]
@@ -1294,8 +1295,12 @@ function plot_data(flag=true)
             if get(plt.kvs, :yflip, false)
                 data = reverse(data, dims=2)
             end
-            rgba = [to_rgba(value, cmap) for value = data]
-            GR.drawimage(0.5, w + 0.5, h + 0.5, 0.5, w, h, rgba)
+            if kind == :heatmap
+                rgba = [to_rgba(value, cmap) for value = data]
+                GR.drawimage(0.5, w + 0.5, h + 0.5, 0.5, w, h, rgba)
+            else
+                GR.nonuniformcellarray(x, y, w, h, z)
+            end
             colorbar()
         elseif kind == :wireframe
             if length(x) == length(y) == length(z)
@@ -2026,6 +2031,18 @@ function heatmap(D; kv...)
         if !haskey(plt.kvs, :ylim) plt.kvs[:ylim] = (0.5, height + 0.5) end
 
         plt.args = [(1:width, 1:height, z, Nothing, "")]
+
+        plot_data()
+    else
+        error("expected 2-D array")
+    end
+end
+
+function heatmap(x, y, z; kv...)
+    create_context(:nonuniformheatmap, Dict(kv))
+
+    if ndims(z) == 2
+        plt.args = [(x, y, z, Nothing, "")]
 
         plot_data()
     else
