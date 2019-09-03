@@ -1289,17 +1289,12 @@ function plot_data(flag=true)
             cmap = colormap()
             cmin, cmax = plt.kvs[:crange]
             data = map(x -> normalize_color(x, cmin, cmax), z)
-            if get(plt.kvs, :xflip, false)
-                data = reverse(data, dims=1)
-            end
-            if get(plt.kvs, :yflip, false)
-                data = reverse(data, dims=2)
-            end
             if kind == :heatmap
                 rgba = [to_rgba(value, cmap) for value = data]
                 GR.drawimage(0.5, w + 0.5, h + 0.5, 0.5, w, h, rgba)
             else
-                GR.nonuniformcellarray(x, y, w, h, z)
+                colors = Int[round(Int, 1000 + _i * 255) for _i in data]
+                GR.nonuniformcellarray(x, y, w, h, colors)
             end
             colorbar()
         elseif kind == :wireframe
@@ -2042,7 +2037,7 @@ function heatmap(x, y, z; kv...)
     create_context(:nonuniformheatmap, Dict(kv))
 
     if ndims(z) == 2
-        plt.args = [(x, y, z, Nothing, "")]
+        plt.args = [(x, y, z', Nothing, "")]
 
         plot_data()
     else
