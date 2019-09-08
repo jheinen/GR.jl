@@ -1993,12 +1993,12 @@ end
 Draw a heatmap.
 
 This function uses the current colormap to display a two-dimensional
-array as a heatmap. The array is drawn with its first value in the upper
+array as a heatmap. The array is drawn with its first value in the bottom
 left corner, so in some cases it may be neccessary to flip the columns
 (see the example below).
 
-By default the function will use the row and column indices for the x- and
-y-axes, so setting the axis limits is recommended. Also note that the
+By default the function will use the column and row indices for the x- and
+y-axes, respectively, so setting the axis limits is recommended. Also note that the
 values in the array must lie within the current z-axis limits so it may
 be neccessary to adjust these limits or clip the range of array values.
 
