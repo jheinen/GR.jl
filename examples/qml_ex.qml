@@ -4,10 +4,20 @@ import QtQuick.Layouts 1.0
 import org.julialang 1.1
 
 ApplicationWindow {
+  id: mainwindow
   title: "hexbin Demo Application"
   width: 600
   height: 450
   visible: true
+
+  // QTBUG-77958: QtQuick applications don't work on macOS 10.15 Beta 7+
+  // see https://bugreports.qt.io/browse/QTBUG-77958
+  Timer {
+    interval: 50
+    repeat: true
+    running: true
+    onTriggered: if (mainwindow.active) mainwindow.raise();
+  }
 
   Text {
     id: xy
