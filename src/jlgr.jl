@@ -1248,6 +1248,8 @@ function plot_data(flag=true)
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
                 zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
+            else
+                z = z'
             end
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 0)
@@ -1265,6 +1267,8 @@ function plot_data(flag=true)
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
                 zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
+            else
+                z = z'
             end
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 0)
@@ -1300,6 +1304,8 @@ function plot_data(flag=true)
         elseif kind == :wireframe
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 50, 50)
+            else
+                z = z'
             end
             GR.setfillcolorind(0)
             GR.surface(x, y, z, GR.OPTION_FILLED_MESH)
@@ -1307,6 +1313,8 @@ function plot_data(flag=true)
         elseif kind == :surface
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
+            else
+                z = z'
             end
             if get(plt.kvs, :accelerate, true)
                 gr3.clear()
@@ -1877,8 +1885,8 @@ points or a two-dimensional array as a contour plot. It can receive one
 or more of the following:
 
 - x values, y values and z values, or
-- N x values, M y values and z values on a NxM grid, or
-- N x values, M y values and a callable to determine z values
+- M x values, N y values and z values on a NxM grid, or
+- M x values, N y values and a callable to determine z values
 
 If a series of points is passed to this function, their values will be
 interpolated on a grid. For grid points outside the convex hull of the
@@ -1922,8 +1930,8 @@ points or a two-dimensional array as a filled contour plot. It can
 receive one or more of the following:
 
 - x values, y values and z values, or
-- N x values, M y values and z values on a NxM grid, or
-- N x values, M y values and a callable to determine z values
+- M x values, N y values and z values on a NxM grid, or
+- M x values, N y values and a callable to determine z values
 
 If a series of points is passed to this function, their values will be
 interpolated on a grid. For grid points outside the convex hull of the
@@ -2070,8 +2078,8 @@ points or a two-dimensional array as a wireframe plot. It can receive one
 or more of the following:
 
 - x values, y values and z values, or
-- N x values, M y values and z values on a NxM grid, or
-- N x values, M y values and a callable to determine z values
+- M x values, N y values and z values on a NxM grid, or
+- M x values, N y values and a callable to determine z values
 
 If a series of points is passed to this function, their values will be
 interpolated on a grid. For grid points outside the convex hull of the
@@ -2115,8 +2123,8 @@ points or a two-dimensional array as a surface plot. It can receive one or
 more of the following:
 
 - x values, y values and z values, or
-- N x values, M y values and z values on a NxM grid, or
-- N x values, M y values and a callable to determine z values
+- M x values, N y values and z values on a NxM grid, or
+- M x values, N y values and a callable to determine z values
 
 If a series of points is passed to this function, their values will be
 interpolated on a grid. For grid points outside the convex hull of the
