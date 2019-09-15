@@ -890,22 +890,14 @@ function normalize_color(c, cmin, cmax)
     c
 end
 
-function plot_img(I)
+function plot_img(data)
     viewport = plt.kvs[:vp][:]
     if haskey(plt.kvs, :title)
         viewport[4] -= 0.05
     end
     vp = plt.kvs[:vp]
 
-    if isa(I, AbstractString)
-        width, height, data = GR.readimage(I)
-    else
-        width, height = size(I)
-        cmin, cmax = plt.kvs[:crange]
-        data = map(x -> normalize_color(x, cmin, cmax), I)
-        data = Int32[round(Int32, 1000 + _i * 255) for _i in data]
-    end
-
+    width, height = size(data)
     if width  * (viewport[4] - viewport[3]) <
         height * (viewport[2] - viewport[1])
         w = float(width) / height * (viewport[4] - viewport[3])
@@ -929,11 +921,7 @@ function plot_img(I)
     if get(plt.kvs, :yflip, false)
         tmp = ymax; ymax = ymin; ymin = tmp;
     end
-    if isa(I, AbstractString)
-        GR.drawimage(xmin, xmax, ymin, ymax, width, height, data)
-    else
-        GR.cellarray(xmin, xmax, ymin, ymax, width, height, data)
-    end
+    GR.drawimage(xmin, xmax, ymin, ymax, width, height, data)
 
     if haskey(plt.kvs, :title)
         GR.savestate()
@@ -2514,8 +2502,16 @@ two-dimensional array and the current colormap.
 """
 function imshow(I; kv...)
     create_context(:imshow, Dict(kv))
+    
+    if isa(I, AbstractString)
+        _, _, rgbdata = GR.readimage(I)
+    else
+        data = (I .- minimum(I)) ./ (maximum(I) - minimum(I))
+        cmap = colormap()
+        rgbdata = [to_rgba(value, cmap) for value in transpose(data)]
+    end
 
-    plt.args = [(Nothing, Nothing, I, Nothing, "")]
+    plt.args = [(Nothing, Nothing, rgbdata, Nothing, "")]
 
     plot_data()
 end
