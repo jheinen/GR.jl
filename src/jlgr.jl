@@ -1917,6 +1917,11 @@ provided points, a value of 0 will be used.
 function contour(args...; kv...)
     create_context(:contour, Dict(kv))
 
+    if length(args) == 1 && typeof(args[1]) <: AbstractMatrix
+        ny, nx = size(args[1])
+        args = (collect(1:nx), collect(1:ny), args...)
+    end
+    
     plt.args = plot_args(args, fmt=:xyzc)
 
     plot_data()
@@ -1962,6 +1967,11 @@ provided points, a value of 0 will be used.
 function contourf(args...; kv...)
     create_context(:contourf, Dict(kv))
 
+    if length(args) == 1 && typeof(args[1]) <: AbstractMatrix
+        ny, nx = size(args[1])
+        args = (collect(1:nx), collect(1:ny), args...)
+    end
+    
     plt.args = plot_args(args, fmt=:xyzc)
 
     plot_data()
@@ -2110,6 +2120,11 @@ provided points, a value of 0 will be used.
 function wireframe(args...; kv...)
     create_context(:wireframe, Dict(kv))
 
+    if length(args) == 1 && typeof(args[1]) <: AbstractMatrix
+        ny, nx = size(args[1])
+        args = (collect(1:nx), collect(1:ny), args...)
+    end
+    
     plt.args = plot_args(args, fmt=:xyzc)
 
     plot_data()
@@ -2155,6 +2170,11 @@ provided points, a value of 0 will be used.
 function surface(args...; kv...)
     create_context(:surface, Dict(kv))
 
+    if length(args) == 1 && typeof(args[1]) <: AbstractMatrix
+        ny, nx = size(args[1])
+        args = (collect(1:nx), collect(1:ny), args...)
+    end
+    
     plt.args = plot_args(args, fmt=:xyzc)
 
     plot_data()
