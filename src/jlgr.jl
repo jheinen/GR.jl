@@ -1023,7 +1023,7 @@ function send_meta(target)
                 GR.sendmetaref(handle, string(k), 'i', Int32(v))
             elseif k in [:alpha, :isovalue]
                 GR.sendmetaref(handle, string(k), 'd', Float64(v))
-            elseif k in [:xlim, :ylim, :zlim, :size]
+            elseif k in [:xlim, :ylim, :zlim, :clim, :size]
                 GR.sendmetaref(handle, string(k), 'D', to_double(v))
             elseif k in [:title, :xlabel, :ylabel, :zlabel]
                 GR.sendmetaref(handle, string(k), 's', string(v))
