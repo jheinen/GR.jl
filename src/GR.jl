@@ -290,6 +290,9 @@ function __init__()
             encoding = "utf8"
         end
     end
+    if mime_type != None
+        ENV["GRMIME"] = mime_type
+    end
 end
 
 function initgr()
@@ -3312,10 +3315,12 @@ function displayname()
     return display_name
 end
 
-function inline(mime="svg", scroll=true)
+function inline(mime, scroll=true)
     global mime_type, file_path, figure_count, send_c, recv_c
     if mime_type != mime
-        if mime == "iterm"
+        if mime == ""
+            return inline(None) 
+        elseif mime == "iterm"
             file_path = tempname() * ".pdf"
             ENV["GKS_WSTYPE"] = "pdf"
         elseif mime == "mlterm"
@@ -3351,6 +3356,8 @@ function inline(::typeof(None))
     end
     return ""
 end
+
+inline() = inline( get(ENV, "GRMIME", "") )
 
 function show()
     global mime_type, file_path, figure_count
