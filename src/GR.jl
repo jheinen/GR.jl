@@ -3339,6 +3339,16 @@ function inline(mime="svg", scroll=true)
     mime_type
 end
 
+function reset()
+    global mime_type, file_path, figure_count
+    mime_type = None
+    file_path = None
+    figure_count = None
+    delete!(ENV, "GKS_WSTYPE")
+    delete!(ENV, "GKS_FILEPATH")
+    emergencyclosegks()
+end
+
 function show()
     global mime_type, file_path, figure_count
 
