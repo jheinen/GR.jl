@@ -26,3 +26,4 @@ RUN julia -E 'using Pkg; pkg"add GR IJulia"' && \
     mv $HOME/.local/share/jupyter/kernels/julia* $CONDA_DIR/share/jupyter/kernels/ && \
     chmod -R go+rx $CONDA_DIR/share/jupyter && \
     rm -rf $HOME/.local
+COPY examples/*.ipynb work/
