@@ -3738,8 +3738,8 @@ function panzoom(x, y, zoom)
   ymax = Cdouble[0]
   ccall( (:gr_panzoom, libGR),
         Nothing,
-        (Float64, Float64, Float64, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
-        x, y, zoom, xmin, xmax, ymin, ymax)
+        (Float64, Float64, Float64, Float64, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
+        x, y, zoom, zoom, xmin, xmax, ymin, ymax)
   return xmin[1], xmax[1], ymin[1], ymax[1]
 end
 
