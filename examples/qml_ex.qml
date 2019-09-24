@@ -10,14 +10,14 @@ ApplicationWindow {
   height: 450
   visible: true
 
-  // QTBUG-77958: QtQuick applications don't work on macOS 10.15 Beta 7+
+  // QTBUG-77958: QtQuick applications don't work on macOS 10.15 Beta 7/8
   // see https://bugreports.qt.io/browse/QTBUG-77958
-  Timer {
-    interval: 50
-    repeat: true
-    running: true
-    onTriggered: if (mainwindow.active) mainwindow.raise();
-  }
+  //Timer {
+  //  interval: 50
+  //  repeat: true
+  //  running: true
+  //  onTriggered: if (mainwindow.active) mainwindow.raise();
+  //}
 
   Text {
     id: xy
