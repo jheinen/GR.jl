@@ -5,7 +5,7 @@ os:
 dist: trusty
 julia:
   - 0.7
-  - 1.0.4
+  - 1.0.5
   - 1.2
   - nightly
 notifications:
