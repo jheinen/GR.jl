@@ -515,12 +515,11 @@ function draw_polar_axes()
         end
     end
     for alpha in 0:45:315
-        a = alpha + 90
-        sinf = sin(a * π / 180)
-        cosf = cos(a * π / 180)
-        GR.polyline([sinf, 0], [cosf, 0])
+        sinf = sin(alpha * π / 180)
+        cosf = cos(alpha * π / 180)
+        GR.polyline([cosf, 0], [sinf, 0])
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_HALF)
-        x, y = GR.wctondc(1.1 * sinf, 1.1 * cosf)
+        x, y = GR.wctondc(1.1 * cosf, 1.1 * sinf)
         GR.textext(x, y, string(alpha, "^o"))
     end
     GR.restorestate()
