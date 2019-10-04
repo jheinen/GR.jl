@@ -15,7 +15,7 @@ RUN echo "push!(Libdl.DL_LOAD_PATH, \"$CONDA_DIR/lib\")" >> /usr/etc/julia/julia
     chown -R $NB_USER:users $JULIA_DEPOT_PATH
 RUN apt-get install -my libnlopt0
 # GR3 dependencies
-#RUN apt-get install -my libxt6 libxrender1 libgl1-mesa-glx libqt5widgets5
+RUN apt-get install -my xvfb
 USER $NB_USER
 # Julia packages
 RUN julia -E 'using Pkg; pkg"add GR IJulia"' && \
@@ -27,3 +27,4 @@ RUN julia -E 'using Pkg; pkg"add GR IJulia"' && \
     chmod -R go+rx $CONDA_DIR/share/jupyter && \
     rm -rf $HOME/.local
 COPY examples/*.ipynb work/
+CMD ["xvfb-run", "--server-args", "-screen 0 1920x1080x24",  "jupyter", "notebook"]
