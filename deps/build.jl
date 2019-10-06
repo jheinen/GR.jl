@@ -4,10 +4,6 @@
     end
 end
 
-@static if VERSION >= v"0.7.0-DEV.3656"
-    using Pkg.API: installed
-end
-
 function check_grdir()
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
@@ -34,8 +30,10 @@ end
 function get_version()
     version = v"0.41.3"
     try
-@static if VERSION >= v"0.7.0-DEV.3656"
-        v = installed()["GR"]
+@static if VERSION >= v"1.4.0-DEV.265"
+        v = string(Pkg.dependencies()[Base.UUID("28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71")].version)
+elseif VERSION >= v"0.7.0-DEV.3656"
+        v = Pkg.API.installed()["GR"]
 else
         v = Pkg.installed("GR")
 end
@@ -129,8 +127,10 @@ if !check_grdir()
     app = joinpath("gr", "Applications", "GKSTerm.app")
     run(`/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f $app`)
     try
-@static if VERSION >= v"0.7.0-DEV.3656"
-      have_qml = haskey(installed(), "QML")
+@static if VERSION >= v"1.4.0-DEV.265"
+      have_qml = haskey(Pkg.dependencies(),Base.UUID("2db162a6-7e43-52c3-8d84-290c1c42d82a"))
+elseif VERSION >= v"0.7.0-DEV.3656"
+      have_qml = haskey(Pkg.API.installed(), "QML")
 else
       have_qml = Pkg.installed("QML") != nothing
 end
