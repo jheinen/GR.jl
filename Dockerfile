@@ -27,4 +27,5 @@ RUN julia -E 'using Pkg; pkg"add GR IJulia"' && \
     chmod -R go+rx $CONDA_DIR/share/jupyter && \
     rm -rf $HOME/.local
 COPY examples/*.ipynb work/
-CMD ["xvfb-run", "--server-args", "-screen 0 1920x1080x24",  "jupyter", "notebook"]
+ENTRYPOINT ["/bin/sh", "-c", "xvfb-run -s '-screen 0 1920x1080x24' $@", ""]
+CMD ["jupyter", "notebook"]
