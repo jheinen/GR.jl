@@ -1287,6 +1287,7 @@ function plot_data(flag=true)
             w, h = size(z)
             cmap = colormap()
             cmin, cmax = plt.kvs[:crange]
+            levels = get(plt.kvs, :levels, 256)
             data = map(x -> normalize_color(x, cmin, cmax), z)
             if kind == :heatmap
                 rgba = [to_rgba(value, cmap) for value = data]
@@ -1295,7 +1296,7 @@ function plot_data(flag=true)
                 colors = Int[round(Int, 1000 + _i * 255) for _i in data]
                 GR.nonuniformcellarray(x, y, w, h, colors)
             end
-            colorbar()
+            colorbar(0, levels)
         elseif kind == :wireframe
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(x, y, z, 50, 50)
