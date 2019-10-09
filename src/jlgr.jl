@@ -640,12 +640,13 @@ function colorbar(off=0, colors=256)
         options = GR.inqscale()
         GR.setscale(options & mask)
     end
+    h = 0.5 * (zmax - zmin) / (colors - 1)
     GR.setwindow(0, 1, zmin, zmax)
     GR.setviewport(viewport[2] + 0.02 + off, viewport[2] + 0.05 + off,
                    viewport[3], viewport[4])
     l = zeros(Int32, 1, colors)
     l[1,:] = Int[round(Int, _i) for _i in linspace(1000, 1255, colors)]
-    GR.cellarray(0, 1, zmax, zmin, 1, colors, l)
+    GR.cellarray(0, 1, zmax + h, zmin - h, 1, colors, l)
     GR.setlinecolorind(1)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     charheight = max(0.016 * diag, 0.012)
