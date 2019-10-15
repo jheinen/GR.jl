@@ -16,12 +16,15 @@ RUN echo "push!(Libdl.DL_LOAD_PATH, \"$CONDA_DIR/lib\")" >> /usr/etc/julia/julia
 RUN apt-get install -my libnlopt0
 # GR3 dependencies
 RUN apt-get install -my xvfb
+# PackageCompiler dependencies
+RUN apt-get install -my gcc
 USER $NB_USER
 # Julia packages
-RUN julia -E 'using Pkg; pkg"add GR IJulia"' && \
+RUN julia -E 'using Pkg; pkg"add GR IJulia PackageCompiler"' && \
     # precompile Julia packages \
     julia -e 'using GR' && \
     julia -e 'using IJulia' && \
+    julia -e 'using PackageCompiler' && \
     # move kernelspec out of home \
     mv $HOME/.local/share/jupyter/kernels/julia* $CONDA_DIR/share/jupyter/kernels/ && \
     chmod -R go+rx $CONDA_DIR/share/jupyter && \
