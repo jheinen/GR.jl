@@ -2,7 +2,9 @@ language: julia
 os:
   - linux
   - osx
-dist: trusty
+dist: xenial
+services:
+  - xvfb
 julia:
   - 0.7
   - 1.0.5
