@@ -30,6 +30,7 @@ RUN julia -E 'using Pkg; pkg"add GR IJulia PackageCompiler"' && \
     chmod -R go+rx $CONDA_DIR/share/jupyter && \
     rm -rf $HOME/.local
 COPY examples/*.ipynb work/
+COPY examples/snoop.jl work/
 COPY scripts/docker-xvfb-run /usr/bin/xvfb-run
 ENTRYPOINT ["/bin/sh", "-c", "exec xvfb-run $0 $@"]
 CMD ["jupyter", "notebook"]
