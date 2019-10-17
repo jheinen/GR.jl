@@ -89,6 +89,12 @@ if !check_grdir()
     end
   elseif os == :Linux && arch in [:i386, :i686]
     arch = :i386
+  elseif os == :Linux && arch == :arm
+    id = get_os_release("ID")
+    if id == "raspbian"
+      os = "Debian"
+    end
+    arch = "armhf"
   end
   version = get_version()
   tarball = "gr-$version-$os-$arch.tar.gz"
