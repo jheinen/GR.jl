@@ -269,9 +269,9 @@ function __init__()
     init(true)
 end
 
-function init(again=false)
+function init(always=false)
     global display_name, mime_type, file_path, send_c, recv_c, encoding, check_env
-    if check_env
+    if check_env || always
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name = ENV["GRDISPLAY"]
@@ -300,7 +300,7 @@ function init(again=false)
                 encoding = "utf8"
             end
         end
-        check_env = again
+        check_env = always
     end
 end
 
@@ -3326,7 +3326,7 @@ end
 
 function inline(mime="svg", scroll=true)
     global mime_type, file_path, figure_count, send_c, recv_c
-    init()
+    init(true)
     if mime_type != mime
         if mime == "iterm"
             file_path = tempname() * ".pdf"
