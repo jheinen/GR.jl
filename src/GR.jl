@@ -266,9 +266,10 @@ function __init__()
     end
     push!(Base.DL_LOAD_PATH, grdir)
     check_env = true
+    init(true)
 end
 
-function init()
+function init(again=false)
     global display_name, mime_type, file_path, send_c, recv_c, encoding, check_env
     if check_env
         ENV["GKS_USE_CAIRO_PNG"] = "true"
@@ -299,7 +300,7 @@ function init()
                 encoding = "utf8"
             end
         end
-        check_env = false
+        check_env = again
     end
 end
 
