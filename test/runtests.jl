@@ -215,16 +215,20 @@ Example("Discrete plot", [:(begin
     end)])
 ]
 
-@test GR.tick(1.2,3.14) == 0.5
-
-for ex in _examples
-    @info("Testing plot: $(ex.title)")
-
-    GR.inline("pdf")
-    file_path = ENV["GKS_FILEPATH"]
-
-    map(eval, ex.code)
-
-    @test isfile(file_path)
-    rm(file_path)
+function basic_tests()
+    @test GR.tick(1.2,3.14) == 0.5
+    
+    for ex in _examples
+        @info("Testing plot: $(ex.title)")
+    
+        GR.inline("pdf")
+        file_path = ENV["GKS_FILEPATH"]
+    
+        map(eval, ex.code)
+    
+        @test isfile(file_path)
+        rm(file_path)
+    end
 end
+
+@time basic_tests()
