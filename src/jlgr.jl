@@ -1071,6 +1071,8 @@ function plot_data(flag=true)
         return
     end
 
+    GR.init()
+
     target = GR.displayname()
     if flag && target != None
         if target == "js" || target == "meta"

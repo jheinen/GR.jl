@@ -23,6 +23,7 @@ else
 end
 
 export
+  init,
   initgr,
   opengks,
   closegks,
@@ -207,6 +208,7 @@ export
   mainloop
 
 
+grdir = None
 display_name = None
 mime_type = None
 file_path = None
@@ -214,6 +216,7 @@ figure_count = None
 send_c = C_NULL
 recv_c = C_NULL
 encoding = "latin1"
+check_env = true
 
 @static if os == :Windows
   const libGR = "libGR.dll"
@@ -227,7 +230,7 @@ isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Mai
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected()
 
 function __init__()
-    global display_name, mime_type, file_path, send_c, recv_c, encoding
+    global check_env
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
         if grdir == ""
@@ -262,33 +265,41 @@ function __init__()
         grdir = joinpath(grdir, "bin")
     end
     push!(Base.DL_LOAD_PATH, grdir)
-    ENV["GKS_USE_CAIRO_PNG"] = "true"
-    if "GRDISPLAY" in keys(ENV)
-        display_name = ENV["GRDISPLAY"]
-        if display_name == "js"
-            send_c, recv_c = js.initjs()
-        end
-    elseif "GKS_NO_GUI" in keys(ENV)
-        return
-    elseif isijulia()
-        mime_type = "svg"
-        file_path = tempname() * ".svg"
-        ENV["GKSwstype"] = "svg"
-        ENV["GKS_FILEPATH"] = file_path
-    elseif isatom()
-        if Main.Atom.PlotPaneEnabled[] == true
+    check_env = true
+end
+
+function init()
+    global display_name, mime_type, file_path, send_c, recv_c, encoding, check_env
+    if check_env
+        ENV["GKS_USE_CAIRO_PNG"] = "true"
+        if "GRDISPLAY" in keys(ENV)
+            display_name = ENV["GRDISPLAY"]
+            if display_name == "js"
+                send_c, recv_c = js.initjs()
+            end
+        elseif "GKS_NO_GUI" in keys(ENV)
+            return
+        elseif isijulia()
             mime_type = "svg"
             file_path = tempname() * ".svg"
             ENV["GKSwstype"] = "svg"
             ENV["GKS_FILEPATH"] = file_path
+        elseif isatom()
+            if Main.Atom.PlotPaneEnabled[] == true
+                mime_type = "svg"
+                file_path = tempname() * ".svg"
+                ENV["GKSwstype"] = "svg"
+                ENV["GKS_FILEPATH"] = file_path
+            end
         end
-    end
-    if "GKS_IGNORE_ENCODING" in keys(ENV)
-        encoding = "utf8"
-    elseif "GKS_ENCODING" in keys(ENV)
-        if ENV["GKS_ENCODING"] in ("utf8", "utf-8")
+        if "GKS_IGNORE_ENCODING" in keys(ENV)
             encoding = "utf8"
+        elseif "GKS_ENCODING" in keys(ENV)
+            if ENV["GKS_ENCODING"] in ("utf8", "utf-8")
+                encoding = "utf8"
+            end
         end
+        check_env = false
     end
 end
 
@@ -3314,6 +3325,7 @@ end
 
 function inline(mime="svg", scroll=true)
     global mime_type, file_path, figure_count, send_c, recv_c
+    init()
     if mime_type != mime
         if mime == "iterm"
             file_path = tempname() * ".pdf"
