@@ -347,7 +347,7 @@ function createisosurfacemesh(grid::Array{UInt16,3}, step::@triplet(Float64), of
   offset_x, offset_y, offset_z = [ float(x) for x in offset ]
   err = ccall((:gr3_createisosurfacemesh, GR.libGR3),
               Int32,
-              (Ptr{Cint}, Ptr{UInt16}, UInt16, Int32, Int32, Int32, Int32, Int32, Int32, Float64, Float64, Float64, Float64, Float64, Float64),
+              (Ptr{Cint}, Ptr{UInt16}, UInt16, UInt32, UInt32, UInt32, UInt32, UInt32, UInt32, Float64, Float64, Float64, Float64, Float64, Float64),
               mesh, @ArrayToVector(UInt16, data), UInt16(isolevel), dim_x, dim_y, dim_z, stride_x, stride_y, stride_z, step_x, step_y, step_z, offset_x, offset_y, offset_z)
   _check_error()
   return mesh[1]
