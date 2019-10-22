@@ -28,7 +28,7 @@ function check_grdir()
 end
 
 function get_version()
-    version = v"0.41.5"
+    version = v"0.42.0"
     try
 @static if VERSION >= v"1.4.0-DEV.265"
         v = string(Pkg.dependencies()[Base.UUID("28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71")].version)
