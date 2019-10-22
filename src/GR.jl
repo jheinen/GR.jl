@@ -3326,7 +3326,7 @@ end
 
 function inline(mime="svg", scroll=true)
     global mime_type, file_path, figure_count, send_c, recv_c
-    init(true)
+    init()
     if mime_type != mime
         if mime == "iterm"
             file_path = tempname() * ".pdf"
