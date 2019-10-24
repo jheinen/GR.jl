@@ -1942,7 +1942,7 @@ by the `setscale` function.
 `x`, `y` :
     Normalized device coordinates of the label in X and Y directions.
 `svalue` :
-    Internal string representation of the text drawn at `(x,y).
+    Internal string representation of the text drawn at `(x,y)`.
 `value` :
     Floating point representation of the label drawn at `(x,y)`.
 
