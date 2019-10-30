@@ -2903,7 +2903,7 @@ end
 """
     settransparency(alpha::Real)
 
-Set the value of the alpha component associated with GR colors
+Set the value of the alpha component associated with GR colors.
 
 **Parameters:**
 
