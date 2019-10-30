@@ -83,7 +83,7 @@ if !check_grdir()
         os = "Ubuntu"
       elseif id == "debian" || id_like == "debian"
         os = "Debian"
-      elseif id == "arch"
+      elseif id == "arch" || id_like == "arch"
         os = "ArchLinux"
       end
     end
