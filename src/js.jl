@@ -13,12 +13,14 @@ end
 
 id_count = 0
 js_running = false
+dispid = 0
 
 
 mutable struct JSTermWidget
     identifier::Int
     width::Int
     height::Int
+    display::Int
     visible::Bool
 end
 
@@ -51,7 +53,7 @@ function inject_js()
 end
 
 
-function JSTermWidget(id::Int, width::Int, height::Int)
+function JSTermWidget(id::Int, width::Int, height::Int, display::Int)
   global id_count, js_running
   if GR.isijulia()
     id_count += 1
@@ -59,19 +61,9 @@ function JSTermWidget(id::Int, width::Int, height::Int)
       inject_js()
       js_running = true
     end
-    JSTermWidget(id, width, height, false)
+    JSTermWidget(id, width, height, display, false)
   else
     error("JSTermWidget is only available in IJulia environments")
-  end
-end
-
-function jsterm_display(widget::JSTermWidget)
-  if GR.isijulia()
-    display(HTML(string("<div id=\"jsterm-div-", widget.identifier, "\" style=\"position: relative; width: ", widget.width, "px; height: ", widget.height, "px;\"><canvas id=\"jsterm-overlay-", widget.identifier, "\" style=\"position:absolute; top: 0; right: 0; z-index: 1;\" width=\"", widget.width, "\" height=\"", widget.height, "\"></canvas>
-        <canvas id=\"jsterm-", widget.identifier, "\" style=\"position: absolute; top: 0; right: 0; z-index: 0;\"width=\"", widget.width, "\" height=\"", widget.height, "\"></canvas>")))
-    widget.visible = true
-  else
-    error("jsterm_display is only available in IJulia environments")
   end
 end
 
@@ -79,6 +71,7 @@ comm = nothing
 
 evthandler = Dict()
 global_evthandler = nothing
+
 
 function register_evthandler(f::Function, device, port)
   global evthandler
@@ -193,8 +186,22 @@ function enable_jseventhandling()
   end
 end
 
+function comm_msg_callback(msg)
+  data = msg.content["data"]
+  if haskey(data, "type")
+    if data["type"] == "save"
+      display(HTML(string("<div style=\"display:none;\" id=\"jsterm-data-", data["content"]["id"], "\" class=\"jsterm-data\">", data["content"]["data"], "</div>")))
+    elseif data["type"] == "evt"
+      global_evthandler(data["content"])
+      if haskey(evthandler, data["id"]) && evthandler[data["id"]] !== nothing
+        evthandler[data["id"]](data["content"])
+      end
+    end
+  end
+end
+
 function jsterm_send(data::String)
-  global js_running, draw_condition, comm, PXWIDTH, PXHEIGHT
+  global js_running, draw_end_condition, comm, dispid
   if GR.isijulia()
     if comm === nothing
       comm = Main.IJulia.Comm("jsterm_comm")
@@ -202,33 +209,11 @@ function jsterm_send(data::String)
         global js_running
         js_running = false
       end
-      comm.on_msg = function comm_msg_callback(msg)
-        data = msg.content["data"]
-        if haskey(data, "type")
-          if data["type"] == "createCanvas"
-            id = data["id"]
-            if haskey(jswidgets, id)
-                widget = jswidgets[id]
-                widget.width = data["width"]
-                widget.height = data["height"]
-            else
-                widget = JSTermWidget(id, data["width"], data["height"])
-                jswidgets[id] = widget
-            end
-            jswidgets[id].visible = false
-            jsterm_display(jswidgets[id])
-          elseif data["type"] == "save"
-            display(HTML(string("<div style=\"display:none;\" id=\"jsterm-data-", data["content"]["id"], "\" class=\"jsterm-data\">", data["content"]["data"], "</div>")))
-          elseif data["type"] == "evt"
-            global_evthandler(data["content"])
-            if haskey(evthandler, data["id"]) && evthandler[data["id"]] !== nothing
-              evthandler[data["id"]](data["content"])
-            end
-          end
-        end
-      end
+      comm.on_msg = comm_msg_callback
     end
-    Main.IJulia.send_comm(comm, Dict("json" => data, "type"=>"draw"))
+    display(HTML(string("<div id=\"jsterm-display-", dispid, "\"><div id=\"jsterm-msg-", dispid, "\">Processing Input</div>")))
+    Main.IJulia.send_comm(comm, Dict("json" => data, "type"=>"draw", "display"=>dispid))
+    dispid += 1
   else
     error("jsterm_send is only available in IJulia environments")
   end
@@ -236,7 +221,7 @@ end
 
 function recv(name::Cstring, id::Int32, msg::Cstring)
     # receives string from C and sends it to JS via Comm
-    global js_running
+    global js_running, draw_end_condition
     if !js_running
       inject_js()
       js_running = true
