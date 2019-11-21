@@ -1178,7 +1178,7 @@ function plot_data(flag=true)
                 end
                 GR.polyline(xs, ys)
             end
-            mask & 0x02 != 0 && GR.polymarker(x, y)
+            hasmarker(mask) && GR.polymarker(x, y)
         elseif kind == :scatter
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             if given(z) || given(c)
