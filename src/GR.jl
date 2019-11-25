@@ -43,6 +43,7 @@ export
   polarcellarray,
   nonuniformcellarray,
   gdp,
+  path,
   spline,
   gridit,
   setlinetype,
@@ -781,6 +782,57 @@ function gdp(x, y, primid, datrec)
         (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Ptr{Int32}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
         primid, ldr, convert(Vector{Int32}, datrec))
+end
+
+"""
+    path(x, y, codes)
+
+Draw paths using given vertices and path codes.
+
+**Parameters:**
+
+`x` :
+    A list containing the X coordinates
+`y` :
+    A list containing the Y coordinates
+`codes` :
+    Path codes
+
+The values for `x` and `y` are in normalized device coordinates.
+The `codes` describe several patch primitives that can be used to create compound paths.
+
+The following path codes are recognized:
+
+	+-----+------------------+------------------+
+	|Code | Description      |Vertices          |
+	+-----+------------------+------------------|
+	|M, m | moveto           |x,y               |
+	+-----+------------------+------------------|
+	|L, l | lineto           |x,y               |
+	+-----+------------------+------------------|
+	|Q, q | quadratic Bézier |x1,y1 x2,y2       |
+	+-----+------------------+------------------|
+	|C, c | cubic Bézier     |x1,y1 x2,y2 x3,y3 |
+	+-----+------------------+------------------|
+	|R, r | rectangle        |w,h               |
+	+-----+------------------+------------------|
+	|A, a | arc              |w,h a1,a2         |
+	+-----+------------------+------------------|
+	|   Z | closepath        |-                 |
+	+-----+------------------+------------------|
+	|   s | stroke           |-                 |
+	+-----+------------------+------------------|
+	|   f | fill             |-                 |
+	+-----+------------------+------------------+
+
+"""
+function path(x, y, codes)
+  @assert length(x) == length(y)
+  n = length(x)
+  ccall( (:gr_path, libGR),
+        Nothing,
+        (Int32, Ptr{Float64}, Ptr{Float64}, Cstring),
+        n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), codes)
 end
 
 """
