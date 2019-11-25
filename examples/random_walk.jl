@@ -1,9 +1,7 @@
 import GR
 
-@static if VERSION >= v"0.7.0-DEV.3406"
-    import Random
-    srand(seed) = Random.seed!(seed)
-end
+import Random
+srand(seed) = Random.seed!(seed)
 
 function main()
     srand(37)

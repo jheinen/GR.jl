@@ -2,36 +2,17 @@ module jlgr
 
 import GR
 
-@static if VERSION >= v"0.7.0-DEV.3476"
-    using Serialization
-    using Sockets
-end
+using Serialization
+using Sockets
 
 const None = Union{}
 
-@static if VERSION < v"0.7.0-DEV.3137"
-    const Nothing = Void
+function search(s::AbstractString, c::Char)
+    result = findfirst(isequal(c), s)
+    result != nothing ? result : 0
 end
 
-@static if VERSION < v"0.7.0-DEV.3155"
-    const popfirst! = shift!
-end
-
-@static if VERSION >= v"0.7.0-DEV.3272"
-    function search(s::AbstractString, c::Char)
-        result = findfirst(isequal(c), s)
-        result != nothing ? result : 0
-    end
-end
-
-@static if VERSION < v"0.7.0-DEV.4534"
-    reverse(a::AbstractArray; dims=nothing) =
-        dims===nothing ? Base.reverse(a) : Base.flipdim(a, dims)
-end
-
-@static if VERSION >= v"0.7.0-DEV.4804"
-    signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
-end
+signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
 
 macro _tuple(t)
     :( Tuple{$t} )
@@ -53,12 +34,11 @@ const colors = [
 
 const distinct_cmap = [ 0, 1, 984, 987, 989, 983, 994, 988 ]
 
-@static if VERSION > v"0.7-"
-  function linspace(start, stop, length)
-    range(start, stop=stop, length=length)
-  end
-  repmat(A::AbstractArray, m::Int, n::Int) = repeat(A::AbstractArray, m::Int, n::Int)
+function linspace(start, stop, length)
+  range(start, stop=stop, length=length)
 end
+
+repmat(A::AbstractArray, m::Int, n::Int) = repeat(A::AbstractArray, m::Int, n::Int)
 
 function _min(a)
   minimum(filter(!isnan, a))

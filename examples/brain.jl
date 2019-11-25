@@ -38,11 +38,7 @@ function cursor(motion, x, y)
 end
  
 f = open("brain.bin", "r")
-if VERSION > v"0.7.0-"
-  data = Vector{UInt16}(undef, 5120000)
-else
-  data = Vector{UInt16}(5120000)
-end
+data = Vector{UInt16}(undef, 5120000)
 data = reshape(read!(f, data), 200, 160, 160)
 close(f)
 

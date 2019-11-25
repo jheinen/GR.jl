@@ -1,12 +1,7 @@
-@static if VERSION < v"0.7.0-DEV.2005"
-    using Base.Test
-else
-    using Test
-end
-@static if VERSION >= v"0.7.0-DEV.3406"
-    using Random
-    rng = MersenneTwister(1234)
-end
+using Test
+
+using Random
+rng = MersenneTwister(1234)
 
 using GR
 GR.__init__()

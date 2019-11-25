@@ -9,18 +9,8 @@ else
 end
 
 const None = Union{}
-@static if VERSION < v"0.7.0-DEV.3137"
-  const Nothing = Void
-  const Cvoid = Void
-end
-@static if VERSION < v"0.7.0-DEV.3155"
-  const popfirst! = shift!
-end
-@static if VERSION >= v"0.7.0-DEV.2338"
-    import Base64
-else
-    import Base.Base64
-end
+
+import Base64
 
 export
   init,
@@ -253,11 +243,7 @@ function __init__()
     end
     ENV["GRDIR"] = grdir
     ENV["GKS_FONTPATH"] = grdir
-    if VERSION < v"0.7.0-DEV.4639"
-        flag = contains(grdir, "site-packages")
-    else
-        flag = occursin("site-packages", grdir)
-    end
+    flag = occursin("site-packages", grdir)
     if flag
         ENV["GKS_FONTPATH"] = grdir
     elseif os != :Windows
@@ -2858,11 +2844,7 @@ end
 function readimage(path)
   width = Cint[0]
   height = Cint[0]
-  if VERSION > v"0.7.0-"
-    data = Array{Ptr{UInt32}}(undef, 1)
-  else
-    data = Array{Ptr{UInt32}}(1)
-  end
+  data = Array{Ptr{UInt32}}(undef, 1)
   ccall( (:gr_readimage, libGR),
         Nothing,
         (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{UInt32}}),
@@ -3336,30 +3318,16 @@ shade(args...; kwargs...) = jlgr.shade(args...; kwargs...)
 setpanzoom(x, y, zoom) = jlgr.setpanzoom(x, y, zoom)
 mainloop() = jlgr.mainloop()
 
-@static if VERSION < v"0.7-"
-  include_string("""
-    type SVG s::Array{UInt8} end
-    type PNG s::Array{UInt8} end
-    type HTML s::AbstractString end
-    """)
-else
-  include_string(GR, """
-    mutable struct SVG s::Array{UInt8} end
-    mutable struct PNG s::Array{UInt8} end
-    mutable struct HTML s::AbstractString end
-    """)
-end
+mutable struct SVG s::Array{UInt8} end
+mutable struct PNG s::Array{UInt8} end
+mutable struct HTML s::AbstractString end
 
 Base.show(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
 Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
 function _readfile(path)
-    if VERSION > v"0.7.0-"
-        data = Array{UInt8}(undef, filesize(path))
-    else
-        data = Array{UInt8}(filesize(path))
-    end
+    data = Array{UInt8}(undef, filesize(path))
     s = open(path, "r")
     content = read!(s, data)
     close(s)
@@ -3503,11 +3471,7 @@ function delaunay(x, y)
   npoints = length(x)
   ntri = Cint[0]
   dim = Cint[3]
-  if VERSION > v"0.7.0-"
-    triangles = Array{Ptr{Int32}}(undef, 1)
-  else
-    triangles = Array{Ptr{Int32}}(1)
-  end
+  triangles = Array{Ptr{Int32}}(undef, 1)
   ccall( (:gr_delaunay, libGR),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}, Ptr{Ptr{Int32}}),

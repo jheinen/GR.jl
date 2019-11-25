@@ -1,8 +1,6 @@
 using GR
 
-@static if VERSION >= v"0.7.0-DEV.3406"
-    using DelimitedFiles
-end
+using DelimitedFiles
 
 function main()
     z = Z = readdlm("sans.dat")

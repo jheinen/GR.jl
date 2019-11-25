@@ -32,14 +32,9 @@ function get_version()
     try
 @static if VERSION >= v"1.4.0-DEV.265"
         v = string(Pkg.dependencies()[Base.UUID("28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71")].version)
-elseif VERSION >= v"0.7.0-DEV.3656"
-        v = Pkg.API.installed()["GR"]
 else
-        v = Pkg.installed("GR")
+        v = Pkg.API.installed()["GR"]
 end
-        if string(v)[end:end] == "+"
-            version = "latest"
-        end
     catch
     end
     if "GRDIR" in keys(ENV)
@@ -56,11 +51,7 @@ function get_os_release(key)
     catch
         ""
     end
-    if VERSION < v"0.7-"
-        replace(value, "\"", "")
-    else
-        replace(value, "\"" => "")
-    end
+    replace(value, "\"" => "")
 end
 
 if !check_grdir()
@@ -138,10 +129,8 @@ if !check_grdir()
     try
 @static if VERSION >= v"1.4.0-DEV.265"
       have_qml = haskey(Pkg.dependencies(),Base.UUID("2db162a6-7e43-52c3-8d84-290c1c42d82a"))
-elseif VERSION >= v"0.7.0-DEV.3656"
-      have_qml = haskey(Pkg.API.installed(), "QML")
 else
-      have_qml = Pkg.installed("QML") != nothing
+      have_qml = haskey(Pkg.API.installed(), "QML")
 end
       if have_qml
         @eval import QML

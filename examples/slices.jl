@@ -1,10 +1,6 @@
 #!/usr/bin/env julia
 # Rendering slices and an isosurface of MRI data.
 
-@static if VERSION < v"0.7.0-DEV.3137"
-  const Nothing = Void
-end
-
 import GR
 const gr3 = GR.gr3
 
@@ -17,11 +13,7 @@ function draw(mesh::Cint; x::Union{Real, Nothing}=nothing, y::Union{Real, Nothin
     GR.updatews()
 end
 
-if VERSION > v"0.7.0-"
-    data = open(stream -> read!(stream, Array{UInt16}(undef, 93, 64, 64)), "mri.raw")
-else
-    data = open(stream -> read!(stream, Array{UInt16}(93, 64, 64)), "mri.raw")
-end
+data = open(stream -> read!(stream, Array{UInt16}(undef, 93, 64, 64)), "mri.raw")
 data = min.(data, 2000) / 2000.0 * typemax(UInt16)
 data = convert(Array{UInt16, 3}, floor.(data))
 data = permutedims(data, [3, 2, 1])

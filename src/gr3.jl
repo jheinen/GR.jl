@@ -3,9 +3,6 @@ module GR3
 import GR
 
 const None = Union{}
-@static if VERSION < v"0.7.0-DEV.3137"
-  const Nothing = Void
-end
 
 macro triplet(t)
     :( Tuple{$t, $t, $t} )
@@ -15,17 +12,8 @@ macro ArrayToVector(ctype, data)
     return :( convert(Vector{$(esc(ctype))}, vec($(esc(data)))) )
 end
 
-@static if VERSION < v"0.7-"
-  include_string("""
-    type PNG s::Array{UInt8} end
-    type HTML s::AbstractString end
-    """)
-else
-  include_string(GR3, """
-    mutable struct PNG s::Array{UInt8} end
-    mutable struct HTML s::AbstractString end
-    """)
-end
+mutable struct PNG s::Array{UInt8} end
+mutable struct HTML s::AbstractString end
 
 Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
@@ -36,18 +24,8 @@ function _readfile(path)
     read!(s, data)
 end
 
-@static if VERSION < v"0.7-"
-  include_string("""
-    type GR3Exception <: Exception
-      msg::AbstractString
-    end
-    """)
-else
-  include_string(GR3, """
-    mutable struct GR3Exception <: Exception
-      msg::AbstractString
-    end
-    """)
+mutable struct GR3Exception <: Exception
+    msg::AbstractString
 end
 Base.showerror(io::IO, e::GR3Exception) = print(io, e.msg);
 

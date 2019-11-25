@@ -6,7 +6,6 @@ dist: xenial
 services:
   - xvfb
 julia:
-  - 0.7
   - 1.0.5
   - 1.2
   - nightly
