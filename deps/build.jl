@@ -76,6 +76,8 @@ if !check_grdir()
         os = "Debian"
       elseif id == "arch" || id_like == "arch"
         os = "ArchLinux"
+      elseif id == "opensuse-tumbleweed"
+        os = "CentOS"
       end
     end
   elseif os == :Linux && arch in [:i386, :i686]
