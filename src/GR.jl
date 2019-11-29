@@ -3395,7 +3395,7 @@ function show()
         rm(file_path)
         return content
     elseif mime_type in ("mov", "mp4", "webm")
-        mimespec = mime_type == "mov" ? "movie/quicktime" : "video/$mime_type"
+        mimespec = mime_type == "mov" ? "video/mp4" : "video/$mime_type"
         content = HTML(string("""<video autoplay controls><source type="$mimespec" src="data:$mimespec;base64,""", Base64.base64encode(open(read,file_path)),""""></video>"""))
         rm(file_path)
         return content
