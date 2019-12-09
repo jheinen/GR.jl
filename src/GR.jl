@@ -140,6 +140,8 @@ export
   shadepoints,
   shadelines,
   setcolormapfromrgb,
+  setborderwidth,
+  setbordercolorind,
   # Convenience functions
   jlgr,
   colormap,
@@ -3771,6 +3773,42 @@ function panzoom(x, y, zoom)
         (Float64, Float64, Float64, Float64, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         x, y, zoom, zoom, xmin, xmax, ymin, ymax)
   return xmin[1], xmax[1], ymin[1], ymax[1]
+end
+
+"""
+    setborderwidth(width::Real)
+
+Define the border width of subsequent path output primitives.
+
+**Parameters:**
+
+`width` :
+    The border width scale factor
+
+"""
+function setborderwidth(width::Real)
+  ccall( (:gr_setborderwidth, libGR),
+        Nothing,
+        (Float64, ),
+        width)
+end
+
+"""
+    setbordercolorind(color::Int)
+
+Define the color of subsequent path output primitives.
+
+**Parameters:**
+
+`color` :
+    The border color index (COLOR < 1256)
+
+"""
+function setbordercolorind(color::Int)
+  ccall( (:gr_setbordercolorind, libGR),
+        Nothing,
+        (Int32, ),
+        color)
 end
 
 # JS functions
