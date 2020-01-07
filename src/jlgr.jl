@@ -989,7 +989,7 @@ function RGB(color)
 end
 
 to_double(a) = Float64[float(el) for el in a]
-to_int(a) = Int32[el for el in a]
+to_int(a) = Int32[round(Int32, el) for el in a]
 
 function send_meta(target)
     global handle
