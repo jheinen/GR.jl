@@ -13,20 +13,23 @@ end
 
 id_count = 0
 js_running = false
+checking_js = false
 dispid = 0
+send_on_connect = Dict()
 
 
 mutable struct JSTermWidget
     identifier::Int
     width::Int
     height::Int
-    display::Int
+    disp::Int
     visible::Bool
 end
 
 
 function inject_js()
   global comm
+
   comm = nothing
   _js_fallback = "https://gr-framework.org/downloads/gr-latest.js"
   _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
@@ -44,24 +47,71 @@ function inject_js()
       error(string("Unable to open '", joinpath(ENV["GRDIR"], "lib", "gr.js"), "'."))
   else
       display(HTML(string("""
-        <script type="text/javascript">
+        <script type="text/javascript" id="jsterm-javascript">
           """, _gr_js, """
-          runJsterm();
+          //runJsterm();
         </script>
       """)))
   end
 end
 
+check_comm = nothing
 
-function JSTermWidget(id::Int, width::Int, height::Int, display::Int)
+function check_js()
+    global js_running, checking_js
+    if !checking_js
+        checking_js = true
+        @eval function Main.IJulia.register_comm(comm::Main.IJulia.Comm, data)
+            global js_running, send_on_connect, checking_js
+            if data.content["target_name"] == "check_comm"
+                testcomm = comm
+                testcomm.on_msg = function(msg)
+                    if msg.content["data"]["inject_js"]
+                        inject_js()
+                    end
+                end
+                testcomm.on_close = function(msg)
+                    d = Dict("text/html"=>string(""))
+                    transient = Dict("display_id"=>"jsterm_check")
+                    Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "update_display_data", Dict("data"=>d, "transient"=>transient)))
+                    for disp in keys(send_on_connect)
+                        jsterm_send(send_on_connect[disp], disp)
+                    end
+                    send_on_connect = Dict()
+                    js_running = true
+                    checking_js = false
+                end
+            end
+        end
+        d = Dict("text/html"=>string("""
+          <script type="text/javascript">
+            check_comm = Jupyter.notebook.kernel.comm_manager.new_comm('check_comm');
+            check_comm.send({"inject_js": document.getElementById('jsterm-javascript') === null});
+            function checkForJS() {
+                if ((typeof runJsterm !== 'undefined') && ((typeof grJSTermRunning === 'undefined' || !grJSTermRunning))) {
+                    runJsterm();
+                    check_comm.close();
+                } else {
+                    setTimeout(checkForJS, 100);
+                }
+            }
+            checkForJS();
+          </script>
+        """))
+        transient = Dict("display_id"=>"jsterm_check")
+        Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "display_data", Dict("data"=>d, "transient"=>transient)))
+    end
+end
+
+
+function JSTermWidget(id::Int, width::Int, height::Int, disp::Int)
   global id_count, js_running
   if GR.isijulia()
     id_count += 1
     if !js_running
-      inject_js()
-      js_running = true
+      check_js()
     end
-    JSTermWidget(id, width, height, display, false)
+    JSTermWidget(id, width, height, disp, false)
   else
     error("JSTermWidget is only available in IJulia environments")
   end
@@ -190,7 +240,9 @@ function comm_msg_callback(msg)
   data = msg.content["data"]
   if haskey(data, "type")
     if data["type"] == "save"
-      display(HTML(string("<div style=\"display:none;\" id=\"jsterm-data-", data["content"]["id"], "\" class=\"jsterm-data\">", data["content"]["data"], "</div>")))
+      d = Dict("text/html"=>string("<div style=\"display: none;\" class=\"jsterm-data-widget\">", data["content"]["data"]["widget_data"], "</div>"))
+      transient = Dict("display_id"=>string("save_display_", data["display_id"]))
+      Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "update_display_data", Dict("data"=>d, "transient"=>transient)))
     elseif data["type"] == "evt"
       global_evthandler(data["content"])
       if haskey(evthandler, data["id"]) && evthandler[data["id"]] !== nothing
@@ -200,20 +252,19 @@ function comm_msg_callback(msg)
   end
 end
 
-function jsterm_send(data::String)
-  global js_running, draw_end_condition, comm, dispid
+function jsterm_send(data::String, disp)
+  global js_running, draw_end_condition, comm
   if GR.isijulia()
     if comm === nothing
       comm = Main.IJulia.Comm("jsterm_comm")
       comm.on_close = function comm_close_callback(msg)
         global js_running
         js_running = false
+        comm = nothing
       end
       comm.on_msg = comm_msg_callback
     end
-    display(HTML(string("<div id=\"jsterm-display-", dispid, "\"><div id=\"jsterm-msg-", dispid, "\">Processing Input</div>")))
-    Main.IJulia.send_comm(comm, Dict("json" => data, "type"=>"draw", "display"=>dispid))
-    dispid += 1
+    Main.IJulia.send_comm(comm, Dict("json" => data, "type"=>"draw", "display"=>disp))
   else
     error("jsterm_send is only available in IJulia environments")
   end
@@ -221,12 +272,18 @@ end
 
 function recv(name::Cstring, id::Int32, msg::Cstring)
     # receives string from C and sends it to JS via Comm
-    global js_running, draw_end_condition
+    global js_running, draw_end_condition, send_on_connect, dispid
+    d = Dict("text/html"=>"")
+    transient = Dict("display_id"=>string("save_display_", dispid))
+    Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "display_data", Dict("data"=>d, "transient"=>transient)))
+    display(HTML(string("<div style=\"display: none;\" id=\"jsterm-display-", dispid, "\">")))
     if !js_running
-      inject_js()
-      js_running = true
+      check_js()
+      send_on_connect[dispid] = unsafe_string(msg)
+    else
+        jsterm_send(unsafe_string(msg), dispid)
     end
-    jsterm_send(unsafe_string(msg))
+    dispid += 1
     return convert(Int32, 1)
 end
 
@@ -238,13 +295,27 @@ end
 jswidgets = nothing
 send_c = nothing
 recv_c = nothing
+init = false
 
 function initjs()
-    global jswidgets, send_c, recv_c
+    global jswidgets, send_c, recv_c, init#, comm
 
-    jswidgets = Dict{Int32, JSTermWidget}()
-    send_c = @cfunction(send, Cstring, (Cstring, Int32))
-    recv_c = @cfunction(recv, Int32, (Cstring, Int32, Cstring))
+    if !init && GR.isijulia()
+        init = true
+        jswidgets = Dict{Int32, JSTermWidget}()
+        send_c = @cfunction(send, Cstring, (Cstring, Int32))
+        recv_c = @cfunction(recv, Int32, (Cstring, Int32, Cstring))
+        #if comm === nothing
+        #  comm = Main.IJulia.Comm("jsterm_comm")
+        #  comm.on_close = function comm_close_callback(msg)
+        #    global js_running
+        #    js_running = false
+        #    comm = nothing
+        #  end
+        #  comm.on_msg = comm_msg_callback
+        #end
+        check_js()
+    end
     send_c, recv_c
 end
 
