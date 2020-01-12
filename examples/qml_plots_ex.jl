@@ -13,15 +13,15 @@ const qmlfile = joinpath(dirname(Base.source_path()), "qml_ex.qml")
 nbins = Observable(30)
 w, h = (600, 450)
 
-# Called from QQuickPaintedItem::paint with the QPainterRef as an argument
-function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
+# Arguments here need to be the "reference types", hence the "Ref" suffix
+function paint(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})
   global w, h
 
   ENV["GKS_WSTYPE"] = 381
   ENV["GKS_CONID"] = split(repr(p.cpp_object), "@")[2]
 
-  dev = device(p)
-  r = effectiveDevicePixelRatio(window(item))
+  dev = device(p[])[]
+  r = effectiveDevicePixelRatio(window(item[])[])
   w, h = width(dev) / r, height(dev) / r
 
   num_bins = Int64(round(nbins[]))
@@ -43,7 +43,7 @@ function mousePosition(eventx, eventy, deltay)
 end
 
 load(qmlfile,
-  paint_cfunction = @safe_cfunction(paint, Cvoid, (QML.QPainterRef, QML.JuliaPaintedItemRef)),
+  paint_cfunction = @safe_cfunction(paint, Cvoid, (CxxPtr{QPainter}, CxxPtr{JuliaPaintedItem})),
   nbins = nbins
 )
 

@@ -13,16 +13,16 @@ nbins = Observable(30)
 w, h = (600, 450)
 zoom = Nothing
 
-# Called from QQuickPaintedItem::paint with the QPainterRef as an argument
-function paint(p::QML.QPainterRef, item::QML.JuliaPaintedItemRef)
+# Arguments here need to be the "reference types", hence the "Ref" suffix
+function paint(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})
   global w, h
   global zoom
 
   ENV["GKSwstype"] = 381
   ENV["GKSconid"] = split(repr(p.cpp_object), "@")[2]
 
-  dev = device(p)
-  r = effectiveDevicePixelRatio(window(item))
+  dev = device(p[])[]
+  r = effectiveDevicePixelRatio(window(item[])[])
   w, h = width(dev) / r, height(dev) / r
 
   plt = gcf()
@@ -61,7 +61,7 @@ function mousePosition(eventx, eventy, deltay)
 end
 
 load(qmlfile,
-  paint_cfunction = @safe_cfunction(paint, Cvoid, (QML.QPainterRef, QML.JuliaPaintedItemRef)),
+  paint_cfunction = @safe_cfunction(paint, Cvoid, (CxxPtr{QPainter}, CxxPtr{JuliaPaintedItem})),
   nbins = nbins
 )
 
