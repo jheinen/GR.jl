@@ -1017,7 +1017,7 @@ function send_meta(target)
             given(x) && GR.sendmetaref(handle, "x", 'D', to_double(x))
             given(y) && GR.sendmetaref(handle, "y", 'D', to_double(y))
             given(z) && GR.sendmetaref(handle, "z", 'D', to_double(z))
-            given(c) && GR.sendmetaref(handle, "c", 'I', to_int(c))
+            given(c) && GR.sendmetaref(handle, "c", 'D', to_double(c))
             given(spec) && GR.sendmetaref(handle, "spec", 's', spec)
             GR.sendmetaref(handle, "", 'O', i < num_series ? "," : "]", 1)
         end
