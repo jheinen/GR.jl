@@ -297,8 +297,12 @@ function set_window(kind)
     end
 
     xmin, xmax = plt.kvs[:xrange]
+    if kind in (:heatmap, :polarheatmap) && !haskey(plt.kvs, :xlim)
+        xmin -= 0.5
+        xmax += 0.5
+    end
     if scale & GR.OPTION_X_LOG == 0
-        if !haskey(plt.kvs, :xlim) && plt.kvs[:panzoom] == None
+        if !haskey(plt.kvs, :xlim) && plt.kvs[:panzoom] == None && !(kind in (:heatmap, :polarheatmap))
             xmin, xmax = GR.adjustlimits(xmin, xmax)
         end
         if haskey(plt.kvs, :xticks)
@@ -318,11 +322,15 @@ function set_window(kind)
     plt.kvs[:xaxis] = xtick, xorg, majorx
 
     ymin, ymax = plt.kvs[:yrange]
+    if kind in (:heatmap, :polarheatmap) && !haskey(plt.kvs, :ylim)
+        ymin -= 0.5
+        ymax += 0.5
+    end
     if kind == :hist && !haskey(plt.kvs, :ylim)
         ymin = scale & GR.OPTION_Y_LOG == 0 ? 0 : 1
     end
     if scale & GR.OPTION_Y_LOG == 0
-        if !haskey(plt.kvs, :ylim) && plt.kvs[:panzoom] == None
+        if !haskey(plt.kvs, :ylim) && plt.kvs[:panzoom] == None && !(kind in (:heatmap, :polarheatmap))
             ymin, ymax = GR.adjustlimits(ymin, ymax)
         end
         if haskey(plt.kvs, :yticks)
@@ -2005,8 +2013,6 @@ function heatmap(D; kv...)
     if ndims(D) == 2
         z = D'
         width, height = size(z)
-        if !haskey(plt.kvs, :xlim) plt.kvs[:xlim] = (0.5, width + 0.5) end
-        if !haskey(plt.kvs, :ylim) plt.kvs[:ylim] = (0.5, height + 0.5) end
 
         plt.args = [(1:width, 1:height, z, Nothing, "")]
 
@@ -2034,8 +2040,6 @@ function polarheatmap(D; kv...)
     if ndims(D) == 2
         z = D
         width, height = size(z)
-        if !haskey(plt.kvs, :xlim) plt.kvs[:xlim] = (0.5, width + 0.5) end
-        if !haskey(plt.kvs, :ylim) plt.kvs[:ylim] = (0.5, height + 0.5) end
 
         plt.args = [(1:width, 1:height, z, Nothing, "")]
 
