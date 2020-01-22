@@ -1029,7 +1029,7 @@ function send_meta(target)
             given(spec) && GR.sendmetaref(handle, "spec", 's', spec)
             GR.sendmetaref(handle, "", 'O', i < num_series ? "," : "]", 1)
         end
-        if kind == :hist
+        if plt.kvs[:kind] == :hist
             GR.sendmetaref(handle, "kind", 's', "barplot");
         else
             GR.sendmetaref(handle, "kind", 's', string(plt.kvs[:kind]));
