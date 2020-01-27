@@ -2422,7 +2422,9 @@ for .png, .jpg, .pdf, .ps, .gif and various other file formats.
     julia> # Save the figure to a file
     julia> savefig("example.png")
 """
-function savefig(filename)
+function savefig(filename; kv...)
+    global plt
+    merge!(plt.kvs, Dict(kv))
     GR.beginprint(filename)
     plot_data(false)
     GR.endprint()
