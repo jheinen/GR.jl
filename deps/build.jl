@@ -54,6 +54,15 @@ function get_os_release(key)
     replace(value, "\"" => "")
 end
 
+function try_download(url, file)
+    try
+        download(url, file)
+        true
+    catch
+        false
+    end
+end
+
 if !check_grdir()
   if Sys.KERNEL == :NT
     os = :Windows
@@ -95,18 +104,15 @@ if !check_grdir()
   @info("Downloading pre-compiled GR $version $os binary")
   mkpath("downloads")
   file = "downloads/$tarball"
-  try
-    url = "github.com/sciapp/gr/releases/download/v$version/$tarball"
-    download("https://$url", file)
-  catch
-    url = "gr-framework.org/downloads/$tarball"
-    try
-      download("https://$url", file)
-    catch
+  if version != "latest"
+    ok = try_download("https://github.com/sciapp/gr/releases/download/v$version/$tarball", file)
+  else
+    ok = false
+  end
+  if !ok
+    if !try_download("https://gr-framework.org/downloads/$tarball", file)
       @info("Using insecure connection")
-      try
-        download("http://$url", file)
-      catch
+      if !try_download("http://gr-framework.org/downloads/$tarball", file)
         @info("Cannot download GR run-time")
       end
     end
