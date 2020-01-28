@@ -19,6 +19,10 @@ RUN apt-get install -my xvfb
 # PackageCompiler dependencies
 RUN apt-get install -my gcc
 USER $NB_USER
+# copy example notebooks and scripts
+COPY examples/*.ipynb work/
+COPY examples/snoop.jl work/
+COPY scripts/docker-xvfb-run /usr/bin/xvfb-run
 # Julia packages
 RUN julia -E 'using Pkg; pkg"add GR IJulia PackageCompiler"' && \
     # precompile Julia packages \
@@ -29,8 +33,5 @@ RUN julia -E 'using Pkg; pkg"add GR IJulia PackageCompiler"' && \
     mv $HOME/.local/share/jupyter/kernels/julia* $CONDA_DIR/share/jupyter/kernels/ && \
     chmod -R go+rx $CONDA_DIR/share/jupyter && \
     rm -rf $HOME/.local
-COPY examples/*.ipynb work/
-COPY examples/snoop.jl work/
-COPY scripts/docker-xvfb-run /usr/bin/xvfb-run
 ENTRYPOINT ["/bin/sh", "-c", "exec xvfb-run $0 $@"]
 CMD ["jupyter", "notebook"]
