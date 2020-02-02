@@ -1428,6 +1428,9 @@ function plot_args(args; fmt=:xys)
                         x = a
                         y = popfirst!(args)
                         z = popfirst!(args)
+                        if !isa(z, Function)
+                            z = z'
+                        end
                         c = popfirst!(args)
                     elseif length(args) >= 2 &&
                         isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real &&
@@ -1435,6 +1438,9 @@ function plot_args(args; fmt=:xys)
                         x = a
                         y = popfirst!(args)
                         z = popfirst!(args)
+                        if !isa(z, Function)
+                            z = z'
+                        end
                         c = Nothing
                     elseif fmt == :xyac && length(args) >= 1 &&
                        (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || isa(args[1], Function))
@@ -1443,7 +1449,7 @@ function plot_args(args; fmt=:xys)
                         z = Nothing
                         c = Nothing
                     elseif fmt == :xyzc && length(args) == 0
-                        z = a
+                        z = a'
                         nx, ny = size(z)
                         if haskey(plt.kvs, :xlim)
                             xmin, xmax = plt.kvs[:xlim]
@@ -1472,7 +1478,7 @@ function plot_args(args; fmt=:xys)
         end
         if isa(z, Function)
             f = z
-            z = Float64[f(a,b) for b in y, a in x]
+            z = Float64[f(a,b) for a in x, b in y]
         end
         spec = ""
         if fmt == :xys && length(args) > 0 && isa(args[1], AbstractString)
@@ -2431,10 +2437,7 @@ function savefig(filename; kv...)
 end
 
 function meshgrid(vx, vy)
-    m, n = length(vy), length(vx)
-    vx = reshape(vx, 1, n)
-    vy = reshape(vy, m, 1)
-    (repmat(vx, m, 1), repmat(vy, 1, n))
+    [x for x in vx, y in vy], [y for x in vx, y in vy]
 end
 
 function meshgrid(vx, vy, vz)

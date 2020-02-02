@@ -1,5 +1,5 @@
 using Random
-rng = MersenneTwister(1234);
+rng = MersenneTwister(1234)
 
 using GR
 GR.__init__()
@@ -50,10 +50,9 @@ y = 8 .* rand(rng, 100) .- 4
 z = sin.(x) .+ cos.(y)
 contour(x, y, z)
 
-X = LinRange(-2, 2, 40)
-Y = LinRange(0, pi, 20)
-x, y = meshgrid(X, Y)
-z = sin.(x) .+ cos.(y)
+x = LinRange(-2, 2, 40)
+y = LinRange(0, pi, 20)
+z = sin.(x') .+ cos.(y)
 contour(x, y, z)
 
 x = 8 .* rand(rng, 100) .- 4
@@ -61,10 +60,9 @@ y = 8 .* rand(rng, 100) .- 4
 z = sin.(x) .+ cos.(y)
 contourf(x, y, z)
 
-X = LinRange(-2, 2, 40)
-Y = LinRange(0, pi, 20)
-x, y = meshgrid(X, Y)
-z = sin.(x) .+ cos.(y)
+x = LinRange(-2, 2, 40)
+y = LinRange(0, pi, 20)
+z = sin.(x') .+ cos.(y)
 contourf(x, y, z)
 
 x = 8 .* rand(rng, 100) .- 4
@@ -77,10 +75,9 @@ y = 8 .* rand(rng, 100) .- 4
 z = sin.(x) .+ cos.(y)
 surface(x, y, z)
 
-X = LinRange(-2, 2, 40)
-Y = LinRange(0, pi, 20)
-x, y = meshgrid(X, Y)
-z = sin.(x) .+ cos.(y)
+x = LinRange(-2, 2, 40)
+y = LinRange(0, pi, 20)
+z = sin.(x') .+ cos.(y)
 surface(x, y, z)
 
 x = 8 .* rand(rng, 100) .- 4
@@ -88,28 +85,23 @@ y = 8 .* rand(rng, 100) .- 4
 z = sin.(x) .+ cos.(y)
 trisurf(x, y, z)
 
-x = 8 .* rand(rng, 100) .- 4
-y = 8 .* rand(rng, 100) .- 4
-z = sin.(x) .+ cos.(y)
+z = peaks()
+surface(z)
+
+x = LinRange(-2, 2, 40)
+y = LinRange(0, pi, 20)
+z = sin.(x') .+ cos.(y)
 wireframe(x, y, z)
 
-X = LinRange(-2, 2, 40)
-Y = LinRange(0, pi, 20)
-x, y = meshgrid(X, Y)
-z = sin.(x) .+ cos.(y)
-wireframe(x, y, z)
-
-X = LinRange(-2, 2, 40)
-Y = LinRange(0, pi, 20)
-x, y = meshgrid(X, Y)
-z = sin.(x) .+ cos.(y)
+x = LinRange(-2, 2, 40)
+y = LinRange(0, pi, 20)
+z = sin.(x') .+ cos.(y)
 heatmap(z)
 
 imshow(z)
 
 s = LinRange(-1, 1, 40)
-x, y, z = meshgrid(s, s, s)
-v = 1 .- (x .^ 2 .+ y .^ 2 .+ z .^ 2) .^ 0.5
+v = 1 .- (s .^ 2 .+ (s .^ 2)' .+ reshape(s,1,1,:) .^ 2) .^ 0.5
 isosurface(v, isovalue=0.2)
 
 GR.GR3.terminate()
