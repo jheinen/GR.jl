@@ -33,8 +33,7 @@ function func_vals(f, re, im,  N)
     resH = N * h  # vertical resolution
     x = LinRange(re[1], re[2], resL)
     y = LinRange(im[1], im[2], resH)
-    x, y = GR.meshgrid(x, y)
-    z = complex.(x, y)
+    z = complex.(x', y)
     w = f.(z)
     return w
 end
