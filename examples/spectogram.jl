@@ -18,7 +18,7 @@ function play(c::Channel)
     spectrum[1, :] = round.(Int, power[1:225])
     spectrum = circshift(spectrum, [-1, 0])
 
-    put!(c, spectrum)
+    put!(c, spectrum')
   end
   put!(c, nothing)
 end

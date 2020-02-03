@@ -888,6 +888,7 @@ function plot_img(I)
     if isa(I, AbstractString)
         width, height, data = GR.readimage(I)
     else
+        I = I'
         width, height = size(I)
         cmin, cmax = plt.kvs[:crange]
         data = map(x -> normalize_color(x, cmin, cmax), I)
