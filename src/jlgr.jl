@@ -1898,10 +1898,9 @@ provided points, a value of 0 will be used.
     julia> # Draw the contour plot
     julia> contour(x, y, z)
     julia> # Create example grid data
-    julia> X = LinRange(-2, 2, 40)
-    julia> Y = LinRange(0, pi, 20)
-    julia> x, y = meshgrid(X, Y)
-    julia> z = sin.(x) .+ cos.(y)
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = LinRange(0, pi, 20)
+    julia> z = sin.(x') .+ cos.(y)
     julia> # Draw the contour plot
     julia> contour(x, y, z)
     julia> # Draw the contour plot using a callable
@@ -1943,10 +1942,9 @@ provided points, a value of 0 will be used.
     julia> # Draw the contour plot
     julia> contourf(x, y, z)
     julia> # Create example grid data
-    julia> X = LinRange(-2, 2, 40)
-    julia> Y = LinRange(0, pi, 20)
-    julia> x, y = meshgrid(X, Y)
-    julia> z = sin.(x) .+ cos.(y)
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = LinRange(0, pi, 20)
+    julia> z = sin.(x') .+ cos.(y)
     julia> # Draw the contour plot
     julia> contourf(x, y, z)
     julia> # Draw the contour plot using a callable
@@ -2010,10 +2008,9 @@ be neccessary to adjust these limits or clip the range of array values.
 .. code-block:: julia
 
     julia> # Create example data
-    julia> X = LinRange(-2, 2, 40)
-    julia> Y = LinRange(0, pi, 20)
-    julia> x, y = meshgrid(X, Y)
-    julia> z = sin.(x) .+ cos.(y)
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = LinRange(0, pi, 20)
+    julia> z = sin.(x') .+ cos.(y)
     julia> # Draw the heatmap
     julia> heatmap(z)
 """
@@ -2087,10 +2084,9 @@ provided points, a value of 0 will be used.
     julia> # Draw the wireframe plot
     julia> wireframe(x, y, z)
     julia> # Create example grid data
-    julia> X = LinRange(-2, 2, 40)
-    julia> Y = LinRange(0, pi, 20)
-    julia> x, y = meshgrid(X, Y)
-    julia> z = sin.(x) .+ cos.(y)
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = LinRange(0, pi, 20)
+    julia> z = sin.(x') .+ cos.(y)
     julia> # Draw the wireframe plot
     julia> wireframe(x, y, z)
     julia> # Draw the wireframe plot using a callable
@@ -2132,10 +2128,9 @@ provided points, a value of 0 will be used.
     julia> # Draw the surface plot
     julia> surface(x, y, z)
     julia> # Create example grid data
-    julia> X = LinRange(-2, 2, 40)
-    julia> Y = LinRange(0, pi, 20)
-    julia> x, y = meshgrid(X, Y)
-    julia> z = sin.(x) .+ cos.(y)
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = LinRange(0, pi, 20)
+    julia> z = sin.(x') .+ cos.(y)
     julia> # Draw the surface plot
     julia> surface(x, y, z)
     julia> # Draw the surface plot using a callable
@@ -2441,14 +2436,7 @@ function meshgrid(vx, vy)
 end
 
 function meshgrid(vx, vy, vz)
-    m, n, o = length(vy), length(vx), length(vz)
-    vx = reshape(vx, 1, n, 1)
-    vy = reshape(vy, m, 1, 1)
-    vz = reshape(vz, 1, 1, o)
-    om = ones(Int, m)
-    on = ones(Int, n)
-    oo = ones(Int, o)
-    (vx[om, :, oo], vy[:, on, oo], vz[om, on, :])
+    [x for x in vx, y in vy, z in vz], [y for x in vx, y in vy, z in vz], [z for x in vx, y in vy, z in vz]
 end
 
 function peaks(n=49)
@@ -2470,10 +2458,9 @@ two-dimensional array and the current colormap.
 .. code-block:: julia
 
     julia> # Create example data
-    julia> X = LinRange(-2, 2, 40)
-    julia> Y = LinRange(0, pi, 20)
-    julia> x, y = meshgrid(X, Y)
-    julia> z = sin.(x) .+ cos.(y)
+    julia> x = LinRange(-2, 2, 40)
+    julia> y = LinRange(0, pi, 20)
+    julia> z = sin.(x') .+ cos.(y)
     julia> # Draw an image from a 2d array
     julia> imshow(z)
     julia> # Draw an image from a file
@@ -2504,8 +2491,7 @@ the isovalue will be seen as inside the isosurface.
 
     julia> # Create example data
     julia> s = LinRange(-1, 1, 40)
-    julia> x, y, z = meshgrid(s, s, s)
-    julia> v = 1 .- (x .^ 2 .+ y .^ 2 .+ z .^ 2) .^ 0.5
+    julia> v = 1 .- (s .^ 2 .+ (s .^ 2)' .+ reshape(s,1,1,:) .^ 2) .^ 0.5
     julia> # Draw an image from a 2d array
     julia> isosurface(v, isovalue=0.2)
 """
