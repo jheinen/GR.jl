@@ -142,6 +142,9 @@ export
   setcolormapfromrgb,
   setborderwidth,
   setbordercolorind,
+  setorthographicprojection,
+  cameralookat,
+  setwindow3d,
   # Convenience functions
   jlgr,
   colormap,
@@ -3810,6 +3813,28 @@ function setbordercolorind(color::Int)
         Nothing,
         (Int32, ),
         color)
+end
+
+function setorthographicprojection(left, right, bottom, top, near_plane, far_plane)
+  ccall( (:gr_setorthographicprojection, libGR),
+        Nothing,
+        (Float64, Float64, Float64, Float64, Float64, Float64),
+        left, right, bottom, top, near_plane, far_plane)
+end
+
+function cameralookat(camera_pos_x, camera_pos_y, camera_pos_z, up_x, up_y, up_z,
+                      focus_point_x, focus_point_y, focus_point_z)
+  ccall( (:gr_cameralookat, libGR),
+        Nothing,
+        (Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64),
+        camera_pos_x, camera_pos_y, camera_pos_z, up_x, up_y, up_z, focus_point_x, focus_point_y, focus_point_z)
+end
+
+function setwindow3d(xmin, xmax, ymin, ymax, zmin, zmax)
+  ccall( (:gr_setwindow3d, libGR),
+        Nothing,
+        (Float64, Float64, Float64, Float64, Float64, Float64),
+        xmin, xmax, ymin, ymax, zmin, zmax)
 end
 
 # JS functions
