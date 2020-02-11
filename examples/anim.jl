@@ -1,22 +1,32 @@
 # Compare line drawing performance of Matplotlib vs. GR
 #
-# These are the results on a MacBook Pro 2,6 GHz Intel Core i5::
+# The results depend strongly on which backend is used in GR and/or Matplotlib.
+# Depending on the selection, however, improvements by a factor of 50 are possible.
+# The best results can be achieved with the Qt driver (gksqt).
 #
-# MPL:   10 fps  GR: 1400 fps  => speedup:  140.0
+# The increase in drawing speed through the GR Matplotlib backend is comparatively
+# small, since most of the time is spent in Matplotlib/Python.
+
+ENV["GKSwstype"] = "gksqt"
+ENV["MPLBACKEND"]="module://gr.matplotlib.backend_gr"
 
 import PyPlot
 import GR
-ENV["GKSwstype"] = "gksqt"
 
 function mpl()
     x = collect(0:0.01:2*pi)
 
     PyPlot.plot(x, sin.(x))
+    PyPlot.ion()
     t = time_ns()
     for i = 1:100
         PyPlot.cla()
         PyPlot.plot(x .+ i / 10.0, sin.(x .+ i / 10.0))
-        PyPlot.pause(0.0001)
+        if haskey(ENV, "MPLBACKEND")
+           PyPlot.show()
+        else
+           PyPlot.pause(0.0001)
+        end
     end
 
     fps = round(Int64, 100 / (1e-9 * (time_ns() - t)))
