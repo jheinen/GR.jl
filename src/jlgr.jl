@@ -1879,8 +1879,8 @@ points or a two-dimensional array as a contour plot. It can receive one
 or more of the following:
 
 - x values, y values and z values, or
-- N x values, M y values and z values on a NxM grid, or
-- N x values, M y values and a callable to determine z values
+- M x values, N y values and z values on a NxM grid, or
+- M x values, N y values and a callable to determine z values
 
 If a series of points is passed to this function, their values will be
 interpolated on a grid. For grid points outside the convex hull of the
@@ -1923,8 +1923,8 @@ points or a two-dimensional array as a filled contour plot. It can
 receive one or more of the following:
 
 - x values, y values and z values, or
-- N x values, M y values and z values on a NxM grid, or
-- N x values, M y values and a callable to determine z values
+- M x values, N y values and z values on a NxM grid, or
+- M x values, N y values and a callable to determine z values
 
 If a series of points is passed to this function, their values will be
 interpolated on a grid. For grid points outside the convex hull of the
@@ -2065,8 +2065,8 @@ points or a two-dimensional array as a wireframe plot. It can receive one
 or more of the following:
 
 - x values, y values and z values, or
-- N x values, M y values and z values on a NxM grid, or
-- N x values, M y values and a callable to determine z values
+- M x values, N y values and z values on a NxM grid, or
+- M x values, N y values and a callable to determine z values
 
 If a series of points is passed to this function, their values will be
 interpolated on a grid. For grid points outside the convex hull of the
@@ -2109,8 +2109,8 @@ points or a two-dimensional array as a surface plot. It can receive one or
 more of the following:
 
 - x values, y values and z values, or
-- N x values, M y values and z values on a NxM grid, or
-- N x values, M y values and a callable to determine z values
+- M x values, N y values and z values on a NxM grid, or
+- M x values, N y values and a callable to determine z values
 
 If a series of points is passed to this function, their values will be
 interpolated on a grid. For grid points outside the convex hull of the
