@@ -142,6 +142,7 @@ export
   setcolormapfromrgb,
   setborderwidth,
   setbordercolorind,
+  setperspectiveprojection,
   setorthographicprojection,
   cameralookat,
   setwindow3d,
@@ -3813,6 +3814,13 @@ function setbordercolorind(color::Int)
         Nothing,
         (Int32, ),
         color)
+end
+
+function setperspectiveprojection(near_plane, far_plane, fov)
+  ccall( (:gr_setperspectiveprojection, libGR),
+        Nothing,
+        (Float64, Float64, Float64),
+        near_plane, far_plane, fov)
 end
 
 function setorthographicprojection(left, right, bottom, top, near_plane, far_plane)
