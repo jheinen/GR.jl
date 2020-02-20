@@ -3830,10 +3830,10 @@ function setorthographicprojection(left, right, bottom, top, near_plane, far_pla
         left, right, bottom, top, near_plane, far_plane)
 end
 
-function gr_settransformationparameters(camera_pos_x, camera_pos_y, camera_pos_z,
-                                        up_x, up_y, up_z,
-                                        focus_point_x, focus_point_y, focus_point_z)
-  ccall( (:gr_gr_settransformationparameters, libGR),
+function settransformationparameters(camera_pos_x, camera_pos_y, camera_pos_z,
+                                     up_x, up_y, up_z,
+                                     focus_point_x, focus_point_y, focus_point_z)
+  ccall( (:gr_settransformationparameters, libGR),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64),
         camera_pos_x, camera_pos_y, camera_pos_z, up_x, up_y, up_z, focus_point_x, focus_point_y, focus_point_z)
