@@ -142,6 +142,7 @@ export
   setcolormapfromrgb,
   setborderwidth,
   setbordercolorind,
+  setprojectiontype,
   setperspectiveprojection,
   setorthographicprojection,
   settransformationparameters,
@@ -3816,30 +3817,37 @@ function setbordercolorind(color::Int)
         color)
 end
 
-function setperspectiveprojection(near_plane, far_plane, fov)
+function setprojectiontype(type::Int)
+  ccall( (:gr_setprojectiontype, libGR),
+        Nothing,
+        (Int32, ),
+        type)
+end
+
+function setperspectiveprojection(near_plane::Real, far_plane::Real, fov::Real)
   ccall( (:gr_setperspectiveprojection, libGR),
         Nothing,
         (Float64, Float64, Float64),
         near_plane, far_plane, fov)
 end
 
-function setorthographicprojection(left, right, bottom, top, near_plane, far_plane)
+function setorthographicprojection(left::Real, right::Real, bottom::Real, top::Real, near_plane::Real, far_plane::Real)
   ccall( (:gr_setorthographicprojection, libGR),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64),
         left, right, bottom, top, near_plane, far_plane)
 end
 
-function settransformationparameters(camera_pos_x, camera_pos_y, camera_pos_z,
-                                     up_x, up_y, up_z,
-                                     focus_point_x, focus_point_y, focus_point_z)
+function settransformationparameters(camera_pos_x::Real, camera_pos_y::Real, camera_pos_z::Real,
+                                     up_x::Real, up_y::Real, up_z::Real,
+                                     focus_point_x::Real, focus_point_y::Real, focus_point_z::Real)
   ccall( (:gr_settransformationparameters, libGR),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64),
         camera_pos_x, camera_pos_y, camera_pos_z, up_x, up_y, up_z, focus_point_x, focus_point_y, focus_point_z)
 end
 
-function setwindow3d(xmin, xmax, ymin, ymax, zmin, zmax)
+function setwindow3d(xmin::Real, xmax::Real, ymin::Real, ymax::Real, zmin::Real, zmax::Real)
   ccall( (:gr_setwindow3d, libGR),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64),
