@@ -52,3 +52,8 @@ easier with [Plots](https://juliaplots.github.io), take a look at
 ``Plots`` is great on its own, but the real power comes from the ecosystem surrounding it. You can find more information
 [here](http://docs.juliaplots.org/latest/ecosystem/).
 
+## Alternatives
+
+Besides ``GR`` and ``Plots`` there is a nice package called [GRUtils](https://github.com/heliosdrm/GRUtils.jl) which provides a user-friendly interface to the low-level ``GR`` subsytem, but in a more "Julian" and modular style. Newcomers are recommended to use this package. A detailed documentation can be found [here](https://heliosdrm.github.io/GRUtils.jl/stable/).
+
+``GR`` and ``GRUtils`` are currently still being developed in parallel - but there are plans to merge the two modules in the future.
