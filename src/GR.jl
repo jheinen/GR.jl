@@ -200,6 +200,7 @@ export
   setpanzoom,
   libGR3,
   gr3,
+  libGRM,
   isinline,
   inline,
   displayname,
@@ -219,9 +220,11 @@ check_env = true
 @static if os == :Windows
   const libGR = "libGR.dll"
   const libGR3 = "libGR3.dll"
+  const libGRM = "libGRM.dll"
 else
   const libGR = "libGR.so"
   const libGR3 = "libGR3.so"
+  const libGRM = "libGRM.so"
 end
 
 isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
@@ -3663,7 +3666,7 @@ end
 
 function openmeta(target=0, device="localhost", port=8002)
     global send_c, recv_c
-    handle = ccall((:gr_openmeta, libGR),
+    handle = ccall((:grm_open, libGRM),
                    Ptr{Nothing},
                    (Int32, Cstring, Int64, Ptr{Cvoid}, Ptr{Cvoid}),
                    target, device, port, send_c, recv_c)
@@ -3671,7 +3674,7 @@ function openmeta(target=0, device="localhost", port=8002)
 end
 
 function sendmeta(handle, string::AbstractString)
-    ccall((:gr_sendmeta, libGR),
+    ccall((:grm_send, libGRM),
           Nothing,
           (Ptr{Nothing}, Cstring),
           handle, string)
@@ -3682,7 +3685,7 @@ function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=-1)
         if len == -1
             len = length(data)
         end
-        ccall((:gr_sendmeta_ref, libGR),
+        ccall((:grm_send_ref, libGRM),
               Nothing,
               (Ptr{Nothing}, Cstring, Cchar, Cstring, Int32),
               handle, key, fmt, data, len)
@@ -3695,7 +3698,7 @@ function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=-1)
         else
             ref = Ref(data)
         end
-        ccall((:gr_sendmeta_ref, libGR),
+        ccall((:grm_send_ref, libGRM),
               Nothing,
               (Ptr{Nothing}, Cstring, Cchar, Ptr{Nothing}, Int32),
               handle, key, fmt, ref, len)
@@ -3703,7 +3706,7 @@ function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=-1)
 end
 
 function recvmeta(handle, args=C_NULL)
-    args = ccall((:gr_recvmeta, libGR),
+    args = ccall((:grm_recv, libGRM),
                  Ptr{Nothing},
                  (Ptr{Nothing}, Ptr{Nothing}),
                  handle, args)
@@ -3711,21 +3714,21 @@ function recvmeta(handle, args=C_NULL)
 end
 
 function plotmeta(args)
-    ccall((:gr_plotmeta, libGR),
+    ccall((:grm_plot, libGRM),
           Nothing,
           (Ptr{Nothing}, ),
           args)
 end
 
 function deletemeta(args)
-    ccall((:gr_deletemeta, libGR),
+    ccall((:grm_args_delete, libGRM),
           Nothing,
           (Ptr{Nothing}, ),
           args)
 end
 
 function closemeta(handle)
-    ccall((:gr_closemeta, libGR),
+    ccall((:grm_close, libGRM),
           Nothing,
           (Ptr{Nothing}, ),
           handle)
