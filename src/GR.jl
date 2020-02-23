@@ -3499,13 +3499,13 @@ function interp2(X, Y, Z, Xq, Yq, method::Int=0, extrapval=0)
   ny = length(Y)
   if isa(Z, Function)
     f = Z
-    Z = Float64[f(x,y) for y in Y, x in X]
+    Z = Float64[f(x,y) for x in X, y in Y]
   end
   nz = length(Z)
   if ndims(Z) == 1
     out_of_bounds = nz != nx * ny
   elseif ndims(Z) == 2
-    out_of_bounds = size(Z)[1] != nx || size(Z)[2] != ny
+    out_of_bounds = size(Z)[1] != ny || size(Z)[2] != nx
   else
     out_of_bounds = true
   end
@@ -3520,9 +3520,12 @@ function interp2(X, Y, Z, Xq, Yq, method::Int=0, extrapval=0)
     ccall( (:gr_interp2, libGR),
           Nothing,
           (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Cdouble}, Int32, Float64),
-          nx, ny, convert(Vector{Float64}, X), convert(Vector{Float64}, Y), convert(Vector{Float64}, Z), nxq, nyq, convert(Vector{Float64}, Xq), convert(Vector{Float64}, Yq), Zq, method, extrapval)
+          ny, nx, convert(Vector{Float64}, Y), convert(Vector{Float64}, X), convert(Vector{Float64}, Z), nyq, nxq, convert(Vector{Float64}, Yq), convert(Vector{Float64}, Xq), Zq, method, extrapval)
+    reshape(Zq, nyq, nxq)
+  else
+    println("Arrays have incorrect length or dimension.")
+    Z
   end
-  reshape(Zq, nxq, nyq)
 end
 
 """
