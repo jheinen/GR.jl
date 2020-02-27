@@ -118,9 +118,13 @@ xd = -2 .+ 4 * rand(rng, 100)
 yd = -2 .+ 4 * rand(rng, 100)
 zd = [xd[i] * exp(-xd[i]^2 - yd[i]^2) for i = 1:100]
 
+setwsviewport(0, 0.1, 0, 0.1)
+setwswindow(0, 1, 0, 1)
+
 setviewport(0.1, 0.95, 0.1, 0.95)
 setwindow(-2, 2, -2, 2)
 setspace(-0.5, 0.5, 0, 90)
+
 setcolormap(0)
 setlinecolorind(1)
 setmarkersize(1)
