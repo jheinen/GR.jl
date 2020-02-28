@@ -4,7 +4,7 @@
     end
 end
 
-function check_grdir()
+function get_grdir()
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
         have_dir = length(grdir) > 0
@@ -22,9 +22,9 @@ function check_grdir()
         end
     end
     if have_dir
-        @info "Found exisitng GR run-time in $grdir"
+        @info("Found existing GR run-time in $grdir")
     end
-    have_dir
+    have_dir ? grdir : Nothing
 end
 
 function get_version()
@@ -63,12 +63,15 @@ function try_download(url, file)
     end
 end
 
-if !check_grdir()
-  if Sys.KERNEL == :NT
-    os = :Windows
-  else
-    os = Sys.KERNEL
-  end
+if Sys.KERNEL == :NT
+  os = :Windows
+else
+  os = Sys.KERNEL
+end
+
+grdir = get_grdir()
+
+if grdir == Nothing
   arch = Sys.ARCH
   if os == :Linux && arch == :x86_64
     if isfile("/etc/redhat-release")
@@ -147,10 +150,25 @@ end
         if isdir(path)
           qt5plugin = joinpath(pwd(), "gr", "lib", "qt5plugin.so")
           run(`install_name_tool -add_rpath $path $qt5plugin`)
-          println("Using Qt ", splitdir(qt)[end], " at ", qt)
+          @info("Using Qt " * splitdir(qt)[end] * " at " * qt)
         end
       end
     catch
     end
+  end
+end
+
+if os == :Linux
+  try
+    if grdir == Nothing
+      grdir = joinpath(pwd(), "gr")
+    end
+    gksqt = joinpath(grdir, "bin", "gksqt")
+    res = read(`ldd $gksqt`, String)
+    if occursin("not found", res)
+      @warn("Missing dependencies for GKS QtTerm. Did you install the Qt5 run-time?")
+      @warn("Please refer to https://gr-framework.org/julia.html for further information.")
+    end
+  catch
   end
 end
