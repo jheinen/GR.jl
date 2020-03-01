@@ -979,7 +979,7 @@ end
 function plot_polar(θ, ρ)
     window = plt.kvs[:window]
     rmin, rmax = window[3], window[4]
-    ρ = (ρ .- rmin) ./ (rmax .- rmin)
+    ρ = ρ ./ rmax
     n = length(ρ)
     x, y = zeros(n), zeros(n)
     for i in 1:n
@@ -1208,20 +1208,18 @@ function plot_data(flag=true)
                 GR.fillrect(x[i], x[i+1], ymin, y[i])
             end
         elseif kind == :polarhist
-            xmin, xmax = extrema(x)
             ymax = plt.kvs[:window][4]
-            ρ = 2 .* (y ./ ymax .- 0.5)
-            θ = 2pi .* (x .- xmin) ./ (xmax - xmin)
-            for i = 1:length(ρ)
+            ρ = y ./ ymax
+            θ = x * 180/π
+            for i = 2:length(ρ)
                 GR.setfillcolorind(989)
                 GR.setfillintstyle(GR.INTSTYLE_SOLID)
-                GR.fillarea([0, ρ[i] * cos(θ[i]), ρ[i] * cos(θ[i+1])],
-                            [0, ρ[i] * sin(θ[i]), ρ[i] * sin(θ[i+1])])
+                GR.fillarc(-ρ[i], ρ[i], -ρ[i], ρ[i], θ[i-1], θ[i])
                 GR.setfillcolorind(1)
                 GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
-                GR.fillarea([0, ρ[i] * cos(θ[i]), ρ[i] * cos(θ[i+1])],
-                            [0, ρ[i] * sin(θ[i]), ρ[i] * sin(θ[i+1])])
+                GR.fillarc(-ρ[i], ρ[i], -ρ[i], ρ[i], θ[i-1], θ[i])
             end
+
         elseif kind == :polarheatmap
             w, h = size(z)
             cmap = colormap()
