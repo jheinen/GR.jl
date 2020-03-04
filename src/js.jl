@@ -68,7 +68,7 @@ function check_js()
                 testcomm.on_close = function(msg)
                     d = Dict("text/html"=>string(""))
                     transient = Dict("display_id"=>"jsterm_check")
-                    Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "update_display_data", Dict("data"=>d, "transient"=>transient)))
+                    Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "update_display_data", Dict("data"=>d, "metadata"=>Dict(), "transient"=>transient)))
                     checking_js = false
                 end
             elseif data.content["target_name"] == "jsterm_comm"
@@ -101,7 +101,7 @@ function check_js()
           </script>
         """))
         transient = Dict("display_id"=>"jsterm_check")
-        Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "display_data", Dict("data"=>d, "transient"=>transient)))
+        Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "display_data", Dict("data"=>d, "metadata"=>Dict(), "transient"=>transient)))
     end
 end
 
@@ -244,7 +244,7 @@ function comm_msg_callback(msg)
     if data["type"] == "save"
       d = Dict("text/html"=>string("<div style=\"display: none;\" class=\"jsterm-data-widget\">", data["content"]["data"]["widget_data"], "</div>"))
       transient = Dict("display_id"=>string("save_display_", data["display_id"]))
-      Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "update_display_data", Dict("data"=>d, "transient"=>transient)))
+      Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "update_display_data", Dict("data"=>d, "metadata"=>Dict(), "transient"=>transient)))
     elseif data["type"] == "evt"
       global_evthandler(data["content"])
       if haskey(evthandler, data["id"]) && evthandler[data["id"]] !== nothing
@@ -271,7 +271,7 @@ function recv(name::Cstring, id::Int32, msg::Cstring)
 
     d = Dict("text/html"=>"")
     transient = Dict("display_id"=>string("save_display_", disp))
-    Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "display_data", Dict("data"=>d, "transient"=>transient)))
+    Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "display_data", Dict("data"=>d, "metadata"=>Dict(), "transient"=>transient)))
     display(HTML(string("<div style=\"display: none;\" id=\"jsterm-display-", disp, "\">")))
     if !js_running
       check_js()
