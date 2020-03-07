@@ -541,7 +541,7 @@ function legend_size()
     h = 0
     for label in plt.kvs[:labels]
         tbx, tby = inqtext(0, 0, label)
-        w  = max(w, tbx[3])
+        w  = max(w, tbx[3] - tbx[1])
         h += max(tby[3] - tby[1], 0.03)
     end
     GR.setscale(scale)
@@ -554,6 +554,7 @@ hasmarker(mask) = ( mask & 0x02 != 0)
 
 function draw_legend()
     w, h = legend_size()
+@show w, h
     viewport = plt.kvs[:viewport]
     location = get(plt.kvs, :location, 1)
     num_labels = length(plt.kvs[:labels])
