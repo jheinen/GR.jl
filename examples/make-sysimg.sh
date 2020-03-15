@@ -1,8 +1,12 @@
 #!/bin/sh
 
-julia -e 'using PackageCompiler; compile_incremental("GR", joinpath(pwd(), "snoop.jl"))' >/dev/null
+julia="julia"
+if [ "${JULIA}" != "" ]
+then
+    julia=${JULIA}
+fi
 
-img=`julia -e 'import PackageCompiler; println(normpath(joinpath(dirname(pathof(PackageCompiler)), "..", "sysimg", "sys")))'`
+${julia} -e 'using PackageCompiler; create_sysimage(:GR; precompile_execution_file=joinpath(pwd(), "snoop.jl"), sysimage_path=joinpath(pwd(), "sys"))' >/dev/null
 
 echo To use the new system image, please start Julia with the -J option:
-echo julia -J ${img}
+echo julia -J sys
