@@ -1016,6 +1016,8 @@ function send_meta(target)
                 GR.sendmetaref(handle, string(k), 'D', to_double(v))
             elseif k in [:title, :xlabel, :ylabel, :zlabel]
                 GR.sendmetaref(handle, string(k), 's', string(v))
+            elseif k in [:labels]
+                GR.sendmetaref(handle, string(k), 'S', v, length(v))
             elseif k in [:xflip, :yflip, :zflip, :xlog, :ylog, :zlog]
                 GR.sendmetaref(handle, string(k), 'i', v ? 1 : 0)
             end
