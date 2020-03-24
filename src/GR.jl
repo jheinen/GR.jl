@@ -3808,7 +3808,15 @@ function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=-1)
             len = length(data)
         end
         if typeof(data) <: Array
-            ref = Ref(data, 1)
+            if typeof(data[1]) <: String
+                ccall((:grm_send_ref, libGRM),
+                      Nothing,
+                      (Ptr{Nothing}, Cstring, Cchar, Ptr{Ptr{Cchar}}, Int32),
+                      handle, key, fmt, data, len)
+                return
+            else
+                ref = Ref(data, 1)
+            end
         else
             ref = Ref(data)
         end
