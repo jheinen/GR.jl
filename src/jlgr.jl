@@ -198,8 +198,12 @@ end
 function minmax()
     xmin = ymin = zmin = cmin =  typemax(Float64)
     xmax = ymax = zmax = cmax = -typemax(Float64)
+    scale = plt.kvs[:scale]
     for (x, y, z, c, spec) in plt.args
         if given(x)
+            if scale & GR.OPTION_X_LOG != 0
+                x = map(v -> v>0 ? v : NaN, x)
+            end
             x0, x1 = Extrema64(x)
             xmin = min(x0, xmin)
             xmax = max(x1, xmax)
@@ -207,6 +211,9 @@ function minmax()
             xmin, xmax = 0, 1
         end
         if given(y)
+            if scale & GR.OPTION_Y_LOG != 0
+                y = map(v -> v>0 ? v : NaN, y)
+            end
             y0, y1 = Extrema64(y)
             ymin = min(y0, ymin)
             ymax = max(y1, ymax)
@@ -214,6 +221,9 @@ function minmax()
             ymin, ymax = 0, 1
         end
         if given(z)
+            if scale & GR.OPTION_Z_LOG != 0
+                z = map(v -> v>0 ? v : NaN, z)
+            end
             z0, z1 = Extrema64(z)
             zmin = min(z0, zmin)
             zmax = max(z1, zmax)
@@ -281,6 +291,7 @@ function set_window(kind)
         get(plt.kvs, :yflip, false) && (scale |= GR.OPTION_FLIP_Y)
         get(plt.kvs, :zflip, false) && (scale |= GR.OPTION_FLIP_Z)
     end
+    plt.kvs[:scale] = scale
 
     if plt.kvs[:panzoom] != None
         xmin, xmax, ymin, ymax = GR.panzoom(plt.kvs[:panzoom]...)
