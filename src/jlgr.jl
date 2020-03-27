@@ -1113,6 +1113,8 @@ function plot_data(flag=true)
         end
     end
 
+    GR.settextfontprec(232, 3) # CM Serif Roman
+
     set_viewport(kind, plt.kvs[:subplot])
     if !plt.kvs[:ax]
         set_window(kind)
