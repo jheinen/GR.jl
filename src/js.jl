@@ -242,7 +242,7 @@ function comm_msg_callback(msg)
   data = msg.content["data"]
   if haskey(data, "type")
     if data["type"] == "save"
-      d = Dict("text/html"=>string("<div style=\"display: none;\" class=\"jsterm-data-widget\">", data["content"]["data"]["widget_data"], "</div>"))
+      d = Dict("text/html"=>string("<script type=\"text/javascript\" class=\"jsterm-data-widget\">", data["content"]["data"]["widget_data"], "</script>"))
       transient = Dict("display_id"=>string("save_display_", data["display_id"]))
       Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "update_display_data", Dict("data"=>d, "metadata"=>Dict(), "transient"=>transient)))
     elseif data["type"] == "evt"
