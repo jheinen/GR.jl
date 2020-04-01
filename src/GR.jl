@@ -147,6 +147,7 @@ export
   setorthographicprojection,
   settransformationparameters,
   setwindow3d,
+  setspace3d,
   # Convenience functions
   jlgr,
   colormap,
@@ -3977,6 +3978,13 @@ function setwindow3d(xmin::Real, xmax::Real, ymin::Real, ymax::Real, zmin::Real,
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax, zmin, zmax)
+end
+
+function setspace3d(rot::Real, tilt::Real, fov::Real, dist::Real)
+  ccall( (:gr_setspace3d, libGR),
+        Nothing,
+        (Float64, Float64, Float64, Float64),
+        rot, tilt, fov, dist)
 end
 
 # JS functions
