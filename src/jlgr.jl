@@ -1333,7 +1333,9 @@ function plot_data(flag=true)
             plt.kvs[:zrange] = dmin, dmax
             colorbar(0.05)
         elseif kind == :plot3
-            GR.polyline3d(x, y, z)
+            mask = GR.uselinespec(spec)
+            hasline(mask) && GR.polyline3d(x, y, z)
+            hasmarker(mask) && GR.polymarker3d(x, y, z)
             draw_axes(kind, 2)
         elseif kind == :scatter3
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
