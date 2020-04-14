@@ -148,6 +148,8 @@ export
   settransformationparameters,
   setwindow3d,
   setspace3d,
+  text3d,
+  inqtext3d,
   # Convenience functions
   jlgr,
   colormap,
@@ -3986,6 +3988,23 @@ function setspace3d(rot::Real, tilt::Real, fov::Real, dist::Real)
         Nothing,
         (Float64, Float64, Float64, Float64),
         rot, tilt, fov, dist)
+end
+
+function text3d(x::Real, y::Real, z::Real, string, axis::Int)
+  ccall( (:gr_text3d, libGR),
+        Nothing,
+        (Float64, Float64, Float64, Ptr{UInt8}, Int32),
+        x, y, z, latin1(string), axis)
+end
+
+function inqtext3d(x::Real, y::Real, z::Real, string, axis::Int)
+  tbx = Cdouble[0 for i in 1:16]
+  tby = Cdouble[0 for i in 1:16]
+  ccall( (:gr_inqtext3d, libGR),
+        Nothing,
+        (Float64, Float64, Float64, Ptr{UInt8}, Int32, Ptr{Cdouble}, Ptr{Cdouble}),
+        x, y, z, latin1(string), axis, tbx, tby)
+  return tbx, tby
 end
 
 # JS functions
