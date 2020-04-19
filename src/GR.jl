@@ -1849,8 +1849,8 @@ function createseg(segment::Int)
         segment)
 end
 
-function copyseg(segment::Int)
-  ccall( (:gr_copyseg, libGR),
+function copysegws(segment::Int)
+  ccall( (:gr_copysegws, libGR),
         Nothing,
         (Int32, ),
         segment)
