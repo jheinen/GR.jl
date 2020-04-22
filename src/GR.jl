@@ -1623,10 +1623,11 @@ assumes that the axes limits are greater than zero.
 
 """
 function setscale(options::Int)
-  ccall( (:gr_setscale, libGR),
-        Nothing,
-        (Int32, ),
-        options)
+  scale = ccall( (:gr_setscale, libGR),
+                Int32,
+                (Int32, ),
+                options)
+  return scale
 end
 
 function inqscale()
@@ -1915,10 +1916,12 @@ between 0° and 90°.
 
 """
 function setspace(zmin::Real, zmax::Real, rotation::Int, tilt::Int)
-  ccall( (:gr_setspace, libGR),
-        Nothing,
-        (Float64, Float64, Int32, Int32),
-        zmin, zmax, rotation, tilt)
+  space = ccall( (:gr_setspace, libGR),
+                Int32,
+                (Float64, Float64, Int32, Int32),
+                zmin, zmax, rotation, tilt)
+
+  return space
 end
 
 """
@@ -2012,10 +2015,12 @@ function.
 
 """
 function textext(x::Real, y::Real, string)
-  ccall( (:gr_textext, libGR),
-        Nothing,
-        (Float64, Float64, Ptr{UInt8}),
-        x, y, latin1(string))
+  result = ccall( (:gr_textext, libGR),
+                 Int32,
+                 (Float64, Float64, Ptr{UInt8}),
+                 x, y, latin1(string))
+
+  return result
 end
 
 function inqtextext(x::Real, y::Real, string)
@@ -2967,10 +2972,10 @@ function readimage(path)
   width = Cint[0]
   height = Cint[0]
   data = Array{Ptr{UInt32}}(undef, 1)
-  ccall( (:gr_readimage, libGR),
-        Nothing,
-        (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{UInt32}}),
-        path, width, height, data)
+  ret = ccall( (:gr_readimage, libGR),
+              Int32,
+              (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{UInt32}}),
+              path, width, height, data)
   if width[1] > 0 && height[1] > 0
     img = unsafe_wrap(Array{UInt32}, data[1], (width[1], height[1]))
     return Int(width[1]), Int(height[1]), img
@@ -3023,10 +3028,10 @@ function drawimage(xmin::Real, xmax::Real, ymin::Real, ymax::Real, width::Int, h
 end
 
 function importgraphics(path)
-  ccall( (:gr_importgraphics, libGR),
-        Nothing,
-        (Ptr{Cchar}, ),
-        path)
+  return ccall( (:gr_importgraphics, libGR),
+               Int32,
+               (Ptr{Cchar}, ),
+               path)
 end
 
 """
