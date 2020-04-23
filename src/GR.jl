@@ -150,6 +150,8 @@ export
   setspace3d,
   text3d,
   inqtext3d,
+  settextencoding,
+  inqtextencoding,
   # Convenience functions
   jlgr,
   colormap,
@@ -3372,12 +3374,15 @@ PATH_CLOSEPOLY = 0x4f
 MPL_SUPPRESS_CLEAR = 1
 MPL_POSTPONE_UPDATE = 2
 
-XFORM_BOOLEAN  = 0
-XFORM_LINEAR  = 1
-XFORM_LOG  = 2
-XFORM_LOGLOG  = 3
-XFORM_CUBIC  = 4
-XFORM_EQUALIZED  = 5
+XFORM_BOOLEAN = 0
+XFORM_LINEAR = 1
+XFORM_LOG = 2
+XFORM_LOGLOG = 3
+XFORM_CUBIC = 4
+XFORM_EQUALIZED = 5
+
+ENCODING_LATIN1 = 300
+ENCODING_UTF8 = 301
 
 # GR3 functions
 include("gr3.jl")
@@ -4005,6 +4010,22 @@ function inqtext3d(x::Real, y::Real, z::Real, string, axis::Int)
         (Float64, Float64, Float64, Ptr{UInt8}, Int32, Ptr{Cdouble}, Ptr{Cdouble}),
         x, y, z, latin1(string), axis, tbx, tby)
   return tbx, tby
+end
+
+function settextencoding(encoding)
+    ccall( (:gr_settextencoding, libGR),
+        Nothing,
+        (Int32, ),
+        encoding)
+end
+
+function inqtextencoding()
+  encoding = Cint[0]
+  ccall( (:gr_inqtextencoding, libGR),
+        Nothing,
+        (Ptr{Cint}, ),
+        encoding)
+  return encoding[1]
 end
 
 # JS functions
