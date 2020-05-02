@@ -47,7 +47,7 @@ histogram(randn(10000))
 "backends", where ``GR`` seems to be one of the favorite ones.
 To get an impression how complex visualizations may become
 easier with [Plots](https://juliaplots.github.io), take a look at
-[these](http://docs.juliaplots.org/latest/examples/gr/)  examples.
+[these](https://docs.juliaplots.org/latest/generated/gr/)  examples.
 
 ``Plots`` is great on its own, but the real power comes from the ecosystem surrounding it. You can find more information
 [here](http://docs.juliaplots.org/latest/ecosystem/).
