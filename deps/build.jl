@@ -86,7 +86,7 @@ if grdir == Nothing
                 os = "Ubuntu"
             elseif id == "debian" || id_like == "debian"
                 os = "Debian"
-            elseif id == "arch" || id_like == "arch"
+            elseif id == "arch" || id_like == "arch" || id_like == "archlinux" 
                 os = "ArchLinux"
             elseif id == "opensuse-tumbleweed"
                 os = "CentOS"
