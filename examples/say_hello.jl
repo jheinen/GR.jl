@@ -1,5 +1,3 @@
-ENV["GKS_ENCODING"] = "utf8"
-
 using GR
 
 const hello = Dict(

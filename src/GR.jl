@@ -211,6 +211,8 @@ export
   displayname,
   mainloop
 
+const ENCODING_LATIN1 = 300
+const ENCODING_UTF8 = 301
 
 grdir = None
 display_name = None
@@ -219,7 +221,7 @@ file_path = None
 figure_count = None
 send_c = C_NULL
 recv_c = C_NULL
-encoding = "latin1"
+text_encoding = ENCODING_UTF8
 check_env = true
 
 @static if os == :Windows
@@ -272,7 +274,7 @@ function __init__()
 end
 
 function init(always=false)
-    global display_name, mime_type, file_path, send_c, recv_c, encoding, check_env
+    global display_name, mime_type, file_path, send_c, recv_c, text_encoding, check_env
     if check_env || always
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
@@ -296,11 +298,15 @@ function init(always=false)
             end
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
-            encoding = "utf8"
+            text_encoding = ENCODING_UTF8
         elseif "GKS_ENCODING" in keys(ENV)
-            if ENV["GKS_ENCODING"] in ("utf8", "utf-8")
-                encoding = "utf8"
+            if ENV["GKS_ENCODING"] in ("latin1", "latin-1")
+                text_encoding = ENCODING_LATIN1
+            else
+                text_encoding = ENCODING_UTF8
             end
+        else
+            ENV["GKS_ENCODING"] = "utf8"
         end
         check_env = always
     end
@@ -558,7 +564,7 @@ function polymarker(x, y)
 end
 
 function latin1(string)
-  if encoding != "latin1"
+  if text_encoding == ENCODING_UTF8
     return string
   end
   b = unsafe_wrap(Array{UInt8,1}, pointer(string), sizeof(string))
@@ -3381,9 +3387,6 @@ XFORM_LOGLOG = 3
 XFORM_CUBIC = 4
 XFORM_EQUALIZED = 5
 
-ENCODING_LATIN1 = 300
-ENCODING_UTF8 = 301
-
 # GR3 functions
 include("gr3.jl")
 
@@ -4013,10 +4016,12 @@ function inqtext3d(x::Real, y::Real, z::Real, string, axis::Int)
 end
 
 function settextencoding(encoding)
+    global text_encoding
     ccall( (:gr_settextencoding, libGR),
         Nothing,
         (Int32, ),
         encoding)
+    text_encoding = encoding
 end
 
 function inqtextencoding()

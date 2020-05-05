@@ -1,3 +1,5 @@
+ENV["GKS_ENCODING"] = "latin1"
+
 import GR
 
 GR.selntran(0)
