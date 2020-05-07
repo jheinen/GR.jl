@@ -82,7 +82,7 @@ if grdir == Nothing
         elseif isfile("/etc/os-release")
             id = get_os_release("ID")
             id_like = get_os_release("ID_LIKE")
-            if id == "ubuntu" || id_like == "ubuntu"
+            if id == "ubuntu" || id == "pop" || id_like == "ubuntu"
                 os = "Ubuntu"
             elseif id == "debian" || id_like == "debian"
                 os = "Debian"
