@@ -250,6 +250,11 @@ function comm_msg_callback(msg)
   end
 end
 
+function settooltip(tthtml, ttdata, id)
+  send_command(Dict("command" => "settooltip", "html" => tthtml, "data" => ttdata), "cmd", id)
+  return nothing
+end
+
 function jsterm_send(data::String, disp)
   global js_running, draw_end_condition, ws, conditions
   if GR.isijulia()
