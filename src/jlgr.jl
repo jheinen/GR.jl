@@ -1240,13 +1240,13 @@ function plot_data(flag=true)
             cmap = colormap()
             cmin, cmax = plt.kvs[:zrange]
             data = map(x -> normalize_color(x, cmin, cmax), z)
-            colors = Int[round(Int, 1000 + _i * 255) for _i in data]
             if get(plt.kvs, :xflip, false)
                 data = reverse(data, dims=1)
             end
             if get(plt.kvs, :yflip, false)
                 data = reverse(data, dims=2)
             end
+            colors = Int[round(Int, 1000 + _i * 255) for _i in data]
             GR.polarcellarray(0, 0, 0, 360, 0, 1, w, h, colors)
             draw_polar_axes()
             plt.kvs[:zrange] = cmin, cmax
