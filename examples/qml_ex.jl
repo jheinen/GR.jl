@@ -62,8 +62,7 @@ end
 
 load(qmlfile,
   paint_cfunction = @safe_cfunction(paint, Cvoid, (CxxPtr{QPainter}, CxxPtr{JuliaPaintedItem})),
-  nbins = nbins
-)
+  parameters = JuliaPropertyMap("nbins" => nbins))
 
 @qmlfunction mousePosition
 
