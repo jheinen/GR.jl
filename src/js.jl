@@ -1,10 +1,6 @@
 module js
 
 import GR
-import UUIDs
-import HTTP
-import Sockets
-import JSON
 
 pxwidth = 640
 pxheight = 480
@@ -351,6 +347,12 @@ function initjs()
       connected = false
       ws_server_task = @async begin
         global port, connect_cond, connected
+        @eval js begin
+          import UUIDs
+          import HTTP
+          import Sockets
+          import JSON
+        end
         port, server = Sockets.listenany(8081)
         @async HTTP.listen(server=server) do webs
           HTTP.WebSockets.upgrade(ws_cb, webs)
