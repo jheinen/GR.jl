@@ -24,11 +24,12 @@ COPY examples/*.ipynb work/
 COPY examples/snoop.jl work/
 COPY scripts/docker-xvfb-run /usr/bin/xvfb-run
 # Julia packages
-RUN julia -E 'using Pkg; pkg"add GR IJulia PackageCompiler"' && \
+RUN julia -E 'using Pkg; pkg"add GR IJulia PackageCompiler CSV"' && \
     # precompile Julia packages \
     julia -e 'using GR' && \
     julia -e 'using IJulia' && \
     julia -e 'using PackageCompiler' && \
+    julia -e 'using CSV' && \
     # move kernelspec out of home \
     mv $HOME/.local/share/jupyter/kernels/julia* $CONDA_DIR/share/jupyter/kernels/ && \
     chmod -R go+rx $CONDA_DIR/share/jupyter && \
