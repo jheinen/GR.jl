@@ -47,6 +47,7 @@ export
   setcharspace,
   settextcolorind,
   setcharheight,
+  inqcharheight,
   setcharup,
   settextpath,
   settextalign,
@@ -1403,6 +1404,15 @@ function setcharheight(height::Real)
         Nothing,
         (Float64, ),
         height)
+end
+
+function inqcharheight()
+  _height = Cdouble[0]
+  ccall( (:gr_inqcharheight, libGR),
+        Nothing,
+        (Ptr{Cdouble}, ),
+        _height)
+  return _height[1]
 end
 
 """
