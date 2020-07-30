@@ -1081,10 +1081,13 @@ function plot_data(flag=true)
 
     target = GR.displayname()
     if flag && target != None
-        if target == "js" || target == "meta"
+        if target == "js" || target == "meta" || target == "pluto"
             send_meta(0)
         else
             send_serialized(target)
+        end
+        if target == "pluto"
+          return GR.js.get_pluto_html()
         end
         return
     end
@@ -1397,6 +1400,7 @@ function plot_data(flag=true)
     end
 
     flag && restore_context()
+
     return
 end
 

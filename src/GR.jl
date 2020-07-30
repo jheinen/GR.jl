@@ -279,7 +279,7 @@ function init(always=false)
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name = ENV["GRDISPLAY"]
-            if display_name == "js"
+            if display_name == "js" || display_name == "pluto"
                 send_c, recv_c = js.initjs()
             end
         elseif "GKS_NO_GUI" in keys(ENV)

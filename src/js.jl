@@ -24,7 +24,6 @@ mutable struct JSTermWidget
     visible::Bool
 end
 
-
 function inject_js()
   global wss, port
 
@@ -48,7 +47,7 @@ function inject_js()
         <script type="text/javascript" id="jsterm-javascript">
           WEB_SOCKET_ADDRESS = 'ws://127.0.0.1:""", port, """';
           if (typeof jsterm === 'undefined') {
-              """, _gr_js, """
+            """, _gr_js, """
           }
         </script>
       """)))
@@ -255,8 +254,32 @@ function settooltip(tthtml, ttdata, id)
   return nothing
 end
 
+pluto_data = Dict()
+pluto_disp = ""
+
+function get_pluto_html()
+  global pluto_data, pluto_disp
+  str = JSON.json(pluto_data)
+  # remove leading and trailing '"'
+  str = str[2:lastindex(str)]
+  return HTML(string("""
+    <div id="jsterm-display-""", pluto_disp, """\">
+    </div>
+    <script type="text/javascript">
+      if (typeof jsterm === 'undefined') {
+        alert('JSTerm (GR) not initialized. Run `GR.js.init_pluto()` at the end of a codecell');
+      } else {
+        jsterm.draw({
+          "json": '""", str, """',
+          "display": '""", pluto_disp, """'
+        })
+      }
+    </script>
+  """))
+end
+
 function jsterm_send(data::String, disp)
-  global js_running, draw_end_condition, ws, conditions
+  global js_running, draw_end_condition, ws, conditions, pluto_data, pluto_disp
   if GR.isijulia()
     if !js_running
       conditions["sendonconnect"] = Condition()
@@ -273,8 +296,11 @@ function jsterm_send(data::String, disp)
           js_running = false
         end
       end
+  elseif GR.displayname() == "pluto"
+    pluto_data = data
+    pluto_disp = disp
   else
-    error("jsterm_send is only available in IJulia environments")
+    error("jsterm_send is only available in IJulia environments and Pluto.jl notebooks")
   end
 end
 
@@ -291,7 +317,6 @@ function recv(name::Cstring, id::Int32, msg::Cstring)
     global js_running, draw_end_condition
 
     id = string(UUIDs.uuid4());
-
     jsterm_send(unsafe_string(msg), id)
     return convert(Int32, 1)
 end
@@ -340,26 +365,53 @@ function ws_cb(webs)
   end
 end
 
+function init_pluto()
+  _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
+    _gr_js = try
+      _gr_js = open(joinpath(ENV["GRDIR"], "lib", "gr.js")) do f
+        _gr_js = read(f, String)
+        _gr_js
+      end
+    catch e
+      _gr_js = "alert('gr.js not found');"
+    end
+    _gr_js
+  else
+    _gr_js = "alert('gr.js not found');"
+  end
+  return HTML(string("""
+    <script type="text/javascript">
+      jsterm_ispluto = true;
+      """, _gr_js, """
+    </script>
+  """))
+end
+
 function initjs()
     global send_c, recv_c, init, checking_js, port, connect_cond, connected
-
-    if !init && GR.isijulia()
+    if !init
       init = true
       send_c = @cfunction(send, Cstring, (Cstring, Int32))
       recv_c = @cfunction(recv, Int32, (Cstring, Int32, Cstring))
-      connect_cond = Condition()
-      connected = false
-      ws_server_task = @async begin
-        global port, connect_cond, connected
-        port, server = Sockets.listenany(8081)
-        @async HTTP.listen(server=server) do webs
-          HTTP.WebSockets.upgrade(ws_cb, webs)
+      if GR.isijulia()
+        connect_cond = Condition()
+        connected = false
+        ws_server_task = @async begin
+          global port, connect_cond, connected
+          #port, server = Sockets.listenany(8081)
+          port = 8081
+          #server = Sockets.listen(8081)
+          #@async HTTP.listen(server=server, verbose=true) do webs
+          @async HTTP.WebSockets.listen("0.0.0.0", UInt16(8081)) do webs
+            ws_cb(webs)
+            #HTTP.WebSockets.upgrade(ws_cb, webs)
+          end
+          connected = true
+          notify(connect_cond)
         end
-        connected = true
-        notify(connect_cond)
-      end
-      if !connected
-        wait(connect_cond)
+        if !connected
+          wait(connect_cond)
+        end
       end
     end
     send_c, recv_c
