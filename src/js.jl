@@ -389,6 +389,12 @@ function initjs()
       init = true
       send_c = @cfunction(send, Cstring, (Cstring, Int32))
       recv_c = @cfunction(recv, Int32, (Cstring, Int32, Cstring))
+      @eval js begin
+        import UUIDs
+        import HTTP
+        import Sockets
+        import JSON
+      end
       if GR.isijulia()
         connect_cond = Condition()
         connected = false
