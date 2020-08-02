@@ -236,7 +236,7 @@ end
 
 isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected()
-ispluto() = isdefined(Main, :Pluto) && Main.Pluto isa Module
+ispluto() = isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module
 
 function __init__()
     global check_env
