@@ -236,6 +236,7 @@ end
 
 isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected()
+ispluto() = isdefined(Main, :Pluto) && Main.Pluto isa Module
 
 function __init__()
     global check_env
@@ -284,7 +285,7 @@ function init(always=false)
             end
         elseif "GKS_NO_GUI" in keys(ENV)
             return
-        elseif isijulia()
+        elseif isijulia() || ispluto()
             mime_type = "svg"
             file_path = tempname() * ".svg"
             ENV["GKSwstype"] = "svg"
