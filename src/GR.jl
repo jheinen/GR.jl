@@ -567,7 +567,15 @@ end
 
 function latin1(string)
   if text_encoding == ENCODING_UTF8
-    return string
+    # unpack the string as a precaution (see GR.jl SubString issue #336)
+    b = unsafe_wrap(Array{UInt8,1}, pointer(string), sizeof(string))
+    s = zeros(UInt8, sizeof(string) + 1)
+    len = 0
+    for c in b
+      len += 1
+      s[len] = c
+    end
+    return s[1:len]
   end
   b = unsafe_wrap(Array{UInt8,1}, pointer(string), sizeof(string))
   s = zeros(UInt8, sizeof(string) * 2)
