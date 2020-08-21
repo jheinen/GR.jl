@@ -44,6 +44,8 @@ function inject_js()
           WEB_SOCKET_ADDRESS = 'ws://127.0.0.1:""", port, """';
           if (typeof jsterm === 'undefined') {
             """, _gr_js, """
+            jsterm = new JSTerm();
+            jsterm.connectWs();
           }
         </script>
       """)))
@@ -379,6 +381,7 @@ function init_pluto()
     <script type="text/javascript">
       jsterm_ispluto = true;
       """, _gr_js, """
+      jsterm = new JSTerm();
     </script>
   """))
 end
