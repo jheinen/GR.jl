@@ -224,15 +224,9 @@ recv_c = C_NULL
 text_encoding = ENCODING_UTF8
 check_env = true
 
-@static if os == :Windows
-  const libGR = "libGR.dll"
-  const libGR3 = "libGR3.dll"
-  const libGRM = "libGRM.dll"
-else
-  const libGR = "libGR.so"
-  const libGR3 = "libGR3.so"
-  const libGRM = "libGRM.so"
-end
+const gksqtproc = Ref{Base.Process}()
+
+using GR_jll
 
 isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected()
@@ -258,7 +252,7 @@ function __init__()
         end
     end
     if grdir == None
-        grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
+        grdir = dirname(dirname(GR_jll.libGR_path))
     end
     ENV["GRDIR"] = grdir
     ENV["GKS_FONTPATH"] = grdir
@@ -276,7 +270,7 @@ function __init__()
 end
 
 function init(always=false)
-    global display_name, mime_type, file_path, send_c, recv_c, text_encoding, check_env
+    global display_name, mime_type, file_path, send_c, recv_c, text_encoding, check_env, gksqtproc
     if check_env || always
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
@@ -298,6 +292,12 @@ function init(always=false)
                 ENV["GKSwstype"] = "svg"
                 ENV["GKS_FILEPATH"] = file_path
             end
+        elseif !haskey(ENV, "GKSwstype")
+            # Launch gksqt as fallback
+            ENV["GKSwstype"] = "socket"
+            if !isassigned(gksqtproc) || !process_running(gksqtproc[])
+                gksqtproc[] = gksqt(gkscmd -> run(`$gkscmd`; wait=false))
+            end
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
             text_encoding = ENCODING_UTF8
@@ -311,6 +311,11 @@ function init(always=false)
             ENV["GKS_ENCODING"] = "utf8"
         end
         check_env = always
+    end
+    # Restart gksqt if the user closed the window
+    if isassigned(gksqtproc) && !process_running(gksqtproc[])
+        emergencyclosegks()
+        gksqtproc[] = gksqt(gkscmd -> run(`$gkscmd`; wait=false))
     end
 end
 
