@@ -72,7 +72,7 @@ ApplicationWindow {
 
       Connections {
         target: nbinsSlider
-        onValueChanged: {
+        function onValueChanged() {
           parameters.nbins = nbinsSlider.value;
           painter.update()
         }
