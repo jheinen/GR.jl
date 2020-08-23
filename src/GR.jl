@@ -224,6 +224,7 @@ recv_c = C_NULL
 text_encoding = ENCODING_UTF8
 check_env = true
 
+use_gksqt = false
 const gksqtproc = Ref{Base.Process}()
 
 using GR_jll
@@ -270,7 +271,7 @@ function __init__()
 end
 
 function init(always=false)
-    global display_name, mime_type, file_path, send_c, recv_c, text_encoding, check_env, gksqtproc
+    global display_name, mime_type, file_path, send_c, recv_c, text_encoding, check_env, gksqtproc, use_gksqt
     if check_env || always
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
@@ -293,11 +294,9 @@ function init(always=false)
                 ENV["GKS_FILEPATH"] = file_path
             end
         elseif !haskey(ENV, "GKSwstype")
-            # Launch gksqt as fallback
+            # Use gksqt as fallback
             ENV["GKSwstype"] = "socket"
-            if !isassigned(gksqtproc) || !process_running(gksqtproc[])
-                gksqtproc[] = gksqt(gkscmd -> run(`$gkscmd`; wait=false))
-            end
+            use_gksqt = true
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
             text_encoding = ENCODING_UTF8
@@ -312,19 +311,16 @@ function init(always=false)
         end
         check_env = always
     end
-    if isassigned(gksqtproc)
-        usesocket = haskey(ENV, "GKSwstype") && ENV["GKSwstype"] == "socket"
-        if usesocket
-            # Restart gksqt if the user closed the window
-            if !process_running(gksqtproc[])
-                emergencyclosegks()
-                gksqtproc[] = gksqt(gkscmd -> run(`$gkscmd`; wait=false))
-            end
-        else
-            # Kill gksqt if it was started but the user changed to a different system
-            if process_running(gksqtproc[])
-                kill(gksqtproc[])
-            end
+end
+
+function restartgksqt()
+    global gksqtproc, use_gksqt
+    use_gksqt = use_gksqt && haskey(ENV, "GKSwstype") && ENV["GKSwstype"] == "socket"
+    if use_gksqt
+        # Restart gksqt if the user closed the window, or start for the first time
+        if !isassigned(gksqtproc) || !process_running(gksqtproc[])
+            emergencyclosegks()
+            gksqtproc[] = gksqt(gkscmd -> run(`$gkscmd`; wait=false))
         end
     end
 end
@@ -514,6 +510,7 @@ function deactivatews(workstation_id::Int)
 end
 
 function clearws()
+  restartgksqt()
   ccall( (:gr_clearws, libGR),
         Nothing,
         ()
@@ -1414,6 +1411,7 @@ is defined as a percentage of the default window. GR uses the default text heigh
 
 """
 function setcharheight(height::Real)
+  restartgksqt()
   ccall( (:gr_setcharheight, libGR),
         Nothing,
         (Float64, ),

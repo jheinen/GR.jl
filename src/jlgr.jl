@@ -1078,6 +1078,7 @@ function plot_data(flag=true)
     end
 
     GR.init()
+    GR.restartgksqt()
 
     target = GR.displayname()
     if flag && target != None
