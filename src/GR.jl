@@ -312,10 +312,20 @@ function init(always=false)
         end
         check_env = always
     end
-    # Restart gksqt if the user closed the window
-    if isassigned(gksqtproc) && !process_running(gksqtproc[])
-        emergencyclosegks()
-        gksqtproc[] = gksqt(gkscmd -> run(`$gkscmd`; wait=false))
+    if isassigned(gksqtproc)
+        usesocket = haskey(ENV, "GKSwstype") && ENV["GKSwstype"] == "socket"
+        if usesocket
+            # Restart gksqt if the user closed the window
+            if !process_running(gksqtproc[])
+                emergencyclosegks()
+                gksqtproc[] = gksqt(gkscmd -> run(`$gkscmd`; wait=false))
+            end
+        else
+            # Kill gksqt if it was started but the user changed to a different system
+            if process_running(gksqtproc[])
+                kill(gksqtproc[])
+            end
+        end
     end
 end
 
