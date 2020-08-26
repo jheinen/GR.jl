@@ -100,6 +100,11 @@ if grdir == Nothing
             os = "Debian"
         end
         arch = "armhf"
+    elseif os == :Linux && arch == :aarch64
+        id = get_os_release("ID")
+        if id == "debian"
+            os = "Debian"
+        end
     end
     version = get_version()
     tarball = "gr-$version-$os-$arch.tar.gz"
