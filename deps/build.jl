@@ -63,6 +63,29 @@ function try_download(url, file)
     end
 end
 
+const depsfile = joinpath(@__DIR__, "deps.jl")
+
+if haskey(ENV, "JULIA_GR_PROVIDER")
+    provider = ENV["JULIA_GR_PROVIDER"]
+else
+    provider = "GR"
+end
+
+if provider == "BinaryBuilder"
+    open(depsfile, "w") do io
+        println(io, """
+            using GR_jll
+        """)
+    end
+elseif provider == "GR"
+    rm(depsfile, force=true)
+else
+    @warn("Unrecognized JULIA_GR_PROVIDER \"$provider\".\n",
+          "To fix this, set ENV[\"JULIA_GR_PROVIDER\"] to \"BinaryBuilder\" or \"GR\"\n",
+          "and rerun Pkg.build(\"GR\").")
+    exit(1)
+end
+
 if Sys.KERNEL == :NT
     os = :Windows
 else

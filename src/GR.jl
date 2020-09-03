@@ -10,6 +10,23 @@ end
 
 const None = Union{}
 
+const depsfile = joinpath(dirname(@__DIR__), "deps", "deps.jl")
+if isfile(depsfile)
+    include(depsfile)
+else
+    if os == :Windows
+        const libGR = "libGR.dll"
+        const libGR3 = "libGR3.dll"
+        const libGRM = "libGRM.dll"
+    else
+        const libGR = "libGR.so"
+        const libGR3 = "libGR3.so"
+        const libGRM = "libGRM.so"
+    end
+end
+
+const gr_provider = occursin("@rpath", libGR) ? "BinaryBuilder" : "GR"
+
 import Base64
 
 export
@@ -225,16 +242,6 @@ recv_c = C_NULL
 text_encoding = ENCODING_UTF8
 check_env = true
 
-@static if os == :Windows
-  const libGR = "libGR.dll"
-  const libGR3 = "libGR3.dll"
-  const libGRM = "libGRM.dll"
-else
-  const libGR = "libGR.so"
-  const libGR3 = "libGR3.so"
-  const libGRM = "libGRM.so"
-end
-
 isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected()
 ispluto() = isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module
@@ -259,7 +266,11 @@ function __init__()
         end
     end
     if grdir == None
-        grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
+        if gr_provider == "BinaryBuilder"
+            grdir = dirname(dirname(GR_jll.libGR_path))
+        else
+            grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
+        end
     end
     ENV["GRDIR"] = grdir
     ENV["GKS_FONTPATH"] = grdir
@@ -299,6 +310,9 @@ function init(always=false)
                 ENV["GKSwstype"] = "svg"
                 ENV["GKS_FILEPATH"] = file_path
             end
+        elseif gr_provider == "BinaryBuilder" && !haskey(ENV, "GKSwstype")
+            ENV["GKSwstype"] = "gksqt"
+            gksqt(gkscmd -> run(`gksqt`; wait=false))
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
             text_encoding = ENCODING_UTF8
