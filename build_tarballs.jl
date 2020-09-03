@@ -1,7 +1,7 @@
 using BinaryBuilder
 
 name = "GR"
-version = v"0.51.0"
+version = v"0.52.0"
 
 # Collection of sources required to build gr
 # qt5-runtime-Windows-x86_64.tar.gz was included to provide headers for Qt 5.12
