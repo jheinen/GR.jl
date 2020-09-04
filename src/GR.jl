@@ -8,6 +8,12 @@ else
   const os = Sys.KERNEL
 end
 
+@static if !isdefined(Base, Symbol("@cfunction"))
+    macro cfunction(f, rt, tup)
+        :(Base.cfunction($(esc(f)), $(esc(rt)), Tuple{$(esc(tup))...}))
+    end
+end
+
 const None = Union{}
 
 const depsfile = joinpath(dirname(@__DIR__), "deps", "deps.jl")
