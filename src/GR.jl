@@ -8,12 +8,6 @@ else
   const os = Sys.KERNEL
 end
 
-@static if !isdefined(Base, Symbol("@cfunction"))
-    macro cfunction(f, rt, tup)
-        :(Base.cfunction($(esc(f)), $(esc(rt)), Tuple{$(esc(tup))...}))
-    end
-end
-
 const None = Union{}
 
 const depsfile = joinpath(dirname(@__DIR__), "deps", "deps.jl")
@@ -273,7 +267,7 @@ function __init__()
     end
     if grdir == None
         if gr_provider == "BinaryBuilder"
-            grdir = dirname(dirname(GR_jll.libGR_path))
+            grdir = dirname(GR_jll.libGR_path)
         else
             grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
         end
@@ -333,7 +327,7 @@ function init(always=false)
         elseif gr_provider == "BinaryBuilder" && !haskey(ENV, "GKSwstype")
             ENV["GKSwstype"] = "gksqt"
             try
-                set_callback()
+                @eval set_callback()
             catch
                 println("Unable to register callback for GKS QtTerm.")
                 gksqt(gkscmd -> run(`gksqt`; wait=false))
