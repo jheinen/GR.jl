@@ -287,12 +287,7 @@ function __init__()
     init(true)
 end
 
-function callback(kind)
-    #println(unsafe_string(kind))
-    gksqt(gkscmd -> run(`gksqt`; wait=false))
-    Base.unsafe_convert(Cstring, "ok")
-end
-
+"""
 function set_callback()
     callback_c = @cfunction(callback, Cstring, (Cstring, ))
     ccall((:gr_setcallback, libGR),
@@ -300,6 +295,7 @@ function set_callback()
           (Ptr{Cvoid}, ),
           callback_c)
 end
+"""
 
 function init(always=false)
     global display_name, mime_type, file_path, send_c, recv_c, text_encoding, check_env
@@ -326,12 +322,8 @@ function init(always=false)
             end
         elseif gr_provider == "BinaryBuilder" && !haskey(ENV, "GKSwstype")
             ENV["GKSwstype"] = "gksqt"
-            try
-                @eval set_callback()
-            catch
-                println("Unable to register callback for GKS QtTerm.")
-                gksqt(gkscmd -> run(`gksqt`; wait=false))
-            end
+            ENV["GKS_QT"] = ""
+            gksqt(gkscmd -> run(`gksqt`; wait=false))
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
             text_encoding = ENCODING_UTF8
