@@ -322,8 +322,12 @@ function init(always=false)
             end
         elseif gr_provider == "BinaryBuilder" && !haskey(ENV, "GKSwstype")
             ENV["GKSwstype"] = "gksqt"
-            env = os == :Windows ? "PATH" : os == :Darwin ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
-            ENV["GKS_QT"] = string("env $env=", GR_jll.LIBPATH, " ",  GR_jll.gksqt_path)
+            if os == :Windows
+                ENV["GKS_QT"] = string("set PATH=", GR_jll.LIBPATH, " & ", GR_jll.gksqt_path)
+            else
+                env = (os == :Darwin) ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
+                ENV["GKS_QT"] = string("env $env=", GR_jll.LIBPATH, " ", GR_jll.gksqt_path)
+            end
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
             text_encoding = ENCODING_UTF8
