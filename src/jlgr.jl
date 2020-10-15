@@ -1011,6 +1011,14 @@ end
 to_double(a) = Float64[float(el) for el in a]
 to_int(a) = Int32[round(Int32, el) for el in a]
 
+function send_data(handle, name, data)
+    GR.sendmetaref(handle, name, 'D', to_double(data))
+    dims = size(data)
+    if length(dims) > 1
+        GR.sendmetaref(handle, string(name, "_dims"), 'I', to_int(dims))
+    end
+end
+
 function send_meta(target)
     global handle
     if handle === nothing
@@ -1036,10 +1044,10 @@ function send_meta(target)
         num_series = length(plt.args)
         GR.sendmetaref(handle, "series", 'O', "[", num_series)
         for (i, (x, y, z, c, spec)) in enumerate(plt.args)
-            given(x) && GR.sendmetaref(handle, "x", 'D', to_double(x))
-            given(y) && GR.sendmetaref(handle, "y", 'D', to_double(y))
-            given(z) && GR.sendmetaref(handle, "z", 'D', to_double(z))
-            given(c) && GR.sendmetaref(handle, "c", 'D', to_double(c))
+            given(x) && send_data(handle, "x", to_double(x))
+            given(y) && send_data(handle, "y", to_double(y))
+            given(z) && send_data(handle, "z", to_double(z))
+            given(c) && send_data(handle, "c", to_double(c))
             given(spec) && GR.sendmetaref(handle, "spec", 's', spec)
             GR.sendmetaref(handle, "", 'O', i < num_series ? "," : "]", 1)
         end
@@ -1353,9 +1361,9 @@ function plot_data(flag=true)
             end
             draw_axes(kind, 2)
         elseif kind == :imshow
-            plot_img(z)
+            plot_img(c)
         elseif kind == :isosurface
-            plot_iso(z)
+            plot_iso(c)
         elseif kind == :polar
             GR.uselinespec(spec)
             plot_polar(x, y)
@@ -2487,7 +2495,7 @@ two-dimensional array and the current colormap.
 function imshow(I; kv...)
     create_context(:imshow, Dict(kv))
 
-    plt.args = [(Nothing, Nothing, I, Nothing, "")]
+    plt.args = [(Nothing, Nothing, Nothing, I, "")]
 
     plot_data()
 end
@@ -2516,7 +2524,7 @@ the isovalue will be seen as inside the isosurface.
 function isosurface(V; kv...)
     create_context(:isosurface, Dict(kv))
 
-    plt.args = [(Nothing, Nothing, V, Nothing, "")]
+    plt.args = [(Nothing, Nothing, Nothing, V, "")]
 
     plot_data()
 end
