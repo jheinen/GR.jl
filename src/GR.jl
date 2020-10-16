@@ -267,7 +267,7 @@ function __init__()
     end
     if grdir == None
         if gr_provider == "BinaryBuilder"
-            grdir = dirname(GR_jll.libGR_path)
+            grdir = joinpath(dirname(GR_jll.libGR_path), "..")
         else
             grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
         end
