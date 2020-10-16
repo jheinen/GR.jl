@@ -254,8 +254,8 @@ function __init__()
         if grdir == ""
             grdir = None
         end
-    elseif isdir(joinpath(homedir(), "gr"), "fonts")
-        grdir = joinpath(homedir(), "gr")
+    elseif gr_provider == "BinaryBuilder"
+        grdir = joinpath(dirname(GR_jll.libGR_path), "..")
     else
         grdir = None
         for d in ("/opt", "/usr/local", "/usr")
@@ -266,11 +266,7 @@ function __init__()
         end
     end
     if grdir == None
-        if gr_provider == "BinaryBuilder"
-            grdir = joinpath(dirname(GR_jll.libGR_path), "..")
-        else
-            grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
-        end
+        grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
     end
     ENV["GRDIR"] = grdir
     ENV["GKS_FONTPATH"] = grdir
