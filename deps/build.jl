@@ -68,7 +68,7 @@ const depsfile = joinpath(@__DIR__, "deps.jl")
 if haskey(ENV, "JULIA_GR_PROVIDER")
     provider = ENV["JULIA_GR_PROVIDER"]
 else
-    provider = "GR"
+    provider = "BinaryBuilder"
 end
 
 if provider == "BinaryBuilder"
@@ -77,6 +77,7 @@ if provider == "BinaryBuilder"
             using GR_jll
         """)
     end
+    exit(0)
 elseif provider == "GR"
     rm(depsfile, force=true)
 else

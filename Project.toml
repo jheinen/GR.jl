@@ -6,7 +6,7 @@ version = "0.52.0"
 [deps]
 Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
-# GR_jll = "d2c73de3-f751-5644-a686-071e5b155ba9"
+GR_jll = "d2c73de3-f751-5644-a686-071e5b155ba9"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
