@@ -269,6 +269,13 @@ function __init__()
     end
     if grdir == None
         grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
+        if !isdir(grdir)
+            println("Your GR installation is incomplete. Rerun build step for GR package.")
+            @eval GR begin
+                import Pkg
+                Pkg.build("GR")
+            end
+        end
     end
     ENV["GRDIR"] = grdir
     ENV["GKS_FONTPATH"] = grdir
