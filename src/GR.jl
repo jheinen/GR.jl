@@ -13,6 +13,7 @@ const None = Union{}
 const depsfile = joinpath(dirname(@__DIR__), "deps", "deps.jl")
 if isfile(depsfile)
     include(depsfile)
+    const gr_provider = "BinaryBuilder"
 else
     if os == :Windows
         const libGR = "libGR.dll"
@@ -23,9 +24,9 @@ else
         const libGR3 = "libGR3.so"
         const libGRM = "libGRM.so"
     end
+    const gr_provider = "GR"
 end
 
-const gr_provider = occursin("@rpath", libGR) ? "BinaryBuilder" : "GR"
 
 import Base64
 
