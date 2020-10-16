@@ -152,6 +152,7 @@ export
   quiver,
   reducepoints,
   version,
+  check_for_updates,
   openmeta,
   sendmeta,
   sendmetaref,
@@ -3836,6 +3837,27 @@ function version()
                ()
                )
   unsafe_string(info)
+end
+
+function check_for_updates()
+    @eval GR begin
+        import HTTP
+        requ = HTTP.request("GET", "https://api.github.com/repos/sciapp/gr/releases/latest")
+        body = String(requ.body)
+
+        import JSON
+        tag = JSON.parse(body)["tag_name"]
+    end
+
+    release = replace(string("v", version()), ".post" => " patchlevel ")
+    if release < tag
+        println("An update is available: GR $tag. You're using GR $release.")
+    elseif release == tag
+        println("You're up-to-date. GR $tag is currently the newest version available.")
+    else
+        println("You're using a pre-release version: GR $release.")
+    end
+    release < tag
 end
 
 function openmeta(target=0, device="localhost", port=8002)
