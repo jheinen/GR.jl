@@ -26,11 +26,26 @@ const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :h
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
-const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :color, :colormap, :figsize, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
     ]
+
+const fonts = Dict(
+    "Times_Roman" => 101, "Times_Italic" => 102, "Times_Bold" => 103, "Times_BoldItalic" => 104,
+    "Helvetica_Regular" => 105, "Helvetica_Oblique" => 106, "Helvetica_Bold" => 107, "Helvetica_BoldOblique" => 108,
+    "Courier_Regular" => 109, "Courier_Oblique" => 110, "Courier_Bold" => 111, "Courier_BoldOblique" => 112,
+    "Symbol" => 113,
+    "Bookman_Light" => 114, "Bookman_LightItalic" => 115, "Bookman_Demi" => 116, "Bookman_DemiItalic" => 117,
+    "NewCenturySchlbk_Roman" => 118, "NewCenturySchlbk_Italic" => 119, "NewCenturySchlbk_Bold" => 120, "NewCenturySchlbk_BoldItalic" => 121,
+    "AvantGarde_Book" => 122, "AvantGarde_BookOblique" => 123, "AvantGarde_Demi" => 124, "AvantGarde_DemiOblique" => 125,
+    "Palatino_Roman" => 126, "Palatino_Italic" => 127, "Palatino_Bold" => 128, "Palatino_BoldItalic" => 129,
+    "ZapfChancery_MediumItalic" => 130,
+    "ZapfDingbats" => 131,
+    "CMUSerif-Math" => 232,
+    "DejaVuSans" => 233,
+    "PingFangSC" => 234)
 
 const distinct_cmap = [ 0, 1, 984, 987, 989, 983, 994, 988 ]
 
@@ -1124,7 +1139,17 @@ function plot_data(flag=true)
         end
     end
 
-    GR.settextfontprec(232, 3) # CM Serif Roman
+    if haskey(plt.kvs, :font)
+        name = plt.kvs[:font]
+        if haskey(fonts, name)
+            font = fonts[name]
+            GR.settextfontprec(font, font > 200 ? 3 : 0)
+        else
+            println("Unknown font name: $name")
+        end
+    else
+        GR.settextfontprec(232, 3) # CM Serif Roman
+    end
 
     set_viewport(kind, plt.kvs[:subplot])
     if !plt.kvs[:ax]
