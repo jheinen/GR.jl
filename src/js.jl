@@ -256,24 +256,34 @@ pluto_data = Dict()
 pluto_disp = ""
 
 function get_pluto_html()
-  global pluto_data, pluto_disp
+  global pluto_data, pluto_disp, plutoisinit
   str = JSON.json(pluto_data)
   # remove leading and trailing '"'
   str = str[2:lastindex(str)]
-  return HTML(string("""
-    <div id="jsterm-display-""", pluto_disp, """\">
-    </div>
-    <script type="text/javascript">
-      if (typeof jsterm === 'undefined') {
-        alert('JSTerm (GR) not initialized. Run `GR.js.init_pluto()` at the end of a codecell');
-      } else {
-        jsterm.draw({
-          "json": '""", str, """',
-          "display": '""", pluto_disp, """'
-        })
-      }
-    </script>
-  """))
+  if plutoisinit
+    return HTML(string("""
+      <div id="jsterm-display-""", pluto_disp, """\">
+      </div>
+      <script type="text/javascript">
+        function defer() {
+          if (typeof JSTerm === 'undefined') {
+            setTimeout(function() { defer() }, 50);
+          } else {
+            if (typeof jsterm === "undefined") {
+              var jsterm = new JSTerm();
+            }
+            jsterm.draw({
+              "json": '""", str, """',
+              "display": '""", pluto_disp, """'
+            })
+          }
+        }
+        defer();
+      </script>
+    """))
+  else
+    return "JSTerm (GR) not initialized. Run `GR.js.init_pluto()` at the end of a codecell"
+  end
 end
 
 function jsterm_send(data::String, disp)
@@ -363,7 +373,10 @@ function ws_cb(webs)
   end
 end
 
+plutoisinit = false
+
 function init_pluto()
+  global plutoisinit
   _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
     _gr_js = try
       _gr_js = open(joinpath(ENV["GRDIR"], "lib", "gr.js")) do f
@@ -377,12 +390,12 @@ function init_pluto()
   else
     _gr_js = "alert('gr.js not found');"
   end
+  plutoisinit = true
   return HTML(string("""
     <script type="text/javascript">
-      jsterm_ispluto = true;
-      """, _gr_js, """
-      jsterm = new JSTerm();
+      var jsterm_ispluto = true;
     </script>
+    <script type="text/javascript" src="https://gr-framework.org/downloads/gr-latest.js"></script>
   """))
 end
 
