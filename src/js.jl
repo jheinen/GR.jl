@@ -11,7 +11,6 @@ checking_js = false
 conditions = Dict()
 l = ReentrantLock()
 
-
 mutable struct JSTermWidget
     identifier::Int
     width::Int
@@ -24,7 +23,6 @@ function inject_js()
   global wss, port
 
   wss = nothing
-  _js_fallback = "https://gr-framework.org/downloads/gr-latest.js"
   _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
     _gr_js = try
       _gr_js = open(joinpath(ENV["GRDIR"], "lib", "gr.js")) do f
@@ -270,7 +268,7 @@ function get_pluto_html()
             setTimeout(function() { defer() }, 50);
           } else {
             if (typeof jsterm === "undefined") {
-              var jsterm = new JSTerm();
+              var jsterm = new JSTerm(true);
             }
             jsterm.draw({
               "json": '""", str, """',
@@ -375,27 +373,11 @@ end
 
 plutoisinit = false
 
-function init_pluto()
+function init_pluto(jssource="https://gr-framework.org/downloads/gr-latest.js")
   global plutoisinit
-  _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
-    _gr_js = try
-      _gr_js = open(joinpath(ENV["GRDIR"], "lib", "gr.js")) do f
-        _gr_js = read(f, String)
-        _gr_js
-      end
-    catch e
-      _gr_js = "alert('gr.js not found');"
-    end
-    _gr_js
-  else
-    _gr_js = "alert('gr.js not found');"
-  end
   plutoisinit = true
   return HTML(string("""
-    <script type="text/javascript">
-      var jsterm_ispluto = true;
-    </script>
-    <script type="text/javascript" src="https://gr-framework.org/downloads/gr-latest.js"></script>
+    <script type="text/javascript" src=" """, jssource, """ "></script>
   """))
 end
 
