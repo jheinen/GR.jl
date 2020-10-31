@@ -245,9 +245,9 @@ text_encoding = ENCODING_UTF8
 check_env = true
 
 isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
-isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected()
+isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected() && (isdefined(Main.Atom, :PlotPaneEnabled) ? Main.Atom.PlotPaneEnabled[] : true)
 ispluto() = isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module
-isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module
+isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (isdefined(Main.VSCodeServer, :PLOT_PANE_ENABLED) ? Main.VSCodeServer.PLOT_PANE_ENABLED[] : true)
 
 function __init__()
     global check_env
@@ -313,18 +313,11 @@ function init(always=false)
             end
         elseif "GKS_NO_GUI" in keys(ENV)
             return
-        elseif isijulia() || ispluto() || isvscode()
+        elseif isijulia() || ispluto() || isvscode() || isatom()
             mime_type = "svg"
             file_path = tempname() * ".svg"
             ENV["GKSwstype"] = "svg"
             ENV["GKS_FILEPATH"] = file_path
-        elseif isatom()
-            if Main.Atom.PlotPaneEnabled[] == true
-                mime_type = "svg"
-                file_path = tempname() * ".svg"
-                ENV["GKSwstype"] = "svg"
-                ENV["GKS_FILEPATH"] = file_path
-            end
         elseif gr_provider == "BinaryBuilder" && !haskey(ENV, "GKSwstype")
             ENV["GKSwstype"] = "gksqt"
             if os == :Windows
