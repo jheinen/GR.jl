@@ -3194,7 +3194,7 @@ function drawgraphics(string)
               Int32,
               (Ptr{Cchar}, ),
               string)
-  return int(ret)
+  return Int(ret)
 end
 
 """
