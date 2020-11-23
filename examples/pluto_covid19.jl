@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.12.10
+# v0.12.11
 
 using Markdown
 using InteractiveUtils
@@ -15,7 +15,7 @@ end
 
 # ╔═╡ e2d1cb38-2698-11eb-2e59-632faa201d6f
 begin
-    using CSV, DataFrames
+    using DelimitedFiles
 	using PlutoUI
 
 	ENV["GRDISPLAY"] = "pluto"
@@ -27,12 +27,12 @@ end
 # ╔═╡ 49d120ea-2699-11eb-203d-fddbb33bb08b
 begin
 	url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
-	download(url, "covid-19.csv")
+	download(url, "covid19.csv")
 end;
 
 # ╔═╡ 4b5f800a-2699-11eb-2528-b5917c0461cf
 begin
-	data = CSV.File("covid-19.csv") |> DataFrame
+    data = readdlm("covid19.csv", ',')
     ncountries, ncols = size(data)
     ndays = ncols - 4
 end;
