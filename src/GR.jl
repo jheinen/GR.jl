@@ -85,7 +85,7 @@ export
   setwsviewport,
   createseg,
   copyseg,
-  redrawsegws,
+  redrawseg,
   setsegtran,
   closeseg,
   emergencyclosegks,
@@ -1902,14 +1902,14 @@ function createseg(segment::Int)
         segment)
 end
 
-function copysegws(segment::Int)
+function copyseg(segment::Int)
   ccall( (:gr_copysegws, libGR),
         Nothing,
         (Int32, ),
         segment)
 end
 
-function redrawsegws()
+function redrawseg()
   ccall( (:gr_redrawsegws, libGR),
         Nothing,
         ()
