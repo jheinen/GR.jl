@@ -6,7 +6,7 @@ dist: xenial
 services:
   - xvfb
 julia:
-  - 1.5.2
+  - 1.5.3
   - nightly
 notifications:
   email: false
