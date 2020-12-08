@@ -126,7 +126,8 @@ if grdir == Nothing
         arch = "armhf"
     elseif os == :Linux && arch == :aarch64
         id = get_os_release("ID")
-        if id == "debian"
+        id_like = get_os_release("ID_LIKE")
+        if id == "debian" || id_like == "debian"
             os = "Debian"
         end
     end
