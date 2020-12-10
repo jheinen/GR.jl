@@ -188,7 +188,8 @@ if grdir == Nothing
     end
 end
 
-if os == :Linux
+if os == :Linux || os == :FreeBSD
+    global grdir
     try
         if grdir == Nothing
             grdir = joinpath(pwd(), "gr")
