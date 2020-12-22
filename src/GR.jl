@@ -824,8 +824,8 @@ function nonuniformpolarcellarray(x, y, dimx::Int, dimy::Int, color)
   end
   ccall( (:gr_nonuniformpolarcellarray, libGR),
         Nothing,
-        (Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
-        convert(Vector{Float64}, x), convert(Vector{Float64}, y), dimx, dimy, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
+        (Float64, Float64, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
+        0, 0, convert(Vector{Float64}, x), convert(Vector{Float64}, y), dimx, dimy, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
 end
 
 """
