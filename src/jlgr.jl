@@ -328,7 +328,7 @@ function set_window(kind)
         xmax += 0.5
     end
     if scale & GR.OPTION_X_LOG == 0
-        if !haskey(plt.kvs, :xlim) && plt.kvs[:panzoom] == None && !(kind in (:heatmap, :polarheatmap))
+        if !haskey(plt.kvs, :xlim) && plt.kvs[:panzoom] == None && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
             xmin, xmax = GR.adjustlimits(xmin, xmax)
         end
         if haskey(plt.kvs, :xticks)
@@ -356,7 +356,7 @@ function set_window(kind)
         ymin = scale & GR.OPTION_Y_LOG == 0 ? 0 : 1
     end
     if scale & GR.OPTION_Y_LOG == 0
-        if !haskey(plt.kvs, :ylim) && plt.kvs[:panzoom] == None && !(kind in (:heatmap, :polarheatmap))
+        if !haskey(plt.kvs, :ylim) && plt.kvs[:panzoom] == None && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
             ymin, ymax = GR.adjustlimits(ymin, ymax)
         end
         if haskey(plt.kvs, :yticks)
@@ -512,9 +512,9 @@ function draw_polar_axes()
     GR.setlinetype(GR.LINETYPE_SOLID)
 
     tick = 0.5 * GR.tick(rmin, rmax)
-    n = round(Int, (rmax - rmin) / tick + 0.5)
+    n = trunc(Int, (rmax - rmin) / tick)
     for i in 0:n
-        r = float(i) / n
+        r = rmin + i * tick / (rmax - rmin)
         if i % 2 == 0
             GR.setlinecolorind(88)
             if i > 0
@@ -1285,7 +1285,8 @@ function plot_data(flag=true)
             if kind == :polarheatmap
                 GR.polarcellarray(0, 0, 0, 360, 0, 1, w, h, colors)
             else
-                ρ = y ./ maximum(y)
+                ymin, ymax = plt.kvs[:window][3:4]
+                ρ = ymin .+ y ./ (ymax - ymin)
                 θ = x * 180/π
                 GR.nonuniformpolarcellarray(θ, ρ, w, h, colors)
             end
@@ -2101,7 +2102,7 @@ function polarheatmap(D; kv...)
     create_context(:polarheatmap, Dict(kv))
 
     if ndims(D) == 2
-        z = D
+        z = D'
         width, height = size(z)
 
         plt.args = [(1:width, 1:height, z, Nothing, "")]
