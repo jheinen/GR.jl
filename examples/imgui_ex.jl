@@ -1,5 +1,6 @@
 using CImGui
 using CImGui.CSyntax
+using CImGui.CSyntax.CStatic
 using CImGui.GLFWBackend
 using CImGui.OpenGLBackend
 using CImGui.GLFWBackend.GLFW
@@ -15,10 +16,7 @@ GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 2)
 GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
 GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
 
-phi = 0
-
-function draw()
-    global phi
+function draw(phi)
     formulas = (
         L"- \frac{{\hbar ^2}}{{2m}}\frac{{\partial ^2 \psi (x,t)}}{{\partial x^2 }} + U(x)\psi (x,t) = i\hbar \frac{{\partial \psi (x,t)}}{{\partial t}}",
         L"\zeta \left({s}\right) := \sum_{n=1}^\infty \frac{1}{n^s} \quad \sigma = \Re(s) > 1",
@@ -41,7 +39,6 @@ function draw()
         y -= 0.2
     end
     updatews()
-    phi += pi/180
 end
 
 # setup GLFW error callback
@@ -82,9 +79,12 @@ try
         # show image example
         CImGui.Begin("GR Demo")
 
-        beginprint(conid)
-        draw()
-        endprint()
+        @cstatic phi = Cfloat(0.0) begin
+            @c CImGui.SliderFloat("Angle", &phi, 0, 360, "%.4f")
+            beginprint(conid)
+            draw(phi * π/180)
+            endprint()
+        end
 
         ImGui_ImplOpenGL3_UpdateImageTexture(image_id, image, img_width, img_height)
         CImGui.Image(Ptr{Cvoid}(image_id), (img_width, img_height))
