@@ -137,19 +137,19 @@ if grdir == Nothing
     @info("Downloading pre-compiled GR $version $os binary")
     mkpath("downloads")
     file = "downloads/$tarball"
+
     if version != "latest"
-        ok = try_download("https://github.com/sciapp/gr/releases/download/v$version/$tarball", file)
-    else
-        ok = false
-    end
-    if !ok
         if !try_download("https://gr-framework.org/downloads/$tarball", file)
-            @info("Using insecure connection")
-            if !try_download("http://gr-framework.org/downloads/$tarball", file)
-                @info("Cannot download GR run-time")
-            end
-        end
-    end
+		    @info("Using Github Source")
+			if !try_download("https://github.com/sciapp/gr/releases/download/v$version/$tarball", file)
+			    @info("Using insecure connection")
+				if !try_download("http://gr-framework.org/downloads/$tarball", file)
+                    @info("Cannot download GR run-time")
+                end
+	        end
+		end
+	end
+
     if os == :Windows
         home = Sys.BINDIR
         if VERSION > v"1.3.0-"
