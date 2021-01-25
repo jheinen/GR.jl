@@ -11,7 +11,8 @@ settextfontprec(232, 3)
 for angle in 0:360
 
   setcharup(sin(-angle * pi/180), cos(-angle * pi/180))
-  setmarkertype(2)
+  setmarkertype(GR.MARKERTYPE_SOLID_PLUS)
+  setmarkercolorind(4)
   clearws()
 
   for halign in keys(hor_align)
@@ -20,10 +21,10 @@ for angle in 0:360
       x = -0.1 + hor_align[halign] * 0.3;
       y = 1.1 - vert_align[valign] * 0.2;
       s = L"1+\frac{1+\frac{a}{b}}{1+\frac{1}{1+\frac{1}{a}}}"
-      polymarker([x], [y])
       mathtex(x, y, s)
       tbx, tby = inqmathtex(x, y, s)
       fillarea(tbx, tby)
+      polymarker([x], [y])
     end
   end
 
