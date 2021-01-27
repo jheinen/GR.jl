@@ -19,6 +19,10 @@ else
         const libGR = "libGR.dll"
         const libGR3 = "libGR3.dll"
         const libGRM = "libGRM.dll"
+    elseif os == :Darwin
+        const libGR = "libGR.dylib"
+        const libGR3 = "libGR3.dylib"
+        const libGRM = "libGRM.dylib"
     else
         const libGR = "libGR.so"
         const libGR3 = "libGR3.so"
