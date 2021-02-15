@@ -2203,8 +2203,8 @@ by the `setscale` function.
 
 """
 function axeslbl(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real, fx::Function, fy::Function)
-  fx_c = @cfunction($fx, Nothing, (Float64, Float64, Cstring, Float64))
-  fy_c = @cfunction($fy, Nothing, (Float64, Float64, Cstring, Float64))
+  fx_c = @cfunction($fx, Int32, (Float64, Float64, Cstring, Float64))
+  fy_c = @cfunction($fy, Int32, (Float64, Float64, Cstring, Float64))
   ccall( (:gr_axeslbl, libGR),
         Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32, Float64, Ptr{Nothing}, Ptr{Nothing}),
