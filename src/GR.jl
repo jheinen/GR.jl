@@ -750,14 +750,16 @@ of the i-th cell in X and Y direction.
 
 """
 function nonuniformcellarray(x, y, dimx::Int, dimy::Int, color)
-  @assert length(x) == dimx+1 && length(y) == dimy+1
+  @assert dimx <= length(x) <= dimx+1 && dimy <= length(y) <= dimy+1
   if ndims(color) == 2
     color = reshape(color, dimx * dimy)
   end
+  nx = dimx == length(x) ? -dimx : dimx
+  ny = dimy == length(y) ? -dimy : dimy
   ccall( (:gr_nonuniformcellarray, libGR),
         Nothing,
         (Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
-        convert(Vector{Float64}, x), convert(Vector{Float64}, y), dimx, dimy, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
+        convert(Vector{Float64}, x), convert(Vector{Float64}, y), nx, ny, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
 end
 
 """
@@ -822,14 +824,16 @@ interpreting the X-axis of the array as the angle and the Y-axis as the radius.
 
 """
 function nonuniformpolarcellarray(x, y, dimx::Int, dimy::Int, color)
-  @assert length(x) == dimx+1 && length(y) == dimy+1
+  @assert dimx <= length(x) <= dimx+1 && dimy <= length(y) <= dimy+1
   if ndims(color) == 2
     color = reshape(color, dimx * dimy)
   end
+  nx = dimx == length(x) ? -dimx : dimx
+  ny = dimy == length(y) ? -dimy : dimy
   ccall( (:gr_nonuniformpolarcellarray, libGR),
         Nothing,
         (Float64, Float64, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
-        0, 0, convert(Vector{Float64}, x), convert(Vector{Float64}, y), dimx, dimy, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
+        0, 0, convert(Vector{Float64}, x), convert(Vector{Float64}, y), nx, ny, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
 end
 
 """
