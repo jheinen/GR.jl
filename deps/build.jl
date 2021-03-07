@@ -127,7 +127,7 @@ if grdir == Nothing
     elseif os == :Linux && arch == :aarch64
         id = get_os_release("ID")
         id_like = get_os_release("ID_LIKE")
-        if id == "debian" || id_like == "debian"
+        if id == "debian" || id_like == "debian" || id == "archarm" || id_like == "arch" 
             os = "Debian"
         end
     end
