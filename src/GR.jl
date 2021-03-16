@@ -177,6 +177,7 @@ export
   inqtext3d,
   settextencoding,
   inqtextencoding,
+  loadfont,
   # Convenience functions
   jlgr,
   colormap,
@@ -4142,6 +4143,15 @@ function inqtextencoding()
         (Ptr{Cint}, ),
         encoding)
   return encoding[1]
+end
+
+function loadfont(name::String)
+  font = Cint[0]
+  ccall( (:gr_loadfont, libGR),
+        Cstring,
+        (Cstring, Ptr{Cint}),
+        name, font)
+  return Int(font[1])
 end
 
 # JS functions
