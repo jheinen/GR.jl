@@ -44,8 +44,7 @@ const fonts = Dict(
     "ZapfChancery_MediumItalic" => 130,
     "ZapfDingbats" => 131,
     "CMUSerif-Math" => 232,
-    "DejaVuSans" => 233,
-    "PingFangSC" => 234)
+    "DejaVuSans" => 233)
 
 const distinct_cmap = [ 0, 1, 984, 987, 989, 983, 994, 988 ]
 
@@ -1145,7 +1144,10 @@ function plot_data(flag=true)
             font = fonts[name]
             GR.settextfontprec(font, font > 200 ? 3 : 0)
         else
-            println("Unknown font name: $name")
+            font = GR.loadfont(name)
+            if font >= 0
+                GR.settextfontprec(font, 3)
+            end
         end
     else
         GR.settextfontprec(232, 3) # CM Serif Roman
