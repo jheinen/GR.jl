@@ -1,4 +1,5 @@
-ENV["GKSwstype"] = "mp4"  # or "webm", "mov"
+ENV["GKS_WSTYPE"] = "mov"  # or "webm", "mp4"
+ENV["GKS_VIDEO_OPTS"] = "600x450@25@2x"
 
 using GR
 
