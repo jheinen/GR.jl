@@ -1029,6 +1029,38 @@ function path(x, y, codes)
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), codes)
 end
 
+function to_rgb_color(z)
+    z = (z .- minimum(z)) ./ (maximum(z) - minimum(z))
+    n = length(z)
+    rgb = zeros(Int, n)
+    for i in 1:n
+        rgb[i] = inqcolor(1000 + round(Int, z[i] * 255))
+    end
+    rgb
+end
+
+function polyline(x, y, linewidth, line_z)
+    if length(linewidth) == 1
+        linewidth = ones(length(x)) .* linewidth
+    end
+    linewidth = round.(Int, 100 .* linewidth)
+    @assert length(x) == length(y) == length(linewidth) == length(line_z)
+    color = to_rgb_color(line_z)
+    attributes = vec(hcat(linewidth, color)')
+    gdp(x, y, GDP_DRAW_LINES, attributes)
+end
+
+function polymarker(x, y, markersize, marker_z)
+    if length(markersize) == 1
+        markersize = ones(length(x)) .* markersize
+    end
+    markersize = round.(Int, 100 .* markersize)
+    @assert length(x) == length(y) == length(markersize) == length(marker_z)
+    color = to_rgb_color(marker_z)
+    attributes = vec(hcat(markersize, color)')
+    gdp(x, y, GDP_DRAW_MARKERS, attributes)
+end
+
 """
     spline(x, y, m, method)
 
@@ -3466,6 +3498,10 @@ PATH_LINETO    = 0x02
 PATH_CURVE3    = 0x03
 PATH_CURVE4    = 0x04
 PATH_CLOSEPOLY = 0x4f
+
+GDP_DRAW_PATH = 1
+GDP_DRAW_LINES = 2
+GDP_DRAW_MARKERS = 3
 
 MPL_SUPPRESS_CLEAR = 1
 MPL_POSTPONE_UPDATE = 2
