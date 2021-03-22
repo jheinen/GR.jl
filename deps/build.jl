@@ -65,8 +65,12 @@ end
 
 const depsfile = joinpath(@__DIR__, "deps.jl")
 
+grdir = get_grdir()
+
 if haskey(ENV, "JULIA_GR_PROVIDER")
     provider = ENV["JULIA_GR_PROVIDER"]
+elseif grdir == Nothing
+    provider = "BinaryBuilder"
 else
     provider = "GR"
 end
@@ -92,8 +96,6 @@ if Sys.KERNEL == :NT
 else
     os = Sys.KERNEL
 end
-
-grdir = get_grdir()
 
 if grdir == Nothing
     arch = Sys.ARCH
