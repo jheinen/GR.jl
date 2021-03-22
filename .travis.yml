@@ -1,7 +1,8 @@
 language: julia
 os:
   - linux
-  - osx
+#  - osx
+# macOS builds fail via BinaryBuilder
 dist: xenial
 services:
   - xvfb
