@@ -1,5 +1,10 @@
 # Note that this script can accept some limited command-line arguments, run
 # `julia build_tarballs.jl --help` to see a usage message.
+#
+# Examples:
+#   - env BINARYBUILDER_AUTOMATIC_APPLE=true julia build_tarballs.jl x86_64-apple-darwin14
+#   - julia build_tarballs.jl x86_64-linux-gnu
+#
 using BinaryBuilder
 
 name = "GR"
