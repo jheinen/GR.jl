@@ -135,14 +135,15 @@ function set_viewport(kind, subplot)
     else
         vp1, vp2, vp3, vp4 = vp
     end
-    viewport[1] = vp1 + 0.125 * (vp2 - vp1)
-    viewport[2] = vp1 + 0.925 * (vp2 - vp1)
-    viewport[3] = vp3 + 0.125 * (vp4 - vp3)
-    viewport[4] = vp3 + 0.925 * (vp4 - vp3)
+    left_margin = haskey(plt.kvs, :ylabel) ? 0.05 : 0
+    right_margin = kind in (:contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :polarheatmap, :nonuniformpolarheatmap, :surface, :trisurf, :volume) ? 0.1 : 0
+    bottom_margin = haskey(plt.kvs, :xlabel) ? 0.05 : 0
+    top_margin = haskey(plt.kvs, :title) ?  0.075 : 0
+    viewport[1] = vp1 + (0.075 + left_margin) * (vp2 - vp1)
+    viewport[2] = vp1 + (0.95 - right_margin) * (vp2 - vp1)
+    viewport[3] = vp3 + (0.075 + bottom_margin) * (vp4 - vp3)
+    viewport[4] = vp3 + (0.975 - top_margin) * (vp4 - vp3)
 
-    if kind in (:contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :polarheatmap, :nonuniformpolarheatmap, :surface, :trisurf, :volume)
-        viewport[2] -= 0.1
-    end
     if kind in (:line, :step, :scatter, :stem) && haskey(plt.kvs, :labels)
         location = get(plt.kvs, :location, 1)
         if location in (11, 12, 13)
