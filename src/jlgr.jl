@@ -296,6 +296,22 @@ function to_wc(wn)
     xmin, xmax, ymin, ymax
 end
 
+fract(x) = modf(x)[1]
+
+function auto_tick(amin, amax)
+    scale = 10.0 ^ trunc(log10(amax - amin))
+    tick_size = (5.0, 2.0, 1.0, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01)
+    tick = 1.0
+    for i in 1:length(tick_size)
+        n = (amax - amin) / scale / tick_size[i]
+        if n > 10
+            tick = tick_size[i - 1]
+            break
+        end
+    end
+    tick *= scale
+end
+
 function set_window(kind)
     scale = 0
     if !(kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap))
@@ -335,7 +351,7 @@ function set_window(kind)
             xtick, majorx = plt.kvs[:xticks]
         else
             majorx = major_count
-            xtick = GR.tick(xmin, xmax) / majorx
+            xtick = auto_tick(xmin, xmax) / major_count
         end
     else
         xtick = majorx = 1
@@ -363,7 +379,7 @@ function set_window(kind)
             ytick, majory = plt.kvs[:yticks]
         else
             majory = major_count
-            ytick = GR.tick(ymin, ymax) / majory
+            ytick = auto_tick(ymin, ymax) / major_count
         end
     else
         ytick = majory = 1
@@ -385,7 +401,7 @@ function set_window(kind)
                 ztick, majorz = plt.kvs[:zticks]
             else
                 majorz = major_count
-                ztick = GR.tick(zmin, zmax) / majorz
+                ztick = auto_tick(zmin, zmax) / major_count
             end
         else
             ztick = majorz = 1
@@ -511,7 +527,7 @@ function draw_polar_axes()
     GR.setcharheight(charheight)
     GR.setlinetype(GR.LINETYPE_SOLID)
 
-    tick = 0.5 * GR.tick(rmin, rmax)
+    tick = auto_tick(rmin, rmax)
     n = trunc(Int, (rmax - rmin) / tick)
     for i in 0:n
         r = rmin + i * tick / (rmax - rmin)
@@ -666,7 +682,7 @@ function colorbar(off=0, colors=256)
     charheight = max(0.016 * diag, 0.012)
     GR.setcharheight(charheight)
     if plt.kvs[:scale] & GR.OPTION_Z_LOG == 0
-        ztick = 0.5 * GR.tick(zmin, zmax)
+        ztick = auto_tick(zmin, zmax)
         GR.axes(0, ztick, 1, zmin, 0, 1, 0.005)
     else
         GR.setscale(GR.OPTION_Y_LOG)
