@@ -304,7 +304,7 @@ function auto_tick(amin, amax)
     tick = 1.0
     for i in 1:length(tick_size)
         n = (amax - amin) / scale / tick_size[i]
-        if n > 10
+        if n > 7
             tick = tick_size[i - 1]
             break
         end
