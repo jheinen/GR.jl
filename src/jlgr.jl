@@ -1199,7 +1199,11 @@ function plot_data(flag=true)
                 z = ones(length(x)) * linewidth
                 GR.polyline(x, y, z, c)
             else
-                hasline(mask) && GR.polyline(x, y)
+                if hasline(mask)
+                    linewidth = get(plt.kvs, :linewidth, 1)
+                    GR.setlinewidth(linewidth)
+                    GR.polyline(x, y)
+                end
                 hasmarker(mask) && GR.polymarker(x, y)
             end
         elseif kind == :step
