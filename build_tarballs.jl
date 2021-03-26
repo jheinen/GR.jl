@@ -1,10 +1,5 @@
 # Note that this script can accept some limited command-line arguments, run
 # `julia build_tarballs.jl --help` to see a usage message.
-#
-# Examples:
-#   - env BINARYBUILDER_AUTOMATIC_APPLE=true julia build_tarballs.jl x86_64-apple-darwin14
-#   - julia build_tarballs.jl x86_64-linux-gnu
-#
 using BinaryBuilder
 
 name = "GR"
@@ -33,8 +28,11 @@ if [[ $target == *"mingw"* ]]; then
     winflags=-DCMAKE_C_FLAGS="-D_WIN32_WINNT=0x0f00"
     tifflags=-DTIFF_LIBRARY=${libdir}/libtiff-5.dll
 else
-    winflags=""
     tifflags=-DTIFF_LIBRARY=${libdir}/libtiff.${dlext}
+fi
+
+if [[ "${target}" == *apple* ]]; then
+    make -C 3rdparty/zeromq ZEROMQ_EXTRA_CONFIGURE_FLAGS="--host=${target}"
 fi
 
 if [[ "${target}" == arm-* ]]; then
@@ -51,30 +49,24 @@ cp ../../gr.js ${libdir}/
 install_license $WORKSPACE/srcdir/gr/LICENSE.md
 
 if [[ $target == *"apple-darwin"* ]]; then
-    cd $prefix/bin
+    cd ${bindir}
     ln -s ../Applications/gksqt.app/Contents/MacOS/gksqt ./
     ln -s ../Applications/GKSTerm.app/Contents/MacOS/GKSTerm ./
 fi
 """
 
-#platforms = supported_platforms()
-
 # These are the platforms we will build for by default, unless further
 # platforms are passed in on the command line
 platforms = [
-    Linux(:i686, libc=:glibc),
-    Linux(:x86_64, libc=:glibc),
-    Linux(:aarch64, libc=:glibc),
-    Linux(:armv7l, libc=:glibc, call_abi=:eabihf),
-    Linux(:powerpc64le, libc=:glibc),
-#    Linux(:i686, libc=:musl),
-#    Linux(:x86_64, libc=:musl),
-#    Linux(:aarch64, libc=:musl),
-#    Linux(:armv7l, libc=:musl, call_abi=:eabihf),
-    MacOS(:x86_64),
-    FreeBSD(:x86_64),
-    Windows(:i686),
-    Windows(:x86_64)
+    Platform("armv7l",  "linux"; libc="glibc"),
+    Platform("aarch64", "linux"; libc="glibc"),
+    Platform("x86_64",  "linux"; libc="glibc"),
+    Platform("i686",  "linux"; libc="glibc"),
+    Platform("powerpc64le",  "linux"; libc="glibc"),
+    Platform("x86_64",  "windows"),
+    Platform("i686",  "windows"),    
+    Platform("x86_64",  "macos"),
+#    Platform("x86_64",  "freebsd"),
 ]
 platforms = expand_cxxstring_abis(platforms)
 
@@ -98,7 +90,8 @@ dependencies = [
     Dependency("libpng_jll"),
     Dependency("Libtiff_jll"),
     Dependency("Pixman_jll"),
-    Dependency("Qt_jll"),
+#    Dependency("Qhull_jll"),
+    Dependency("Qt_jll"),    
     BuildDependency("Xorg_libX11_jll"),
     BuildDependency("Xorg_xproto_jll"),
     Dependency("Zlib_jll"),
