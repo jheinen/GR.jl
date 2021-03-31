@@ -69,8 +69,8 @@ grdir = get_grdir()
 
 if haskey(ENV, "JULIA_GR_PROVIDER")
     provider = ENV["JULIA_GR_PROVIDER"]
-#elseif grdir == Nothing
-#    provider = "BinaryBuilder"
+elseif grdir == Nothing
+    provider = "BinaryBuilder"
 else
     provider = "GR"
 end
