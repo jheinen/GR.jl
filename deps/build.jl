@@ -1,9 +1,3 @@
-@static if !isdefined(Base, Symbol("@info"))
-    macro info(msg)
-        return :(info($(esc(msg))))
-    end
-end
-
 function get_grdir()
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
@@ -76,6 +70,7 @@ else
 end
 
 if provider == "BinaryBuilder"
+    @info "Creating depsfile. GR provider is BinaryBuilder" provider depsfile
     open(depsfile, "w") do io
         println(io, """
             using GR_jll
@@ -83,6 +78,7 @@ if provider == "BinaryBuilder"
     end
     exit(0)
 elseif provider == "GR"
+    @info "Removing depsfile. GR provider is GR" provider depsfile
     rm(depsfile, force=true)
 else
     @warn("Unrecognized JULIA_GR_PROVIDER \"$provider\".\n",

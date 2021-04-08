@@ -30,6 +30,7 @@ else
     end
     const gr_provider = "GR"
 end
+const attempt_to_rebuild = Ref(true)
 
 
 import Base64
@@ -258,6 +259,7 @@ isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (
 
 function __init__()
     global check_env
+    @debug "GR Binaries:" GR.gr_provider GR.libGR GR.libGR3 GR.libGRM
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
         if grdir == ""
@@ -277,11 +279,24 @@ function __init__()
     if grdir == None
         grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
         if !isdir(grdir)
-            println("Your GR installation is incomplete. Rerun build step for GR package.")
-            @eval GR begin
-                import Pkg
-                Pkg.build("GR")
+            if attempt_to_rebuild[]
+                attempt_to_rebuild[] = false # Avoid infinite loop
+                println("Your GR installation is incomplete. Rerunning build step for GR package.")
+                @eval GR begin
+                    import Pkg
+                    Pkg.build("GR")
+                    # Encourage recompilation of GR
+                    touch(pathof(GR))
+                    Pkg.precompile()
+                end
+                error("""Rebuilding GR succeeded, but Julia needs to
+                restarted. Start a new Julia session to use GR.""")
+            else
+                error("""Your GR installation is incomplete. $grdir is not a
+                      directory, and GR_jll was not loaded. Rerun build step
+                      for GR package: `import Pkg; Pkg.build(\"GR\")`""")
             end
+            return
         end
     end
     ENV["GRDIR"] = grdir
