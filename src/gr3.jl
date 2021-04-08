@@ -1,6 +1,7 @@
 module GR3
 
 import GR
+import Libdl
 
 const None = Union{}
 
