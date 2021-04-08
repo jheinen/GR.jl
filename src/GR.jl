@@ -11,12 +11,15 @@ end
 const None = Union{}
 
 const depsfile = joinpath(dirname(@__DIR__), "deps", "deps.jl")
+const depsfile_succeeded = Ref(false)
 try
     if !isfile(depsfile)
         touch(depsfile)
     end
     include(depsfile)
+    depsfile_succeeded[] = true
 catch err
+    depsfile_succeeded[] = false
     @debug "Could not include depsfile" depsfile err
 end
 
@@ -299,6 +302,12 @@ function __init__()
                 attempt_to_rebuild[] = false # Avoid infinite loop
                 println("Your GR installation is incomplete. Rerunning build step for GR package.")
                 delete!(ENV, "GRDIR")
+                if !depsfile_succeeded[]
+                    # If depsfile failed, then GR_jll failed.
+                    # Switch to GR on next build.
+                    ENV["JULIA_GR_PROVIDER"] = "GR"
+                    @info "Switching provider to GR due to error in depsfile" depsfile
+                end
                 @eval GR begin
                     import Pkg
                     Pkg.build("GR")

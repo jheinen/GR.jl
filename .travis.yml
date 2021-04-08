@@ -11,3 +11,6 @@ julia:
   - nightly
 notifications:
   email: false
+env:
+  - JULIA_DEBUG=GR
+  - JULIA_DEBUG=GR JULIA_GR_PROVIDER=GR
