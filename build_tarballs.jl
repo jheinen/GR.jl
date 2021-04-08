@@ -9,7 +9,7 @@
 using BinaryBuilder
 
 name = "GR"
-version = v"0.57.1"
+version = v"0.57.2"
 
 # Collection of sources required to complete build
 sources = [
