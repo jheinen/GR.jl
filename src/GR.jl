@@ -282,13 +282,14 @@ function __init__()
             if attempt_to_rebuild[]
                 attempt_to_rebuild[] = false # Avoid infinite loop
                 println("Your GR installation is incomplete. Rerunning build step for GR package.")
+                ENV["GRDIR"] = ""
                 @eval GR begin
                     import Pkg
                     Pkg.build("GR")
                     # Encourage recompilation of GR
                     touch(pathof(GR))
                 end
-                error("""Rebuilding GR succeeded, but Julia needs to
+                error("""Rebuilding GR succeeded, but Julia needs to be
                 restarted. Start a new Julia session to use GR.""")
             else
                 error("""Your GR installation is incomplete. $grdir is not a
