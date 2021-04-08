@@ -311,8 +311,6 @@ function __init__()
                 @eval GR begin
                     import Pkg
                     Pkg.build("GR")
-                    # Encourage recompilation of GR
-                    touch(pathof(GR))
                     include(depsfile)
                 end
                 GR.__init__()
