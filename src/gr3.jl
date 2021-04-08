@@ -1,6 +1,7 @@
 module GR3
 
 import GR
+import Libdl
 
 const None = Union{}
 
@@ -38,7 +39,7 @@ const msgs = [ "none", "invalid value", "invalid attribute", "init failed",
 function _check_error()
   line = Cint[0]
   file = Ptr{UInt8}[0]
-  error_code = ccall((:gr3_geterror, GR.libGR3), Int32, (Int32, Ptr{Cint}, Ptr{Ptr{UInt8}}), 1, line, file)
+  error_code = ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_geterror), Int32, (Int32, Ptr{Cint}, Ptr{Ptr{UInt8}}), 1, line, file)
   if (error_code != 0)
     line = line[1]
     file = unsafe_string(file[1])
@@ -53,31 +54,31 @@ function _check_error()
 end
 
 function init(attrib_list)
-  ccall((:gr3_init, GR.libGR3), Int32, (Ptr{Int}, ), attrib_list)
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_init), Int32, (Ptr{Int}, ), attrib_list)
   _check_error()
 end
 export init
 
 function free(pointer)
-  ccall((:gr3_free, GR.libGR3), Nothing, (Ptr{Nothing}, ), pointer)
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_free), Nothing, (Ptr{Nothing}, ), pointer)
   _check_error()
 end
 export free
 
 function terminate()
-  ccall((:gr3_terminate, GR.libGR3), Nothing, ())
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_terminate), Nothing, ())
   _check_error()
 end
 export terminate
 
 function useframebuffer(framebuffer)
-  ccall((:gr3_useframebuffer, GR.libGR3), Nothing, (UInt32, ), framebuffer)
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_useframebuffer), Nothing, (UInt32, ), framebuffer)
   _check_error()
 end
 export useframebuffer
 
 function usecurrentframebuffer()
-  ccall((:gr3_usecurrentframebuffer, GR.libGR3), Nothing, ())
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_usecurrentframebuffer), Nothing, ())
   _check_error()
 end
 export usecurrentframebuffer
@@ -85,7 +86,7 @@ export usecurrentframebuffer
 function getimage(width, height, use_alpha=true)
   bpp = use_alpha ? 4 : 3
   bitmap = zeros(UInt8, width * height * bpp)
-  ccall((:gr3_getimage, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_getimage),
         Int32,
         (Int32, Int32, Int32, Ptr{UInt8}),
         width, height, use_alpha, bitmap)
@@ -95,7 +96,7 @@ end
 export getimage
 
 function save(filename, width, height)
-  ccall((:gr3_export, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_export),
         Int32,
         (Ptr{Cchar}, Int32, Int32),
         filename, width, height)
@@ -113,7 +114,7 @@ end
 export save
 
 function getrenderpathstring()
-  val = ccall((:gr3_getrenderpathstring, GR.libGR3),
+  val = ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_getrenderpathstring),
               Ptr{UInt8}, (), )
   _check_error()
   unsafe_string(val)
@@ -121,7 +122,7 @@ end
 export getrenderpathstring
 
 function drawimage(xmin, xmax, ymin, ymax, pixel_width, pixel_height, window)
-  ccall((:gr3_drawimage, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_drawimage),
         Int32,
         (Float32, Float32, Float32, Float32, Int32, Int32, Int32),
         xmin, xmax, ymin, ymax, pixel_width, pixel_height, window)
@@ -134,7 +135,7 @@ function createmesh(n, vertices, normals, colors)
   _vertices = [ Float32(x) for x in vertices ]
   _normals = [ Float32(x) for x in normals ]
   _colors = [ Float32(x) for x in colors ]
-  ccall((:gr3_createmesh, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_createmesh),
         Int32,
         (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         mesh, n, @ArrayToVector(Float32, _vertices), @ArrayToVector(Float32, _normals), @ArrayToVector(Float32, _colors))
@@ -149,7 +150,7 @@ function createindexedmesh(num_vertices, vertices, normals, colors, num_indices,
   _normals = [ Float32(x) for x in normals ]
   _colors = [ Float32(x) for x in colors ]
   _indices = [ Float32(x) for x in indices ]
-  ccall((:gr3_createindexedmesh, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_createindexedmesh),
         Int32,
         (Ptr{Cint}, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32, Ptr{Int32}),
         mesh, num_vertices, @ArrayToVector(Float32, _vertices), @ArrayToVector(Float32, _normals), @ArrayToVector(Float32, _colors), num_indices, @ArrayToVector(Float32, _indices))
@@ -164,7 +165,7 @@ function drawmesh(mesh::Int32, n, positions::@triplet(Real), directions::@triple
   _ups = [ Float32(x) for x in ups ]
   _colors = [ Float32(x) for x in colors ]
   _scales = [ Float32(x) for x in scales ]
-  ccall((:gr3_drawmesh, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_drawmesh),
         Nothing,
         (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         mesh, n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _ups), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _scales))
@@ -177,7 +178,7 @@ function createheightmapmesh(heightmap, num_columns, num_rows)
     if ndims(heightmap) == 2
       heightmap = reshape(heightmap, num_columns * num_rows)
     end
-    ccall((:gr3_createheightmapmesh, GR.libGR3),
+    ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_createheightmapmesh),
           Nothing,
           (Ptr{Float32}, Int32, Int32),
           @ArrayToVector(Float32, heightmap), num_columns, num_rows)
@@ -195,7 +196,7 @@ function drawheightmap(heightmap, num_columns, num_rows, positions, scales)
     end
     _positions = [ Float32(x) for x in positions ]
     _scales = [ Float32(x) for x in scales ]
-    ccall((:gr3_drawheightmap, GR.libGR3),
+    ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_drawheightmap),
           Nothing,
           (Ptr{Float32}, Int32, Int32, Ptr{Float32}, Ptr{Float32}),
           @ArrayToVector(Float32, heightmap), num_columns, num_rows, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _scales))
@@ -207,19 +208,19 @@ end
 export drawheightmap
 
 function deletemesh(mesh)
-  ccall((:gr3_deletemesh, GR.libGR3), Nothing, (Int32, ), mesh)
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_deletemesh), Nothing, (Int32, ), mesh)
   _check_error()
 end
 export deletemesh
 
 function setquality(quality)
-  ccall((:gr3_setquality, GR.libGR3), Nothing, (Int32, ), quality)
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_setquality), Nothing, (Int32, ), quality)
   _check_error()
 end
 export setquality
 
 function clear()
-  ccall((:gr3_clear, GR.libGR3), Nothing, ())
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_clear), Nothing, ())
   _check_error()
 end
 export clear
@@ -227,7 +228,7 @@ export clear
 function cameralookat(camera_x, camera_y, camera_z,
                       center_x, center_y, center_z,
                       up_x, up_y, up_z)
-  ccall((:gr3_cameralookat, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_cameralookat),
         Nothing,
         (Float32, Float32, Float32, Float32, Float32, Float32, Float32, Float32, Float32),
         camera_x, camera_y, camera_z, center_x, center_y, center_z, up_x, up_y, up_z)
@@ -236,7 +237,7 @@ end
 export cameralookat
 
 function setcameraprojectionparameters(vertical_field_of_view, zNear, zFar)
-  ccall((:gr3_setcameraprojectionparameters, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_setcameraprojectionparameters),
         Nothing,
         (Float32, Float32, Float32),
         vertical_field_of_view, zNear, zFar)
@@ -245,7 +246,7 @@ end
 export setcameraprojectionparameters
 
 function setlightdirection(x, y, z)
-  ccall((:gr3_setlightdirection, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_setlightdirection),
         Nothing,
         (Float32, Float32, Float32),
         x, y, z)
@@ -259,7 +260,7 @@ function drawcylindermesh(n, positions, directions, colors, radii, lengths)
   _colors = [ Float32(x) for x in colors ]
   _radii = [ Float32(x) for x in radii ]
   _lengths = [ Float32(x) for x in lengths ]
-  ccall((:gr3_drawcylindermesh, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_drawcylindermesh),
         Nothing,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _radii), @ArrayToVector(Float32, _lengths))
@@ -273,7 +274,7 @@ function drawconemesh(n, positions, directions, colors, radii, lengths)
   _colors = [ Float32(x) for x in colors ]
   _radii = [ Float32(x) for x in radii ]
   _lengths = [ Float32(x) for x in lengths ]
-  ccall((:gr3_drawconemesh, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_drawconemesh),
         Nothing,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _radii), @ArrayToVector(Float32, _lengths))
@@ -285,7 +286,7 @@ function drawspheremesh(n, positions, colors, radii)
   _positions = [ Float32(x) for x in positions ]
   _colors = [ Float32(x) for x in colors ]
   _radii = [ Float32(x) for x in radii ]
-  ccall((:gr3_drawspheremesh, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_drawspheremesh),
         Nothing,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _radii))
@@ -299,7 +300,7 @@ function drawcubemesh(n, positions, directions, ups, colors, scales)
   _ups = [ Float32(x) for x in ups ]
   _colors = [ Float32(x) for x in colors ]
   _scales = [ Float32(x) for x in scales ]
-  ccall((:gr3_drawcubemesh, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_drawcubemesh),
         Nothing,
         (Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
         n, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _ups), @ArrayToVector(Float32, _colors), @ArrayToVector(Float32, _scales))
@@ -308,7 +309,7 @@ end
 export drawcubemesh
 
 function setbackgroundcolor(red, green, blue, alpha)
-  ccall((:gr3_setbackgroundcolor, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_setbackgroundcolor),
         Nothing,
         (Float32, Float32, Float32, Float32),
         red, green, blue, alpha)
@@ -323,7 +324,7 @@ function createisosurfacemesh(grid::Array{UInt16,3}, step::@triplet(Float64), of
   stride_x, stride_y, stride_z = strides(grid)
   step_x, step_y, step_z = [ float(x) for x in step ]
   offset_x, offset_y, offset_z = [ float(x) for x in offset ]
-  err = ccall((:gr3_createisosurfacemesh, GR.libGR3),
+  err = ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_createisosurfacemesh),
               Int32,
               (Ptr{Cint}, Ptr{UInt16}, UInt16, UInt32, UInt32, UInt32, UInt32, UInt32, UInt32, Float64, Float64, Float64, Float64, Float64, Float64),
               mesh, @ArrayToVector(UInt16, data), UInt16(isolevel), dim_x, dim_y, dim_z, stride_x, stride_y, stride_z, step_x, step_y, step_z, offset_x, offset_y, offset_z)
@@ -350,7 +351,7 @@ function surface(px, py, pz, option::Int)
     _px = [ Float32(x) for x in px ]
     _py = [ Float32(y) for y in py ]
     _pz = [ Float32(z) for z in pz ]
-    ccall((:gr3_surface, GR.libGR3),
+    ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_surface),
           Nothing,
           (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32),
           nx, ny, @ArrayToVector(Float32, _px), @ArrayToVector(Float32, _py), @ArrayToVector(Float32, _pz), option)
@@ -365,7 +366,7 @@ function volume(data::Array{Float64,3}, algorithm::Int64)
   dmax = Cdouble[-1]
   nx, ny, nz = size(data)
   data = reshape(data, nx * ny * nz)
-  ccall((:gr_volume, GR.libGR3),
+  ccall(Libdl.dlsym(GR.libGR3_handle[], :gr_volume),
         Nothing,
         (Cint, Cint, Cint, Ptr{Cdouble}, Cint, Ptr{Cdouble}, Ptr{Cdouble}),
         nx, ny, nz, data, algorithm, dmin, dmax)
@@ -410,7 +411,7 @@ function createslicemeshes(grid; x::Union{Real, Nothing}=nothing, y::Union{Real,
     if x != nothing
         x = convert(UInt32, floor(clamp(x, 0, 1) * nx))
         mesh = Cint[0]
-        ccall((:gr3_createxslicemesh, GR.libGR3),
+        ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_createxslicemesh),
             Nothing,
             (Ptr{UInt32}, Ptr{UInt16}, UInt32,
             UInt32, UInt32, UInt32,
@@ -431,7 +432,7 @@ function createslicemeshes(grid; x::Union{Real, Nothing}=nothing, y::Union{Real,
     if y != nothing
         y = convert(UInt32, floor(clamp(y, 0, 1) * ny))
         mesh = Cint[0]
-        ccall((:gr3_createyslicemesh, GR.libGR3),
+        ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_createyslicemesh),
             Nothing,
             (Ptr{UInt32}, Ptr{UInt16}, UInt32,
             UInt32, UInt32, UInt32,
@@ -452,7 +453,7 @@ function createslicemeshes(grid; x::Union{Real, Nothing}=nothing, y::Union{Real,
     if z != nothing
         z = convert(UInt32, floor(clamp(z, 0, 1) * nz))
         mesh = Cint[0]
-        ccall((:gr3_createzslicemesh, GR.libGR3),
+        ccall(Libdl.dlsym(GR.libGR3_handle[], :gr3_createzslicemesh),
             Nothing,
             (Ptr{UInt32}, Ptr{UInt16}, UInt32,
             UInt32, UInt32, UInt32,

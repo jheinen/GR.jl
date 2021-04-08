@@ -73,13 +73,21 @@ if provider == "BinaryBuilder"
     @info "Creating depsfile. GR provider is BinaryBuilder" provider depsfile
     open(depsfile, "w") do io
         println(io, """
-            using GR_jll
+            import GR_jll
         """)
     end
     exit(0)
 elseif provider == "GR"
-    @info "Removing depsfile. GR provider is GR" provider depsfile
-    rm(depsfile, force=true)
+    @info "Emptying depsfile. GR provider is GR" provider depsfile
+    open(depsfile, "w") do io
+        println(io, "@debug \"Using GR as a binary provider\"")
+    end
+elseif provider == "Error"
+    @info "Intentionally creating an error in depsfile" provider depsfiles
+    open(depsfile, "w") do io
+        println(io, "error(\"This is an intentional error for testing.\")")
+    end
+    exit(0)
 else
     @warn("Unrecognized JULIA_GR_PROVIDER \"$provider\".\n",
           "To fix this, set ENV[\"JULIA_GR_PROVIDER\"] to \"BinaryBuilder\" or \"GR\"\n",
