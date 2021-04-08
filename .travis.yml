@@ -7,10 +7,22 @@ services:
   - xvfb
 julia:
   - 1.5.4
-  - 1.6.0
+  - 1 # Latest Julia 1.x.y
   - nightly
 notifications:
   email: false
 env:
   - JULIA_DEBUG=GR
 #  - JULIA_DEBUG=GR JULIA_GR_PROVIDER=GR
+jobs:
+  include:
+    - julia: 1
+      os: linux
+      dist: xenial
+      services: xvfb
+      env: JULIA_DEBUG=GR JULIA_GR_PROVIDER=GR
+    - julia: 1
+      os: linux
+      dist: xenial
+      services: xvfb
+      env: JULIA_DEBUG=GR JULIA_GR_PROVIDER=Error
