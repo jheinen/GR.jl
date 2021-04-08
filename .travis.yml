@@ -7,7 +7,7 @@ services:
   - xvfb
 julia:
   - 1.5.4
-  - 1 # Latest Julia 1.x.y
+  - 1.6.0
   - nightly
 notifications:
   email: false
