@@ -287,7 +287,6 @@ function __init__()
                     Pkg.build("GR")
                     # Encourage recompilation of GR
                     touch(pathof(GR))
-                    Pkg.precompile()
                 end
                 error("""Rebuilding GR succeeded, but Julia needs to
                 restarted. Start a new Julia session to use GR.""")
