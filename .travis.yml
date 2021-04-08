@@ -1,13 +1,13 @@
 language: julia
 os:
   - linux
-#  - osx
-# macOS builds fail via BinaryBuilder
+  - osx
 dist: xenial
 services:
   - xvfb
 julia:
   - 1.5.4
+  - 1.6.0
   - nightly
 notifications:
   email: false
