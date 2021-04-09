@@ -373,7 +373,7 @@ end
 
 plutoisinit = false
 
-function init_pluto(jssource="https://gr-framework.org/downloads/gr-latest.js")
+function init_pluto(jssource="https://gr-framework.org/downloads/gr-0.56.0.js")
   global plutoisinit
   plutoisinit = true
   return HTML(string("""
