@@ -3,7 +3,7 @@ using GR
 using FFTW
 
 function play(c::Channel)
-  data = FileIO.load("Monty_Python.wav")
+  data, = FileIO.load("Monty_Python.wav")
   stream = PortAudio.PortAudioStream(0, 1)
   spectrum = zeros(Int32, 300, 225)
 
