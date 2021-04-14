@@ -22,7 +22,8 @@ catch err
     depsfile_succeeded[] = false
     @debug "Could not include depsfile" depsfile err
 end
-include(joinpath(dirname(@__DIR__), "deps", "build.jl"))
+# Include Builder module in case we need to rebuild
+const buildfile = joinpath(dirname(@__DIR__), "deps", "build.jl")
 
 if os == :Windows
     const libGR = "libGR.dll"
@@ -43,7 +44,6 @@ const libGR_handle = Ref{Ptr{Nothing}}()
 const libGR3_handle = Ref{Ptr{Nothing}}()
 const libGRM_handle = Ref{Ptr{Nothing}}()
 const gr_provider = Ref("Unknown")
-
 
 import Base64
 import Libdl
@@ -270,6 +270,9 @@ isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnect
 ispluto() = isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module
 isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (isdefined(Main.VSCodeServer, :PLOT_PANE_ENABLED) ? Main.VSCodeServer.PLOT_PANE_ENABLED[] : true)
 
+# Load function pointer caching mechanism
+include("funcptrs.jl")
+
 function __init__()
     global check_env
 
@@ -309,8 +312,9 @@ function __init__()
                     ENV["JULIA_GR_PROVIDER"] = "GR"
                     @info "Switching provider to GR due to error in depsfile" depsfile
                 end
-                Builder.build()
                 @eval GR begin
+                    include(buildfile)
+                    Builder.build()
                     include(depsfile)
                 end
                 GR.__init__()
@@ -352,6 +356,8 @@ function __init__()
     end
     @debug "Library handles" libGR_handle[] libGR3_handle[] libGRM_handle[]
 
+    libs_loaded[] = true
+
     check_env = true
     init(true)
 end
@@ -359,7 +365,7 @@ end
 """
 function set_callback()
     callback_c = @cfunction(callback, Cstring, (Cstring, ))
-    ccall(Libdl.dlsym(libGR_handle[], :gr_setcallback),
+    ccall(libGR_ptr(:gr_setcallback),
           Nothing,
           (Ptr{Cvoid}, ),
           callback_c)
@@ -411,21 +417,21 @@ function init(always=false)
 end
 
 function initgr()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_initgr),
+  ccall( libGR_ptr(:gr_initgr),
         Nothing,
         ()
         )
 end
 
 function opengks()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_opengks),
+  ccall( libGR_ptr(:gr_opengks),
         Nothing,
         ()
         )
 end
 
 function closegks()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_closegks),
+  ccall( libGR_ptr(:gr_closegks),
         Nothing,
         ()
         )
@@ -457,7 +463,7 @@ function inqdspsize()
   mheight = Cdouble[0]
   width = Cint[0]
   height = Cint[0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_inqdspsize),
+  ccall( libGR_ptr(:gr_inqdspsize),
         Nothing,
         (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cint}, Ptr{Cint}),
         mwidth, mheight, width, height)
@@ -534,7 +540,7 @@ Available workstation types:
 
 """
 function openws(workstation_id::Int, connection, workstation_type::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_openws),
+  ccall( libGR_ptr(:gr_openws),
         Nothing,
         (Int32, Ptr{Cchar}, Int32),
         workstation_id, connection, workstation_type)
@@ -552,7 +558,7 @@ Close the specified workstation.
 
 """
 function closews(workstation_id::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_closews),
+  ccall( libGR_ptr(:gr_closews),
         Nothing,
         (Int32, ),
         workstation_id)
@@ -570,7 +576,7 @@ Activate the specified workstation.
 
 """
 function activatews(workstation_id::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_activatews),
+  ccall( libGR_ptr(:gr_activatews),
         Nothing,
         (Int32, ),
         workstation_id)
@@ -588,21 +594,21 @@ Deactivate the specified workstation.
 
 """
 function deactivatews(workstation_id::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_deactivatews),
+  ccall( libGR_ptr(:gr_deactivatews),
         Nothing,
         (Int32, ),
         workstation_id)
 end
 
 function clearws()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_clearws),
+  ccall( libGR_ptr(:gr_clearws),
         Nothing,
         ()
         )
 end
 
 function updatews()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_updatews),
+  ccall( libGR_ptr(:gr_updatews),
         Nothing,
         ()
         )
@@ -629,7 +635,7 @@ index.
 function polyline(x, y)
   @assert length(x) == length(y)
   n = length(x)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_polyline),
+  ccall( libGR_ptr(:gr_polyline),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y))
@@ -655,7 +661,7 @@ scale factor and color index.
 function polymarker(x, y)
   @assert length(x) == length(y)
   n = length(x)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_polymarker),
+  ccall( libGR_ptr(:gr_polymarker),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y))
@@ -719,7 +725,7 @@ height, character up vector, text path and text alignment.
 
 """
 function text(x::Real, y::Real, string)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_text),
+  ccall( libGR_ptr(:gr_text),
         Nothing,
         (Float64, Float64, Ptr{UInt8}),
         x, y, latin1(string))
@@ -728,7 +734,7 @@ end
 function inqtext(x, y, string)
   tbx = Cdouble[0, 0, 0, 0]
   tby = Cdouble[0, 0, 0, 0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_inqtext),
+  ccall( libGR_ptr(:gr_inqtext),
         Nothing,
         (Float64, Float64, Ptr{UInt8}, Ptr{Cdouble}, Ptr{Cdouble}),
         x, y, latin1(string), tbx, tby)
@@ -754,7 +760,7 @@ style, fill area style index and fill area color index.
 function fillarea(x, y)
   @assert length(x) == length(y)
   n = length(x)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_fillarea),
+  ccall( libGR_ptr(:gr_fillarea),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y))
@@ -786,7 +792,7 @@ function cellarray(xmin::Real, xmax::Real, ymin::Real, ymax::Real, dimx::Int, di
   if ndims(color) == 2
     color = reshape(color, dimx * dimy)
   end
-  ccall( Libdl.dlsym(libGR_handle[], :gr_cellarray),
+  ccall( libGR_ptr(:gr_cellarray),
         Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
         xmin, xmax, ymin, ymax, dimx, dimy, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
@@ -818,7 +824,7 @@ function nonuniformcellarray(x, y, dimx::Int, dimy::Int, color)
   end
   nx = dimx == length(x) ? -dimx : dimx
   ny = dimy == length(y) ? -dimy : dimy
-  ccall( Libdl.dlsym(libGR_handle[], :gr_nonuniformcellarray),
+  ccall( libGR_ptr(:gr_nonuniformcellarray),
         Nothing,
         (Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
         convert(Vector{Float64}, x), convert(Vector{Float64}, y), nx, ny, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
@@ -860,7 +866,7 @@ function polarcellarray(xorg::Real, yorg::Real, phimin::Real, phimax::Real, rmin
   if ndims(color) == 2
     color = reshape(color, dimphi * dimr)
   end
-  ccall( Libdl.dlsym(libGR_handle[], :gr_polarcellarray),
+  ccall( libGR_ptr(:gr_polarcellarray),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
         xorg, yorg, phimin, phimax, rmin, rmax, dimphi, dimr, 1, 1, dimphi, dimr, convert(Vector{Int32}, color))
@@ -892,7 +898,7 @@ function nonuniformpolarcellarray(x, y, dimx::Int, dimy::Int, color)
   end
   nx = dimx == length(x) ? -dimx : dimx
   ny = dimy == length(y) ? -dimy : dimy
-  ccall( Libdl.dlsym(libGR_handle[], :gr_nonuniformpolarcellarray),
+  ccall( libGR_ptr(:gr_nonuniformpolarcellarray),
         Nothing,
         (Float64, Float64, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32, Int32, Int32, Int32, Ptr{Int32}),
         0, 0, convert(Vector{Float64}, x), convert(Vector{Float64}, y), nx, ny, 1, 1, dimx, dimy, convert(Vector{Int32}, color))
@@ -921,7 +927,7 @@ function gdp(x, y, primid, datrec)
   @assert length(x) == length(y)
   n = length(x)
   ldr = length(datrec)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_gdp),
+  ccall( libGR_ptr(:gr_gdp),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Ptr{Int32}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
@@ -1084,7 +1090,7 @@ The following path codes are recognized:
 function path(x, y, codes)
   @assert length(x) == length(y)
   n = length(x)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_path),
+  ccall( libGR_ptr(:gr_path),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Cstring),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), codes)
@@ -1151,7 +1157,7 @@ If `method` is < -1, then a cubic B-spline is calculated.
 function spline(x, y, m, method)
   @assert length(x) == length(y)
   n = length(x)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_spline),
+  ccall( libGR_ptr(:gr_spline),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), m, method)
@@ -1163,7 +1169,7 @@ function gridit(xd, yd, zd, nx, ny)
   x = Cdouble[1 : nx ;]
   y = Cdouble[1 : ny ;]
   z = Cdouble[1 : nx*ny ;]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_gridit),
+  ccall( libGR_ptr(:gr_gridit),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
         nd, convert(Vector{Float64}, xd), convert(Vector{Float64}, yd), convert(Vector{Float64}, zd), nx, ny, x, y, z)
@@ -1210,7 +1216,7 @@ The available line types are:
 
 """
 function setlinetype(style::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setlinetype),
+  ccall( libGR_ptr(:gr_setlinetype),
         Nothing,
         (Int32, ),
         style)
@@ -1233,7 +1239,7 @@ The default line width is 1.0, or 1 times the line width generated on the graphi
 
 """
 function setlinewidth(width::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setlinewidth),
+  ccall( libGR_ptr(:gr_setlinewidth),
         Nothing,
         (Float64, ),
         width)
@@ -1251,7 +1257,7 @@ Define the color of subsequent polyline output primitives.
 
 """
 function setlinecolorind(color::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setlinecolorind),
+  ccall( libGR_ptr(:gr_setlinecolorind),
         Nothing,
         (Int32, ),
         color)
@@ -1349,7 +1355,7 @@ Polymarkers appear centered over their specified coordinates.
 
 """
 function setmarkertype(mtype::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setmarkertype),
+  ccall( libGR_ptr(:gr_setmarkertype),
         Nothing,
         (Int32, ),
         mtype)
@@ -1370,7 +1376,7 @@ multiplied by the marker size scale factor.
 
 """
 function setmarkersize(mtype::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setmarkersize),
+  ccall( libGR_ptr(:gr_setmarkersize),
         Nothing,
         (Float64, ),
         mtype)
@@ -1388,7 +1394,7 @@ Define the color of subsequent polymarker output primitives.
 
 """
 function setmarkercolorind(color::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setmarkercolorind),
+  ccall( libGR_ptr(:gr_setmarkercolorind),
         Nothing,
         (Int32, ),
         color)
@@ -1489,7 +1495,7 @@ precision for GR and produces the highest quality output.
 
 """
 function settextfontprec(font::Int, precision::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_settextfontprec),
+  ccall( libGR_ptr(:gr_settextfontprec),
         Nothing,
         (Int32, Int32),
         font, precision)
@@ -1511,14 +1517,14 @@ text expansion factor is 1, or one times the normal width-to-height ratio of the
 
 """
 function setcharexpan(factor::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setcharexpan),
+  ccall( libGR_ptr(:gr_setcharexpan),
         Nothing,
         (Float64, ),
         factor)
 end
 
 function setcharspace(spacing::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setcharspace),
+  ccall( libGR_ptr(:gr_setcharspace),
         Nothing,
         (Float64, ),
         spacing)
@@ -1539,7 +1545,7 @@ GR uses the default foreground color (black=1) for the default text color index.
 
 """
 function settextcolorind(color::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_settextcolorind),
+  ccall( libGR_ptr(:gr_settextcolorind),
         Nothing,
         (Int32, ),
         color)
@@ -1561,7 +1567,7 @@ is defined as a percentage of the default window. GR uses the default text heigh
 
 """
 function setcharheight(height::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setcharheight),
+  ccall( libGR_ptr(:gr_setcharheight),
         Nothing,
         (Float64, ),
         height)
@@ -1569,7 +1575,7 @@ end
 
 function inqcharheight()
   _height = Cdouble[0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_inqcharheight),
+  ccall( libGR_ptr(:gr_inqcharheight),
         Nothing,
         (Ptr{Cdouble}, ),
         _height)
@@ -1591,7 +1597,7 @@ The text up vector is initially set to (0, 1), horizontal to the baseline.
 
 """
 function setcharup(ux::Real, uy::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setcharup),
+  ccall( libGR_ptr(:gr_setcharup),
         Nothing,
         (Float64, Float64),
         ux, uy)
@@ -1619,7 +1625,7 @@ Define the current direction in which subsequent text will be drawn.
 
 """
 function settextpath(path::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_settextpath),
+  ccall( libGR_ptr(:gr_settextpath),
         Nothing,
         (Int32, ),
         path)
@@ -1667,7 +1673,7 @@ alignment and vertical baseline alignment.
 
 """
 function settextalign(horizontal::Int, vertical::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_settextalign),
+  ccall( libGR_ptr(:gr_settextalign),
         Nothing,
         (Int32, Int32),
         horizontal, vertical)
@@ -1698,7 +1704,7 @@ primitives. The default interior style is HOLLOW.
 
 """
 function setfillintstyle(style::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setfillintstyle),
+  ccall( libGR_ptr(:gr_setfillintstyle),
         Nothing,
         (Int32, ),
         style)
@@ -1722,7 +1728,7 @@ for the interior style, the fill style index is unused.
 
 """
 function setfillstyle(index::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setfillstyle),
+  ccall( libGR_ptr(:gr_setfillstyle),
         Nothing,
         (Int32, ),
         index)
@@ -1743,7 +1749,7 @@ GR uses the default foreground color (black=1) for the default fill area color i
 
 """
 function setfillcolorind(color::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setfillcolorind),
+  ccall( libGR_ptr(:gr_setfillcolorind),
         Nothing,
         (Int32, ),
         color)
@@ -1768,7 +1774,7 @@ an RGB color triplet.
 
 """
 function setcolorrep(index::Int, red::Real, green::Real, blue::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setcolorrep),
+  ccall( libGR_ptr(:gr_setcolorrep),
         Nothing,
         (Int32, Float64, Float64, Float64),
         index, red, green, blue)
@@ -1811,7 +1817,7 @@ assumes that the axes limits are greater than zero.
 
 """
 function setscale(options::Int)
-  scale = ccall( Libdl.dlsym(libGR_handle[], :gr_setscale),
+  scale = ccall( libGR_ptr(:gr_setscale),
                 Int32,
                 (Int32, ),
                 options)
@@ -1820,7 +1826,7 @@ end
 
 function inqscale()
   _options = Cint[0]
-   ccall( Libdl.dlsym(libGR_handle[], :gr_inqscale),
+   ccall( libGR_ptr(:gr_inqscale),
          Nothing,
          (Ptr{Int32}, ),
          _options)
@@ -1854,7 +1860,7 @@ open and active workstation, in device coordinates. By default, GR uses the rang
 
 """
 function setwindow(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setwindow),
+  ccall( libGR_ptr(:gr_setwindow),
         Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
@@ -1865,7 +1871,7 @@ function inqwindow()
   _xmax = Cdouble[0]
   _ymin = Cdouble[0]
   _ymax = Cdouble[0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_inqwindow),
+  ccall( libGR_ptr(:gr_inqwindow),
         Nothing,
         (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         _xmin, _xmax, _ymin, _ymax)
@@ -1897,7 +1903,7 @@ workstation, in device coordinates.
 
 """
 function setviewport(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setviewport),
+  ccall( libGR_ptr(:gr_setviewport),
         Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
@@ -1908,7 +1914,7 @@ function inqviewport()
   _xmax = Cdouble[0]
   _ymin = Cdouble[0]
   _ymax = Cdouble[0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_inqviewport),
+  ccall( libGR_ptr(:gr_inqviewport),
         Nothing,
         (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         _xmin, _xmax, _ymin, _ymax)
@@ -1934,7 +1940,7 @@ device coordinates.
 
 """
 function selntran(transform::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_selntran),
+  ccall( libGR_ptr(:gr_selntran),
         Nothing,
         (Int32, ),
         transform)
@@ -1965,7 +1971,7 @@ By default, clipping is on.
 
 """
 function setclip(indicator::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setclip),
+  ccall( libGR_ptr(:gr_setclip),
         Nothing,
         (Int32, ),
         indicator)
@@ -1994,7 +2000,7 @@ surface. The aspect ratio of the workstation window is maintained at 1 to 1.
 
 """
 function setwswindow(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setwswindow),
+  ccall( libGR_ptr(:gr_setwswindow),
         Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
@@ -2023,56 +2029,56 @@ publishing applications.
 
 """
 function setwsviewport(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setwsviewport),
+  ccall( libGR_ptr(:gr_setwsviewport),
         Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
 end
 
 function createseg(segment::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_createseg),
+  ccall( libGR_ptr(:gr_createseg),
         Nothing,
         (Int32, ),
         segment)
 end
 
 function copyseg(segment::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_copysegws),
+  ccall( libGR_ptr(:gr_copysegws),
         Nothing,
         (Int32, ),
         segment)
 end
 
 function redrawseg()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_redrawsegws),
+  ccall( libGR_ptr(:gr_redrawsegws),
         Nothing,
         ()
         )
 end
 
 function setsegtran(segment::Int, fx::Real, fy::Real, transx::Real, transy::Real, phi::Real, scalex::Real, scaley::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setsegtran),
+  ccall( libGR_ptr(:gr_setsegtran),
         Nothing,
         (Int32, Float64, Float64, Float64, Float64, Float64, Float64, Float64),
         segment, fx, fy, transx, transy, phi, scalex, scaley)
 end
 
 function closeseg()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_closeseg),
+  ccall( libGR_ptr(:gr_closeseg),
         Nothing,
         ()
         )
 end
 
 function emergencyclosegks()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_emergencyclosegks),
+  ccall( libGR_ptr(:gr_emergencyclosegks),
         Nothing,
         ()
         )
 end
 
 function updategks()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_updategks),
+  ccall( libGR_ptr(:gr_updategks),
         Nothing,
         ()
         )
@@ -2104,7 +2110,7 @@ between 0° and 90°.
 
 """
 function setspace(zmin::Real, zmax::Real, rotation::Int, tilt::Int)
-  space = ccall( Libdl.dlsym(libGR_handle[], :gr_setspace),
+  space = ccall( libGR_ptr(:gr_setspace),
                 Int32,
                 (Float64, Float64, Int32, Int32),
                 zmin, zmax, rotation, tilt)
@@ -2203,7 +2209,7 @@ function.
 
 """
 function textext(x::Real, y::Real, string)
-  result = ccall( Libdl.dlsym(libGR_handle[], :gr_textext),
+  result = ccall( libGR_ptr(:gr_textext),
                  Int32,
                  (Float64, Float64, Ptr{UInt8}),
                  x, y, latin1(string))
@@ -2214,7 +2220,7 @@ end
 function inqtextext(x::Real, y::Real, string)
   tbx = Cdouble[0, 0, 0, 0]
   tby = Cdouble[0, 0, 0, 0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_inqtextext),
+  ccall( libGR_ptr(:gr_inqtextext),
         Nothing,
         (Float64, Float64, Ptr{UInt8}, Ptr{Cdouble}, Ptr{Cdouble}),
         x, y, latin1(string), tbx, tby)
@@ -2252,7 +2258,7 @@ the linear or logarithmic transformation established by the `setscale` function.
 
 """
 function axes2d(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_axes),
+  ccall( libGR_ptr(:gr_axes),
         Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32, Float64),
         x_tick, y_tick, x_org, y_org, major_x, major_y, tick_size)
@@ -2303,7 +2309,7 @@ by the `setscale` function.
 function axeslbl(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int, tick_size::Real, fx::Function, fy::Function)
   fx_c = @cfunction($fx, Int32, (Float64, Float64, Cstring, Float64))
   fy_c = @cfunction($fy, Int32, (Float64, Float64, Cstring, Float64))
-  ccall( Libdl.dlsym(libGR_handle[], :gr_axeslbl),
+  ccall( libGR_ptr(:gr_axeslbl),
         Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32, Float64, Ptr{Nothing}, Ptr{Nothing}),
         x_tick, y_tick, x_org, y_org, major_x, major_y, tick_size, fx_c, fy_c)
@@ -2332,14 +2338,14 @@ lines are drawn using black lines and minor grid lines are drawn using gray line
 
 """
 function grid(x_tick::Real, y_tick::Real, x_org::Real, y_org::Real, major_x::Int, major_y::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_grid),
+  ccall( libGR_ptr(:gr_grid),
         Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32),
         x_tick, y_tick, x_org, y_org, major_x, major_y)
 end
 
 function grid3d(x_tick::Real, y_tick::Real, z_tick::Real, x_org::Real, y_org::Real, z_org::Real, major_x::Int, major_y::Int, major_z::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_grid3d),
+  ccall( libGR_ptr(:gr_grid3d),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64, Int32, Int32, Int32),
         x_tick, y_tick, z_tick, x_org, y_org, z_org, major_x, major_y, major_z)
@@ -2365,7 +2371,7 @@ Draw a standard vertical error bar graph.
 function verrorbars(px, py, e1, e2)
   @assert length(px) == length(py) == length(e1) == length(e2)
   n = length(px)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_verrorbars),
+  ccall( libGR_ptr(:gr_verrorbars),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, e1), convert(Vector{Float64}, e2))
@@ -2391,7 +2397,7 @@ Draw a standard horizontal error bar graph.
 function herrorbars(px, py, e1, e2)
   @assert length(px) == length(py) == length(e1) == length(e2)
   n = length(px)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_herrorbars),
+  ccall( libGR_ptr(:gr_herrorbars),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, e1), convert(Vector{Float64}, e2))
@@ -2420,7 +2426,7 @@ index.
 function polyline3d(px, py, pz)
   @assert length(px) == length(py) == length(pz)
   n = length(px)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_polyline3d),
+  ccall( libGR_ptr(:gr_polyline3d),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz))
@@ -2448,14 +2454,14 @@ scale factor and color index.
 function polymarker3d(px, py, pz)
   @assert length(px) == length(py) == length(pz)
   n = length(px)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_polymarker3d),
+  ccall( libGR_ptr(:gr_polymarker3d),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz))
 end
 
 function axes3d(x_tick::Real, y_tick::Real, z_tick::Real, x_org::Real, y_org::Real, z_org::Real, major_x::Int, major_y::Int, major_z::Int, tick_size::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_axes3d),
+  ccall( libGR_ptr(:gr_axes3d),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64, Int32, Int32, Int32, Float64),
         x_tick, y_tick, z_tick, x_org, y_org, z_org, major_x, major_y, major_z, tick_size)
@@ -2473,7 +2479,7 @@ Display axis titles just outside of their respective axes.
 
 """
 function titles3d(x_title, y_title, z_title)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_titles3d),
+  ccall( libGR_ptr(:gr_titles3d),
         Nothing,
         (Ptr{UInt8}, Ptr{UInt8}, Ptr{UInt8}),
         latin1(x_title), latin1(y_title), latin1(z_title))
@@ -2536,7 +2542,7 @@ function surface(px, py, pz, option::Int)
     if ndims(pz) == 2
       pz = reshape(pz, nx * ny)
     end
-    ccall( Libdl.dlsym(libGR_handle[], :gr_surface),
+    ccall( libGR_ptr(:gr_surface),
           Nothing,
           (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
           nx, ny, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz), option)
@@ -2589,7 +2595,7 @@ function contour(px, py, h, pz, major_h::Int)
     if ndims(pz) == 2
       pz = reshape(pz, nx * ny)
     end
-    ccall( Libdl.dlsym(libGR_handle[], :gr_contour),
+    ccall( libGR_ptr(:gr_contour),
           Nothing,
           (Int32, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
           nx, ny, nh, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, h), convert(Vector{Float64}, pz), major_h)
@@ -2639,7 +2645,7 @@ function contourf(px, py, h, pz, major_h::Int)
     if ndims(pz) == 2
       pz = reshape(pz, nx * ny)
     end
-    ccall( Libdl.dlsym(libGR_handle[], :gr_contourf),
+    ccall( libGR_ptr(:gr_contourf),
           Nothing,
           (Int32, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
           nx, ny, nh, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, h), convert(Vector{Float64}, pz), major_h)
@@ -2651,7 +2657,7 @@ end
 function hexbin(x, y, nbins)
   @assert length(x) == length(y)
   n = length(x)
-  cntmax = ccall( Libdl.dlsym(libGR_handle[], :gr_hexbin),
+  cntmax = ccall( libGR_ptr(:gr_hexbin),
                  Int32,
                  (Int32, Ptr{Float64}, Ptr{Float64}, Int32),
                  n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), nbins)
@@ -2659,14 +2665,14 @@ function hexbin(x, y, nbins)
 end
 
 function setcolormap(index::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setcolormap),
+  ccall( libGR_ptr(:gr_setcolormap),
         Nothing,
         (Int32, ),
         index)
 end
 
 function colorbar()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_colorbar),
+  ccall( libGR_ptr(:gr_colorbar),
         Nothing,
         ()
         )
@@ -2674,7 +2680,7 @@ end
 
 function inqcolor(color::Int)
   rgb = Cint[0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_inqcolor),
+  ccall( libGR_ptr(:gr_inqcolor),
         Nothing,
         (Int32, Ptr{Int32}),
         color, rgb)
@@ -2682,7 +2688,7 @@ function inqcolor(color::Int)
 end
 
 function inqcolorfromrgb(red::Real, green::Real, blue::Real)
-  color = ccall( Libdl.dlsym(libGR_handle[], :gr_inqcolorfromrgb),
+  color = ccall( libGR_ptr(:gr_inqcolorfromrgb),
                 Int32,
                 (Float64, Float64, Float64),
                 red, green, blue)
@@ -2693,7 +2699,7 @@ function hsvtorgb(h::Real, s::Real, v::Real)
   r = Cdouble[0]
   g = Cdouble[0]
   b = Cdouble[0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_hsvtorgb),
+  ccall( libGR_ptr(:gr_hsvtorgb),
         Nothing,
         (Float64, Float64, Float64, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         h, s, v, r, g, b)
@@ -2701,14 +2707,14 @@ function hsvtorgb(h::Real, s::Real, v::Real)
 end
 
 function tick(amin::Real, amax::Real)
-  return ccall( Libdl.dlsym(libGR_handle[], :gr_tick),
+  return ccall( libGR_ptr(:gr_tick),
                Float64,
                (Float64, Float64),
                amin, amax)
 end
 
 function validaterange(amin::Real, amax::Real)
-  return ccall( Libdl.dlsym(libGR_handle[], :gr_validaterange),
+  return ccall( libGR_ptr(:gr_validaterange),
                Int32,
                (Float64, Float64),
                amin, amax)
@@ -2717,7 +2723,7 @@ end
 function adjustlimits(amin::Real, amax::Real)
   _amin = Cdouble[amin]
   _amax = Cdouble[amax]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_adjustlimits),
+  ccall( libGR_ptr(:gr_adjustlimits),
         Nothing,
         (Ptr{Float64}, Ptr{Float64}),
         _amin, _amax)
@@ -2727,7 +2733,7 @@ end
 function adjustrange(amin::Real, amax::Real)
   _amin = Cdouble[amin]
   _amax = Cdouble[amax]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_adjustrange),
+  ccall( libGR_ptr(:gr_adjustrange),
         Nothing,
         (Ptr{Float64}, Ptr{Float64}),
         _amin, _amax)
@@ -2769,7 +2775,7 @@ from the given file extension. The following file types are supported:
 
 """
 function beginprint(pathname)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_beginprint),
+  ccall( libGR_ptr(:gr_beginprint),
         Nothing,
         (Ptr{Cchar}, ),
         pathname)
@@ -2857,14 +2863,14 @@ The available formats are:
 
 """
 function beginprintext(pathname, mode, fmt, orientation)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_beginprintext),
+  ccall( libGR_ptr(:gr_beginprintext),
         Nothing,
         (Ptr{Cchar}, Ptr{Cchar}, Ptr{Cchar}, Ptr{Cchar}),
         pathname, mode, fmt, orientation)
 end
 
 function endprint()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_endprint),
+  ccall( libGR_ptr(:gr_endprint),
         Nothing,
         ()
         )
@@ -2873,7 +2879,7 @@ end
 function ndctowc(x::Real, y::Real)
   _x = Cdouble[x]
   _y = Cdouble[y]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_ndctowc),
+  ccall( libGR_ptr(:gr_ndctowc),
         Nothing,
         (Ptr{Float64}, Ptr{Float64}),
         _x, _y)
@@ -2883,7 +2889,7 @@ end
 function wctondc(x::Real, y::Real)
   _x = Cdouble[x]
   _y = Cdouble[y]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_wctondc),
+  ccall( libGR_ptr(:gr_wctondc),
         Nothing,
         (Ptr{Float64}, Ptr{Float64}),
         _x, _y)
@@ -2894,7 +2900,7 @@ function wc3towc(x::Real, y::Real, z::Real)
   _x = Cdouble[x]
   _y = Cdouble[y]
   _z = Cdouble[z]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_wc3towc),
+  ccall( libGR_ptr(:gr_wc3towc),
         Nothing,
         (Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         _x, _y, _z)
@@ -2919,7 +2925,7 @@ Draw a rectangle using the current line attributes.
 
 """
 function drawrect(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_drawrect),
+  ccall( libGR_ptr(:gr_drawrect),
         Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
@@ -2943,7 +2949,7 @@ Draw a filled rectangle using the current fill attributes.
 
 """
 function fillrect(xmin::Real, xmax::Real, ymin::Real, ymax::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_fillrect),
+  ccall( libGR_ptr(:gr_fillrect),
         Nothing,
         (Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax)
@@ -2975,7 +2981,7 @@ of the given rectangle.
 
 """
 function drawarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Real, a2::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_drawarc),
+  ccall( libGR_ptr(:gr_drawarc),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax, a1, a2)
@@ -3007,7 +3013,7 @@ of the given rectangle.
 
 """
 function fillarc(xmin::Real, xmax::Real, ymin::Real, ymax::Real, a1::Real, a2::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_fillarc),
+  ccall( libGR_ptr(:gr_fillarc),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax, a1, a2)
@@ -3046,7 +3052,7 @@ The following path codes are recognized:
 """
 function drawpath(points, codes, fill::Int)
   len = length(codes)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_drawpath),
+  ccall( libGR_ptr(:gr_drawpath),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{UInt8}, Int32),
         len, convert(Vector{Float64}, points), convert(Vector{UInt8}, codes), fill)
@@ -3105,7 +3111,7 @@ The default arrow style is 1.
 
 """
 function setarrowstyle(style::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setarrowstyle),
+  ccall( libGR_ptr(:gr_setarrowstyle),
         Nothing,
         (Int32, ),
         style)
@@ -3126,7 +3132,7 @@ The default arrow size is 1.
 
 """
 function setarrowsize(size::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setarrowsize),
+  ccall( libGR_ptr(:gr_setarrowsize),
         Nothing,
         (Float64, ),
         size)
@@ -3150,7 +3156,7 @@ function.
 
 """
 function drawarrow(x1::Real, y1::Real, x2::Real, y2::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_drawarrow),
+  ccall( libGR_ptr(:gr_drawarrow),
         Nothing,
         (Float64, Float64, Float64, Float64),
         x1, y1, x2, y2)
@@ -3160,7 +3166,7 @@ function readimage(path)
   width = Cint[0]
   height = Cint[0]
   data = Array{Ptr{UInt32}}(undef, 1)
-  ret = ccall( Libdl.dlsym(libGR_handle[], :gr_readimage),
+  ret = ccall( libGR_ptr(:gr_readimage),
               Int32,
               (Ptr{Cchar}, Ptr{Int32}, Ptr{Int32}, Ptr{Ptr{UInt32}}),
               path, width, height, data)
@@ -3209,14 +3215,14 @@ function drawimage(xmin::Real, xmax::Real, ymin::Real, ymax::Real, width::Int, h
   if ndims(data) == 2
     data = reshape(data, width * height)
   end
-  ccall( Libdl.dlsym(libGR_handle[], :gr_drawimage),
+  ccall( libGR_ptr(:gr_drawimage),
         Nothing,
         (Float64, Float64, Float64, Float64, Int32, Int32, Ptr{UInt32}, Int32),
         xmin, xmax, ymin, ymax, width, height, convert(Vector{UInt32}, data), model)
 end
 
 function importgraphics(path)
-  return ccall( Libdl.dlsym(libGR_handle[], :gr_importgraphics),
+  return ccall( libGR_ptr(:gr_importgraphics),
                Int32,
                (Ptr{Cchar}, ),
                path)
@@ -3243,7 +3249,7 @@ source cast on the graphics objects.
 
 """
 function setshadow(offsetx::Real, offsety::Real, blur::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setshadow),
+  ccall( libGR_ptr(:gr_setshadow),
         Nothing,
         (Float64, Float64, Float64),
         offsetx, offsety, blur)
@@ -3261,7 +3267,7 @@ Set the value of the alpha component associated with GR colors.
 
 """
 function settransparency(alpha::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_settransparency),
+  ccall( libGR_ptr(:gr_settransparency),
         Nothing,
         (Float64, ),
         alpha)
@@ -3280,7 +3286,7 @@ Change the coordinate transformation according to the given matrix.
 """
 function setcoordxform(mat)
   @assert length(mat) == 6
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setcoordxform),
+  ccall( libGR_ptr(:gr_setcoordxform),
         Nothing,
         (Ptr{Float64}, ),
         convert(Vector{Float64}, mat))
@@ -3302,21 +3308,21 @@ the `importgraphics` function.
 
 """
 function begingraphics(path)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_begingraphics),
+  ccall( libGR_ptr(:gr_begingraphics),
         Nothing,
         (Ptr{Cchar}, ),
         path)
 end
 
 function endgraphics()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_endgraphics),
+  ccall( libGR_ptr(:gr_endgraphics),
         Nothing,
         ()
         )
 end
 
 function getgraphics()
-  string = ccall( Libdl.dlsym(libGR_handle[], :gr_getgraphics),
+  string = ccall( libGR_ptr(:gr_getgraphics),
                  Ptr{Cchar},
                  (),
                  )
@@ -3324,7 +3330,7 @@ function getgraphics()
 end
 
 function drawgraphics(string)
-  ret = ccall( Libdl.dlsym(libGR_handle[], :gr_drawgraphics),
+  ret = ccall( libGR_ptr(:gr_drawgraphics),
               Int32,
               (Ptr{Cchar}, ),
               string)
@@ -3349,7 +3355,7 @@ function mathtex(x::Real, y::Real, string)
   if length(string) >= 2 && string[1] == '$' && string[end] == '$'
     string = string[2:end-1]
   end
-  ccall( Libdl.dlsym(libGR_handle[], :gr_mathtex),
+  ccall( libGR_ptr(:gr_mathtex),
         Nothing,
         (Float64, Float64, Ptr{Cchar}),
         x, y, string)
@@ -3361,7 +3367,7 @@ function inqmathtex(x, y, string)
   end
   tbx = Cdouble[0, 0, 0, 0]
   tby = Cdouble[0, 0, 0, 0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_inqmathtex),
+  ccall( libGR_ptr(:gr_inqmathtex),
         Nothing,
         (Float64, Float64, Ptr{UInt8}, Ptr{Cdouble}, Ptr{Cdouble}),
         x, y, string, tbx, tby)
@@ -3740,14 +3746,14 @@ function show()
 end
 
 function setregenflags(flags=0)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setregenflags),
+  ccall( libGR_ptr(:gr_setregenflags),
         Nothing,
         (Int32, ),
         flags)
 end
 
 function inqregenflags()
-  flags = ccall( Libdl.dlsym(libGR_handle[], :gr_inqregenflags),
+  flags = ccall( libGR_ptr(:gr_inqregenflags),
                 Int32,
                 ()
                 )
@@ -3755,35 +3761,35 @@ function inqregenflags()
 end
 
 function savestate()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_savestate),
+  ccall( libGR_ptr(:gr_savestate),
         Nothing,
         ()
         )
 end
 
 function restorestate()
-  ccall( Libdl.dlsym(libGR_handle[], :gr_restorestate),
+  ccall( libGR_ptr(:gr_restorestate),
         Nothing,
         ()
         )
 end
 
 function selectcontext(context::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_selectcontext),
+  ccall( libGR_ptr(:gr_selectcontext),
         Nothing,
         (Int32, ),
         context)
 end
 
 function destroycontext(context::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_destroycontext),
+  ccall( libGR_ptr(:gr_destroycontext),
         Nothing,
         (Int32, ),
         context)
 end
 
 function uselinespec(linespec)
-  return ccall( Libdl.dlsym(libGR_handle[], :gr_uselinespec),
+  return ccall( libGR_ptr(:gr_uselinespec),
                Int32,
                (Ptr{Cchar}, ),
                linespec)
@@ -3795,7 +3801,7 @@ function delaunay(x, y)
   ntri = Cint[0]
   dim = Cint[3]
   triangles = Array{Ptr{Int32}}(undef, 1)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_delaunay),
+  ccall( libGR_ptr(:gr_delaunay),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Int32}, Ptr{Ptr{Int32}}),
         npoints, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
@@ -3831,7 +3837,7 @@ function interp2(X, Y, Z, Xq, Yq, method::Int=0, extrapval=0)
     nxq = length(Xq)
     nyq = length(Yq)
     Zq = Cdouble[1 : nxq * nyq; ]
-    ccall( Libdl.dlsym(libGR_handle[], :gr_interp2),
+    ccall( libGR_ptr(:gr_interp2),
           Nothing,
           (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Cdouble}, Int32, Float64),
           ny, nx, convert(Vector{Float64}, Y), convert(Vector{Float64}, X), convert(Vector{Float64}, Z), nyq, nxq, convert(Vector{Float64}, Yq), convert(Vector{Float64}, Xq), Zq, method, extrapval)
@@ -3862,7 +3868,7 @@ function trisurface(x, y, z)
   ny = length(y)
   nz = length(z)
   n = min(nx, ny, nz)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_trisurface),
+  ccall( libGR_ptr(:gr_trisurface),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         n, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, z))
@@ -3888,7 +3894,7 @@ Draw a contour plot for the given triangle mesh.
 function tricontour(x, y, z, levels)
   npoints = length(x)
   nlevels = length(levels)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_tricontour),
+  ccall( libGR_ptr(:gr_tricontour),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Ptr{Float64}),
         npoints, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, z), nlevels, convert(Vector{Float64}, levels))
@@ -3911,7 +3917,7 @@ function gradient(x, y, z)
     end
     u = Cdouble[1 : nx*ny ;]
     v = Cdouble[1 : nx*ny ;]
-    ccall( Libdl.dlsym(libGR_handle[], :gr_gradient),
+    ccall( libGR_ptr(:gr_gradient),
           Nothing,
           (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Cdouble}, Ptr{Cdouble}),
           nx, ny, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, z), u, v)
@@ -3949,7 +3955,7 @@ function quiver(x, y, u, v, color::Bool=false)
     if ndims(v) == 2
       v = reshape(v, nx * ny)
     end
-    ccall( Libdl.dlsym(libGR_handle[], :gr_quiver),
+    ccall( libGR_ptr(:gr_quiver),
           Nothing,
           (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
           nx, ny, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, u), convert(Vector{Float64}, v), convert(Int32, color))
@@ -3963,7 +3969,7 @@ function reducepoints(xd, yd, n)
   nd = length(xd)
   x = Cdouble[1 : n ;]
   y = Cdouble[1 : n ;]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_reducepoints),
+  ccall( libGR_ptr(:gr_reducepoints),
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Ptr{Cdouble}, Ptr{Cdouble}),
         nd, convert(Vector{Float64}, xd), convert(Vector{Float64}, yd), n, x, y)
@@ -3971,7 +3977,7 @@ function reducepoints(xd, yd, n)
 end
 
 function version()
-  info = ccall( Libdl.dlsym(libGR_handle[], :gr_version),
+  info = ccall( libGR_ptr(:gr_version),
                Cstring,
                ()
                )
@@ -4001,7 +4007,7 @@ end
 
 function openmeta(target=0, device="localhost", port=8002)
     global send_c, recv_c
-    handle = ccall(Libdl.dlsym(libGRM_handle[], :grm_open),
+    handle = ccall(libGRM_ptr(:grm_open),
                    Ptr{Nothing},
                    (Int32, Cstring, Int64, Ptr{Cvoid}, Ptr{Cvoid}),
                    target, device, port, send_c, recv_c)
@@ -4009,7 +4015,7 @@ function openmeta(target=0, device="localhost", port=8002)
 end
 
 function sendmeta(handle, string::AbstractString)
-    ccall(Libdl.dlsym(libGRM_handle[], :grm_send),
+    ccall(libGRM_ptr(:grm_send),
           Nothing,
           (Ptr{Nothing}, Cstring),
           handle, string)
@@ -4020,7 +4026,7 @@ function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=-1)
         if len == -1
             len = length(data)
         end
-        ccall(Libdl.dlsym(libGRM_handle[], :grm_send_ref),
+        ccall(libGRM_ptr(:grm_send_ref),
               Nothing,
               (Ptr{Nothing}, Cstring, Cchar, Cstring, Int32),
               handle, key, fmt, data, len)
@@ -4030,7 +4036,7 @@ function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=-1)
         end
         if typeof(data) <: Array
             if typeof(data[1]) <: String
-                ccall(Libdl.dlsym(libGRM_handle[], :grm_send_ref),
+                ccall(libGRM_ptr(:grm_send_ref),
                       Nothing,
                       (Ptr{Nothing}, Cstring, Cchar, Ptr{Ptr{Cchar}}, Int32),
                       handle, key, fmt, data, len)
@@ -4041,7 +4047,7 @@ function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=-1)
         else
             ref = Ref(data)
         end
-        ccall(Libdl.dlsym(libGRM_handle[], :grm_send_ref),
+        ccall(libGRM_ptr(:grm_send_ref),
               Nothing,
               (Ptr{Nothing}, Cstring, Cchar, Ptr{Nothing}, Int32),
               handle, key, fmt, ref, len)
@@ -4049,7 +4055,7 @@ function sendmetaref(handle, key::AbstractString, fmt::Char, data, len=-1)
 end
 
 function recvmeta(handle, args=C_NULL)
-    args = ccall(Libdl.dlsym(libGRM_handle[], :grm_recv),
+    args = ccall(libGRM_ptr(:grm_recv),
                  Ptr{Nothing},
                  (Ptr{Nothing}, Ptr{Nothing}),
                  handle, args)
@@ -4057,21 +4063,21 @@ function recvmeta(handle, args=C_NULL)
 end
 
 function plotmeta(args)
-    ccall(Libdl.dlsym(libGRM_handle[], :grm_plot),
+    ccall(libGRM_ptr(:grm_plot),
           Nothing,
           (Ptr{Nothing}, ),
           args)
 end
 
 function deletemeta(args)
-    ccall(Libdl.dlsym(libGRM_handle[], :grm_args_delete),
+    ccall(libGRM_ptr(:grm_args_delete),
           Nothing,
           (Ptr{Nothing}, ),
           args)
 end
 
 function closemeta(handle)
-    ccall(Libdl.dlsym(libGRM_handle[], :grm_close),
+    ccall(libGRM_ptr(:grm_close),
           Nothing,
           (Ptr{Nothing}, ),
           handle)
@@ -4081,7 +4087,7 @@ function shadepoints(x, y; dims=[1200, 1200], xform=1)
     @assert length(x) == length(y)
     n = length(x)
     w, h = dims
-    ccall( Libdl.dlsym(libGR_handle[], :gr_shadepoints),
+    ccall( libGR_ptr(:gr_shadepoints),
           Nothing,
           (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32),
           n, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
@@ -4092,7 +4098,7 @@ function shadelines(x, y; dims=[1200, 1200], xform=1)
     @assert length(x) == length(y)
     n = length(x)
     w, h = dims
-    ccall( Libdl.dlsym(libGR_handle[], :gr_shadelines),
+    ccall( libGR_ptr(:gr_shadelines),
           Nothing,
           (Int32, Ptr{Float64}, Ptr{Float64}, Int32, Int32, Int32),
           n, convert(Vector{Float64}, x), convert(Vector{Float64}, y),
@@ -4108,7 +4114,7 @@ function setcolormapfromrgb(r, g, b; positions=Nothing)
         @assert length(positions) == n
         positions = convert(Vector{Float64}, positions)
     end
-    ccall( Libdl.dlsym(libGR_handle[], :gr_setcolormapfromrgb),
+    ccall( libGR_ptr(:gr_setcolormapfromrgb),
           Nothing,
           (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
           n, convert(Vector{Float64}, r), convert(Vector{Float64}, g),
@@ -4120,7 +4126,7 @@ function panzoom(x, y, zoom)
   xmax = Cdouble[0]
   ymin = Cdouble[0]
   ymax = Cdouble[0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_panzoom),
+  ccall( libGR_ptr(:gr_panzoom),
         Nothing,
         (Float64, Float64, Float64, Float64, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}),
         x, y, zoom, zoom, xmin, xmax, ymin, ymax)
@@ -4139,7 +4145,7 @@ Define the border width of subsequent path output primitives.
 
 """
 function setborderwidth(width::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setborderwidth),
+  ccall( libGR_ptr(:gr_setborderwidth),
         Nothing,
         (Float64, ),
         width)
@@ -4157,28 +4163,28 @@ Define the color of subsequent path output primitives.
 
 """
 function setbordercolorind(color::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setbordercolorind),
+  ccall( libGR_ptr(:gr_setbordercolorind),
         Nothing,
         (Int32, ),
         color)
 end
 
 function setprojectiontype(type::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setprojectiontype),
+  ccall( libGR_ptr(:gr_setprojectiontype),
         Nothing,
         (Int32, ),
         type)
 end
 
 function setperspectiveprojection(near_plane::Real, far_plane::Real, fov::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setperspectiveprojection),
+  ccall( libGR_ptr(:gr_setperspectiveprojection),
         Nothing,
         (Float64, Float64, Float64),
         near_plane, far_plane, fov)
 end
 
 function setorthographicprojection(left::Real, right::Real, bottom::Real, top::Real, near_plane::Real, far_plane::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setorthographicprojection),
+  ccall( libGR_ptr(:gr_setorthographicprojection),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64),
         left, right, bottom, top, near_plane, far_plane)
@@ -4187,28 +4193,28 @@ end
 function settransformationparameters(camera_pos_x::Real, camera_pos_y::Real, camera_pos_z::Real,
                                      up_x::Real, up_y::Real, up_z::Real,
                                      focus_point_x::Real, focus_point_y::Real, focus_point_z::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_settransformationparameters),
+  ccall( libGR_ptr(:gr_settransformationparameters),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64),
         camera_pos_x, camera_pos_y, camera_pos_z, up_x, up_y, up_z, focus_point_x, focus_point_y, focus_point_z)
 end
 
 function setwindow3d(xmin::Real, xmax::Real, ymin::Real, ymax::Real, zmin::Real, zmax::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setwindow3d),
+  ccall( libGR_ptr(:gr_setwindow3d),
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64),
         xmin, xmax, ymin, ymax, zmin, zmax)
 end
 
 function setspace3d(rot::Real, tilt::Real, fov::Real, dist::Real)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_setspace3d),
+  ccall( libGR_ptr(:gr_setspace3d),
         Nothing,
         (Float64, Float64, Float64, Float64),
         rot, tilt, fov, dist)
 end
 
 function text3d(x::Real, y::Real, z::Real, string, axis::Int)
-  ccall( Libdl.dlsym(libGR_handle[], :gr_text3d),
+  ccall( libGR_ptr(:gr_text3d),
         Nothing,
         (Float64, Float64, Float64, Ptr{UInt8}, Int32),
         x, y, z, latin1(string), axis)
@@ -4217,7 +4223,7 @@ end
 function inqtext3d(x::Real, y::Real, z::Real, string, axis::Int)
   tbx = Cdouble[0 for i in 1:16]
   tby = Cdouble[0 for i in 1:16]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_inqtext3d),
+  ccall( libGR_ptr(:gr_inqtext3d),
         Nothing,
         (Float64, Float64, Float64, Ptr{UInt8}, Int32, Ptr{Cdouble}, Ptr{Cdouble}),
         x, y, z, latin1(string), axis, tbx, tby)
@@ -4226,7 +4232,7 @@ end
 
 function settextencoding(encoding)
     global text_encoding
-    ccall( Libdl.dlsym(libGR_handle[], :gr_settextencoding),
+    ccall( libGR_ptr(:gr_settextencoding),
         Nothing,
         (Int32, ),
         encoding)
@@ -4235,7 +4241,7 @@ end
 
 function inqtextencoding()
   encoding = Cint[0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_inqtextencoding),
+  ccall( libGR_ptr(:gr_inqtextencoding),
         Nothing,
         (Ptr{Cint}, ),
         encoding)
@@ -4244,7 +4250,7 @@ end
 
 function loadfont(name::String)
   font = Cint[0]
-  ccall( Libdl.dlsym(libGR_handle[], :gr_loadfont),
+  ccall( libGR_ptr(:gr_loadfont),
         Cstring,
         (Cstring, Ptr{Cint}),
         name, font)
