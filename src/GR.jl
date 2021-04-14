@@ -263,7 +263,7 @@ figure_count = None
 send_c = C_NULL
 recv_c = C_NULL
 text_encoding = ENCODING_UTF8
-check_env = true
+const check_env = Ref(true)
 
 isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected() && (isdefined(Main.Atom, :PlotPaneEnabled) ? Main.Atom.PlotPaneEnabled[] : true)
@@ -274,8 +274,6 @@ isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (
 include("funcptrs.jl")
 
 function __init__()
-    global check_env
-
     if isdefined(@__MODULE__, :GR_jll)
         gr_provider[] = "BinaryBuilder"
     else
@@ -345,20 +343,7 @@ function __init__()
     end
     push!(Base.DL_LOAD_PATH, grdir)
 
-    if isdefined(@__MODULE__, :GR_jll)
-        libGR_handle[] = GR_jll.libGR_handle
-        libGR3_handle[] = GR_jll.libGR3_handle
-        libGRM_handle[] = GR_jll.libGRM_handle
-    else
-        libGR_handle[] = Libdl.dlopen(libGR)
-        libGR3_handle[] = Libdl.dlopen(libGR3)
-        libGRM_handle[] = Libdl.dlopen(libGRM)
-    end
-    @debug "Library handles" libGR_handle[] libGR3_handle[] libGRM_handle[]
-
-    libs_loaded[] = true
-
-    check_env = true
+    check_env[] = true
     init(true)
 end
 
@@ -373,8 +358,8 @@ end
 """
 
 function init(always=false)
-    global display_name, mime_type, file_path, send_c, recv_c, text_encoding, check_env
-    if check_env || always
+    global display_name, mime_type, file_path, send_c, recv_c, text_encoding
+    if check_env[] || always
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name = ENV["GRDISPLAY"]
@@ -412,7 +397,7 @@ function init(always=false)
         else
             ENV["GKS_ENCODING"] = "utf8"
         end
-        check_env = always
+        check_env[] = always
     end
 end
 

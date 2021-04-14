@@ -39,25 +39,25 @@ function load_libs()
     libs_loaded[] = true
 end
 
-function get_func_ptr(handle::Ptr{Nothing}, ptrs::Union{LibGR_Ptrs, LibGRM_Ptrs, LibGR3_Ptrs}, func::Symbol)
+function get_func_ptr(handle::Ref{Ptr{Nothing}}, ptrs::Union{LibGR_Ptrs, LibGRM_Ptrs, LibGR3_Ptrs}, func::Symbol)
     if !libs_loaded[]
         load_libs()
     end
     s = getfield(ptrs, func)
     if s == C_NULL
-        s = Libdl.dlsym(handle, func)
+        s = Libdl.dlsym(handle[], func)
         setfield!(ptrs, func, s)
     end
     return s
 end
 
-libGR_ptr(func) = get_func_ptr(libGR_handle[], libGR_ptrs, func)
-libGRM_ptr(func) = get_func_ptr(libGRM_handle[], libGRM_ptrs, func)
-libGR3_ptr(func) = get_func_ptr(libGR3_handle[], libGR3_ptrs, func)
+libGR_ptr(func) = get_func_ptr(libGR_handle, libGR_ptrs, func)
+libGRM_ptr(func) = get_func_ptr(libGRM_handle, libGRM_ptrs, func)
+libGR3_ptr(func) = get_func_ptr(libGR3_handle, libGR3_ptrs, func)
 
-precompile(get_func_ptr, (Ptr{Nothing},LibGR_Ptrs, Symbol) )
-precompile(get_func_ptr, (Ptr{Nothing},LibGRM_Ptrs, Symbol) )
-precompile(get_func_ptr, (Ptr{Nothing},LibGR3_Ptrs, Symbol) )
+precompile(get_func_ptr, (Base.RefValue{Ptr{Nothing}},LibGR_Ptrs, Symbol) )
+precompile(get_func_ptr, (Base.RefValue{Ptr{Nothing}},LibGRM_Ptrs, Symbol) )
+precompile(get_func_ptr, (Base.RefValue{Ptr{Nothing}},LibGR3_Ptrs, Symbol) )
 precompile(libGR_ptr, (Symbol,))
 precompile(libGRM_ptr, (Symbol,))
 precompile(libGR3_ptr, (Symbol,))
