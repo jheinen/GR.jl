@@ -12,6 +12,8 @@
 """
 module Builder
 
+using Pkg
+
 function get_grdir()
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
