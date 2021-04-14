@@ -22,6 +22,7 @@ catch err
     depsfile_succeeded[] = false
     @debug "Could not include depsfile" depsfile err
 end
+include(joinpath(dirname(@__DIR__), "deps", "build.jl"))
 
 if os == :Windows
     const libGR = "libGR.dll"
@@ -308,9 +309,8 @@ function __init__()
                     ENV["JULIA_GR_PROVIDER"] = "GR"
                     @info "Switching provider to GR due to error in depsfile" depsfile
                 end
+                Builder.build()
                 @eval GR begin
-                    import Pkg
-                    Pkg.build("GR")
                     include(depsfile)
                 end
                 GR.__init__()
