@@ -256,32 +256,23 @@ const pluto_data = Ref("")
 const pluto_disp = Ref("")
 
 function get_pluto_html()
-  str = JSON.json(pluto_data[])
-  # remove leading and trailing '"'
-  str = str[2:lastindex(str)]
+  outp = string("""
+    <div id="jsterm-display-""", pluto_disp[], """\">
+    </div>
+    <script type="text/javascript">
+      if (typeof jsterm === "undefined") {
+        var jsterm = new JSTerm(true);
+      }
+      jsterm.draw({
+        "json": '""", pluto_data[], """',
+        "display": '""", pluto_disp[], """'
+      })
+    </script>
+  """)
   if plutoisinit[]
-    return HTML(string("""
-      <div id="jsterm-display-""", pluto_disp[], """\">
-      </div>
-      <script type="text/javascript">
-        function defer() {
-          if (typeof JSTerm === 'undefined') {
-            setTimeout(function() { defer() }, 50);
-          } else {
-            if (typeof jsterm === "undefined") {
-              var jsterm = new JSTerm(true);
-            }
-            jsterm.draw({
-              "json": '""", str, """',
-              "display": '""", pluto_disp[], """'
-            })
-          }
-        }
-        defer();
-      </script>
-    """))
+    return HTML(outp)
   else
-    return "JSTerm (GR) not initialized. Run `GR.js.init_pluto()` at the end of a codecell"
+    return HTML(string("""<script type="text/javascript" src=" """, jssource[], """ "></script>""", outp))
   end
 end
 
@@ -373,12 +364,12 @@ function ws_cb(webs)
 end
 
 const plutoisinit = Ref(false)
+const jssource = Ref("https://gr-framework.org/downloads/gr-0.59.0.js")
 
-function init_pluto(jssource="https://gr-framework.org/downloads/gr-0.59.0.js")
-  GR.init()
+function init_pluto(source=jssource[]::String)
   plutoisinit[] = true
   return HTML(string("""
-    <script type="text/javascript" src=" """, jssource, """ "></script>
+    <script type="text/javascript" src=" """, source, """ "></script>
   """))
 end
 
