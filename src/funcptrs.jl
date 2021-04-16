@@ -26,17 +26,44 @@ const libs_loaded = Ref(false)
 
 function load_libs()
     if gr_provider[] == "BinaryBuilder"
-        libGR_handle[] = GR_jll.libGR_handle
-        libGR3_handle[] = GR_jll.libGR3_handle
-        libGRM_handle[] = GR_jll.libGRM_handle
+        try
+            @eval GR import GR_jll
+            libGR_handle[] = GR_jll.libGR_handle
+            libGR3_handle[] = GR_jll.libGR3_handle
+            libGRM_handle[] = GR_jll.libGRM_handle
+            grdir[] = joinpath(dirname(GR_jll.libGR_path), "..")
+        catch err
+            @error "Error importing GR_jll:" err
+            ENV["GRDIR"] = ""
+            depsfile_succeeded[] = false
+            __init__()
+            load_libs()
+            return
+        end
     else
+        # Global grdir should be set in __init__
+
+        flag = occursin("site-packages", grdir[])
+        loadpath = grdir[]
+        if flag
+            ENV["GKS_FONTPATH"] = grdir[]
+        elseif os != :Windows
+            loadpath = joinpath(loadpath, "lib")
+        else
+            loadpath = joinpath(loadpath, "bin")
+        end
+        push!(Base.DL_LOAD_PATH, loadpath)
+
         libGR_handle[] = Libdl.dlopen(libGR)
         libGR3_handle[] = Libdl.dlopen(libGR3)
         libGRM_handle[] = Libdl.dlopen(libGRM)
     end
     @debug "Library handles" libGR_handle[] libGR3_handle[] libGRM_handle[]
-
+    
     libs_loaded[] = true
+
+    check_env[] = true
+    init(true)
 end
 
 function get_func_ptr(handle::Ref{Ptr{Nothing}}, ptrs::Union{LibGR_Ptrs, LibGRM_Ptrs, LibGR3_Ptrs}, func::Symbol)

@@ -11,17 +11,7 @@ end
 const None = Union{}
 
 const depsfile = joinpath(dirname(@__DIR__), "deps", "deps.jl")
-const depsfile_succeeded = Ref(false)
-try
-    if !isfile(depsfile)
-        touch(depsfile)
-    end
-    include(depsfile)
-    depsfile_succeeded[] = true
-catch err
-    depsfile_succeeded[] = false
-    @debug "Could not include depsfile" depsfile err
-end
+const depsfile_succeeded = Ref(true)
 # Include Builder module in case we need to rebuild
 const buildfile = joinpath(dirname(@__DIR__), "deps", "build.jl")
 
@@ -255,7 +245,8 @@ export
 const ENCODING_LATIN1 = 300
 const ENCODING_UTF8 = 301
 
-grdir = None
+const grdir = Ref("")
+const grdir_default = joinpath(dirname(@__FILE__), "..", "deps", "gr")
 display_name = None
 mime_type = None
 file_path = None
@@ -274,32 +265,63 @@ isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (
 include("funcptrs.jl")
 
 function __init__()
-    if isdefined(@__MODULE__, :GR_jll)
+    #= __init__ Objectives:
+       1. Set gr_provider[] to either "BinaryBuilder" or "GR" based on depsfile
+       2. Set grdir[] global variable, defer to load_libs if gr_provider[] == "BinaryBuilder"
+       3. If grdir[] cannot be set, try to rebuild.
+    =#
+
+    # depsfile (deps/deps.jl) should contain some parseable Julia code
+    contents = nothing
+    # Initially depsfile_succeeded[] is true
+    if depsfile_succeeded[]
+        try
+            contents = isfile(depsfile) ? Meta.parse( strip( read(depsfile, String) ) ) : nothing
+            if contents isa Expr && contents.head == :incomplete
+                depsfile_succeeded[] = false
+            else
+                depsfile_succeeded[] = true
+            end
+        catch err
+            depsfile_succeeded[] = false
+            @debug "Parsing depsfile failed" depsfile contents err
+        end
+    end
+
+    # If the first line is either "import GR_jll" or "using GR_jll" then
+    # we are using the BinaryBuilder method
+    if contents == :(import GR_jll) || contents == :(using GR_jll)
         gr_provider[] = "BinaryBuilder"
     else
         gr_provider[] = "GR"
     end
-    @debug "GR Binaries:" GR.gr_provider GR.libGR GR.libGR3 GR.libGRM
+    @debug "GR Binaries:" GR.gr_provider[] GR.libGR GR.libGR3 GR.libGRM
 
+    # Determine grdir
+    # The environmental variable GRDIR can override the binary provider
+    # If GRDIR is "", then it will force a rebuild.
     if "GRDIR" in keys(ENV)
-        grdir = ENV["GRDIR"]
-        if grdir == ""
-            grdir = None
-        end
+        grdir[] = ENV["GRDIR"]
     elseif gr_provider[] == "BinaryBuilder"
-        grdir = joinpath(dirname(GR_jll.libGR_path), "..")
+        # Defer until load_libs() when we import GR_jll
+        #grdir = joinpath(dirname(GR_jll.libGR_path), "..")
+        grdir[] = "deferred"
     else
-        grdir = None
+        grdir[] = ""
         for d in ("/opt", "/usr/local", "/usr")
             if isdir(joinpath(d, "gr", "fonts"))
-                grdir = joinpath(d, "gr")
+                grdir[] = joinpath(d, "gr")
                 break
             end
         end
     end
-    if grdir == None
-        grdir = joinpath(dirname(@__FILE__), "..", "deps", "gr")
-        if !isdir(grdir)
+
+    if grdir[] == "" || !depsfile_succeeded[]
+        grdir[] = grdir_default 
+        if isdir(grdir[]) && gr_provider[] == "GR"
+            # No need to rebuild, just use grdir_default as grdir
+        else
+            # Rebuild if no file at grdir_default or gr_provider[] == "BinaryBuilder"
             if attempt_to_rebuild[]
                 attempt_to_rebuild[] = false # Avoid infinite loop
                 println("Your GR installation is incomplete. Rerunning build step for GR package.")
@@ -313,15 +335,16 @@ function __init__()
                 @eval GR begin
                     include(buildfile)
                     Builder.build()
-                    include(depsfile)
                 end
+                # Try to read depsfile again
+                depsfile_succeeded[] = true
                 GR.__init__()
                 @info "GR was successfully rebuilt"
                 return
             end
             error("""
             GR was not built correctly and could not be automatically rebuilt.
-            $grdir could not be found.
+            $(grdir[]) is not a directory.
             GR_jll could not be loaded.
 
             Run the following commands:
@@ -331,20 +354,9 @@ function __init__()
             """)
         end
     end
-    ENV["GRDIR"] = grdir
-    ENV["GKS_FONTPATH"] = grdir
-    flag = occursin("site-packages", grdir)
-    if flag
-        ENV["GKS_FONTPATH"] = grdir
-    elseif os != :Windows
-        grdir = joinpath(grdir, "lib")
-    else
-        grdir = joinpath(grdir, "bin")
-    end
-    push!(Base.DL_LOAD_PATH, grdir)
 
-    check_env[] = true
-    init(true)
+    # init(true) is deferred until load_libs
+
 end
 
 """
@@ -359,7 +371,13 @@ end
 
 function init(always=false)
     global display_name, mime_type, file_path, send_c, recv_c, text_encoding
+    if !libs_loaded[]
+        load_libs()
+        return
+    end
     if check_env[] || always
+        ENV["GRDIR"] = grdir[]
+        ENV["GKS_FONTPATH"] = grdir[]
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name = ENV["GRDISPLAY"]
@@ -373,13 +391,17 @@ function init(always=false)
             file_path = tempname() * ".svg"
             ENV["GKSwstype"] = "svg"
             ENV["GKS_FILEPATH"] = file_path
-        elseif gr_provider[] == "BinaryBuilder" && !haskey(ENV, "GKSwstype")
-            ENV["GKSwstype"] = "gksqt"
+        elseif gr_provider[] == "BinaryBuilder"
+            if !haskey(ENV, "GKSwstype")
+                ENV["GKSwstype"] = "gksqt"
+            end
             if os == :Windows
                 if !haskey(ENV, "GKS_QT")
                     ENV["GKS_QT"] = string("set PATH=", GR_jll.LIBPATH[], " & ", GR_jll.gksqt_path)
                 elseif ENV["GKS_QT"] == ""
-                    gksqt(gkscmd -> run(`gksqt`; wait=false))
+                    ENV["PATH"] = GR_jll.LIBPATH[]
+                    gkqst = run(`$(GR_jll.gksqt_path)`; wait = false)
+                    # gksqt(gkscmd -> run(`gksqt`; wait=false))
                 end
             else
                 env = (os == :Darwin) ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
