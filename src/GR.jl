@@ -2,6 +2,11 @@ __precompile__()
 
 module GR
 
+@static if isdefined(Base, :Experimental) &&
+           isdefined(Base.Experimental, Symbol("@optlevel"))
+    Base.Experimental.@optlevel 1
+end
+
 if Sys.KERNEL == :NT
   const os = :Windows
 else
