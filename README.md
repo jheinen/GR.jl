@@ -53,6 +53,39 @@ easier with [Plots](https://juliaplots.github.io), take a look at
 ``Plots`` is great on its own, but the real power comes from the ecosystem surrounding it. You can find more information
 [here](https://docs.juliaplots.org/latest/ecosystem/).
 
+## Basic Troubleshooting
+
+1. The first troubleshooting step is to force GR to rebuild. This should reset GR to using GR_jll.
+
+```julia
+ENV["JULIA_DEBUG"] = "GR" # Turn on debug statements for the GR package
+ENV["GRDIR"] = "" # Force GR to rebuild from default settings
+import Pkg; Pkg.build("GR")
+using GR
+```
+
+Check the generated build.log for errors.
+
+2. The second step is try binaries from GR tarballs.
+
+```julia
+ENV["JULIA_DEBUG"] = "GR" # Turn on debug statements for the GR package
+ENV["GRDIR"] = ""
+ENV["JULIA_GR_PROVIDER"] = "GR"
+# ENV["JULIA_GR_PROVIDER"] = "BinaryBuilder" # Alternatively, uncomment this
+import Pkg; Pkg.build("GR")
+using GR
+```
+
+3. There might be an issue with GR_jll. Check if it can be loaded.
+
+```julia
+import Pkg; Pkg.add("GR_jll")
+using GR_jll
+ccall( (:gr_initgr, "libGR",), Nothing, () )
+```
+
+
 ## Alternatives
 
 Besides ``GR`` and ``Plots`` there is a nice package called [GRUtils](https://github.com/heliosdrm/GRUtils.jl) which provides a user-friendly interface to the low-level ``GR`` subsytem, but in a more "Julian" and modular style. Newcomers are recommended to use this package. A detailed documentation can be found [here](https://heliosdrm.github.io/GRUtils.jl/stable/).
