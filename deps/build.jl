@@ -132,15 +132,17 @@ elseif provider == "GR"
 elseif provider == "Error"
     @info "Intentionally creating an error in depsfile" provider depsfiles
     open(depsfile, "w") do io
-        println(io, "error(\"This is an intentional error for testing.\")")
+        println(io, "error(\"This is an intentional error for testing. Missing )\"")
     end
     #exit(0)
     return
 else
-    @error("Unrecognized JULIA_GR_PROVIDER \"$provider\".\n",
-          "To fix this, set ENV[\"JULIA_GR_PROVIDER\"] to \"BinaryBuilder\" or \"GR\"\n",
-          "and rerun Pkg.build(\"GR\").")
+    @error("""Unrecognized JULIA_GR_PROVIDER \"$provider\".
+          To fix this, set ENV[\"JULIA_GR_PROVIDER\"] to \"BinaryBuilder\" or \"GR\"
+          and rerun Pkg.build(\"GR\").""")
+    error("Unrecognized JULIA_GR_PROVIDER \"$provider\"")
     #exit(1)
+    return
 end
 
 if Sys.KERNEL == :NT
