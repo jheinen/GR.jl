@@ -58,3 +58,38 @@ easier with [Plots](https://juliaplots.github.io), take a look at
 Besides ``GR`` and ``Plots`` there is a nice package called [GRUtils](https://github.com/heliosdrm/GRUtils.jl) which provides a user-friendly interface to the low-level ``GR`` subsytem, but in a more "Julian" and modular style. Newcomers are recommended to use this package. A detailed documentation can be found [here](https://heliosdrm.github.io/GRUtils.jl/stable/).
 
 ``GR`` and ``GRUtils`` are currently still being developed in parallel - but there are plans to merge the two modules in the future.
+## Basic Troubleshooting
+
+Due to conflicts with already installed GR installations or problems with the download, it can happen that the GR runtime environment is not found. Unfortunately, to classify the problem, one can only proceed step by step:
+
+1. The first troubleshooting step is to force GR to rebuild. This should reset GR to using GR_jll.
+
+   ```julia
+   ENV["JULIA_DEBUG"] = "GR" # Turn on debug statements    for the GR package
+   ENV["GRDIR"] = "" # Force GR to rebuild from default settings
+   import Pkg; Pkg.build("GR")
+   using GR
+   ```
+
+   Check the generated build.log for errors.
+
+2. The second step is try binaries from GR tarballs which are provided directly by the GR developers as self-contained distributions for selected platforms - independent of the programming language
+
+   ```julia
+   ENV["JULIA_DEBUG"] = "GR" # Turn on debug statements for the GR package
+   ENV["GRDIR"] = ""
+   ENV["JULIA_GR_PROVIDER"] = "GR"
+   # ENV["JULIA_GR_PROVIDER"] = "BinaryBuilder" # Alternatively, uncomment this
+   import Pkg; Pkg.build("GR")
+   using GR
+   ```
+
+3. There might be an issue with GR_jll. Check if it can be loaded.
+
+   ```julia
+   import Pkg; Pkg.add("GR_jll")
+   using GR_jll
+   ccall( (:gr_initgr, "libGR",), Nothing, () )
+   ```
+
+   If none of these steps lead to success, please contact the developers.

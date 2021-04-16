@@ -1,3 +1,19 @@
+"""
+    GR.Builder is a Module that contains the GR bulid script.
+
+    The main purpose is to select a binary provider and store that choice in
+    deps.jl. A blank deps.jl indicates to use GR. If deps.jl includes
+    `using GR_jll` then the BinaryBuilder GR_jll package will be used.
+
+    When included from Main, the Builder module will invoke Builder.build().
+    Otherwise, Builder.__init__() will do nothing.
+
+    GR.Builder.build() can be invoked manually.
+"""
+module Builder
+
+using Pkg
+
 function get_grdir()
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
@@ -59,6 +75,36 @@ end
 
 const depsfile = joinpath(@__DIR__, "deps.jl")
 
+function __init__()
+    # Only build on module load if being included into Main
+    parent = parentmodule(@__MODULE__)
+    @debug "Build.__init__" parent
+    if parent == Main
+        build()
+    end
+end
+
+"""
+    build()
+
+    Run the bulid process for GR. Can be invoked as GR.Builder.build()
+        or via Pkg.build("GR)
+
+    To set a provider set ENV["JULIA_GR_PROVIDER"] to either
+    1. "GR"
+    2. "BinaryBuilder"
+    
+    or `delete!(ENV, "JULIA_GR_PROVIDER")` to select default.
+
+    Also delete or set `ENV["GRDIR"] = ""`
+"""
+function build()
+
+current_dir = pwd()
+cd(@__DIR__)
+
+try
+
 grdir = get_grdir()
 
 if haskey(ENV, "JULIA_GR_PROVIDER")
@@ -76,7 +122,8 @@ if provider == "BinaryBuilder"
             import GR_jll
         """)
     end
-    exit(0)
+    #exit(0)
+    return
 elseif provider == "GR"
     @info "Emptying depsfile. GR provider is GR" provider depsfile
     open(depsfile, "w") do io
@@ -85,14 +132,17 @@ elseif provider == "GR"
 elseif provider == "Error"
     @info "Intentionally creating an error in depsfile" provider depsfiles
     open(depsfile, "w") do io
-        println(io, "error(\"This is an intentional error for testing.\")")
+        println(io, "error(\"This is an intentional error for testing. Missing )\"")
     end
-    exit(0)
+    #exit(0)
+    return
 else
-    @warn("Unrecognized JULIA_GR_PROVIDER \"$provider\".\n",
-          "To fix this, set ENV[\"JULIA_GR_PROVIDER\"] to \"BinaryBuilder\" or \"GR\"\n",
-          "and rerun Pkg.build(\"GR\").")
-    exit(1)
+    @error("""Unrecognized JULIA_GR_PROVIDER \"$provider\".
+          To fix this, set ENV[\"JULIA_GR_PROVIDER\"] to \"BinaryBuilder\" or \"GR\"
+          and rerun Pkg.build(\"GR\").""")
+    error("Unrecognized JULIA_GR_PROVIDER \"$provider\"")
+    #exit(1)
+    return
 end
 
 if Sys.KERNEL == :NT
@@ -209,3 +259,13 @@ if os == :Linux || os == :FreeBSD
     catch
     end
 end
+
+catch err
+    rethrow(err)
+finally
+    cd(current_dir)
+end # try
+
+end # __build__()
+
+end # module Builder
