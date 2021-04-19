@@ -281,12 +281,7 @@ function __init__()
     # Initially depsfile_succeeded[] is true
     if depsfile_succeeded[]
         try
-            contents = isfile(depsfile) ? Meta.parse( strip( read(depsfile, String) ) ) : nothing
-            if contents isa Expr && contents.head == :incomplete
-                depsfile_succeeded[] = false
-            else
-                depsfile_succeeded[] = true
-            end
+            contents = isfile(depsfile) ? strip( read(depsfile, String) ) : ""
         catch err
             depsfile_succeeded[] = false
             @debug "Parsing depsfile failed" depsfile contents err
@@ -295,7 +290,7 @@ function __init__()
 
     # If the first line is either "import GR_jll" or "using GR_jll" then
     # we are using the BinaryBuilder method
-    if contents == :(import GR_jll) || contents == :(using GR_jll)
+    if contents == "import GR_jll" || contents == "using GR_jll"
         gr_provider[] = "BinaryBuilder"
     else
         gr_provider[] = "GR"
