@@ -164,7 +164,7 @@ function send_command(msg, msgtype, id=nothing)
       @async check_js()
       wait(conditions["sendonconnect"])
     end
-    if ws != nothing
+    if ws !== nothing
       try
         HTTP.write(ws, Array{UInt8}(JSON.json(m)))
       catch e
@@ -292,7 +292,7 @@ function jsterm_send(data::String, disp)
       @async check_js()
       wait(conditions["sendonconnect"])
     end
-      if ws != nothing
+      if ws !== nothing
         try
           conditions[disp] = Condition()
           HTTP.write(ws, Array{UInt8}(JSON.json(Dict("json" => data, "type"=>"draw", "display"=>disp))))

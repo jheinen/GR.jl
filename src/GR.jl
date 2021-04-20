@@ -13,8 +13,6 @@ else
   const os = Sys.KERNEL
 end
 
-const None = Union{}
-
 const depsfile = joinpath(dirname(@__DIR__), "deps", "deps.jl")
 const depsfile_succeeded = Ref(true)
 # Include Builder module in case we need to rebuild
@@ -252,10 +250,10 @@ const ENCODING_UTF8 = 301
 
 const grdir = Ref("")
 const grdir_default = joinpath(dirname(@__FILE__), "..", "deps", "gr")
-display_name = None
-mime_type = None
-file_path = None
-figure_count = None
+display_name = nothing
+mime_type = nothing
+file_path = nothing
+figure_count = nothing
 send_c = C_NULL
 recv_c = C_NULL
 text_encoding = ENCODING_UTF8
@@ -3671,7 +3669,7 @@ end
 
 function isinline()
     global mime_type
-    return !(mime_type in (None, "mov", "mp4", "webm"))
+    return !(mime_type in (nothing, "mov", "mp4", "webm"))
 end
 
 function displayname()
@@ -3690,28 +3688,28 @@ function inline(mime="svg", scroll=true)
             file_path = tempname() * ".six"
             ENV["GKS_WSTYPE"] = "six"
         elseif mime == "js"
-            file_path = None
+            file_path = nothing
             ENV["GRDISPLAY"] = "js"
             send_c, recv_c = js.initjs()
         else
             file_path = tempname() * "." * mime
             ENV["GKS_WSTYPE"] = mime
         end
-        if file_path != None
+        if file_path !== nothing
             ENV["GKS_FILEPATH"] = file_path
         end
         emergencyclosegks()
         mime_type = mime
     end
-    figure_count = scroll ? None : 0
+    figure_count = scroll ? nothing : 0
     mime_type
 end
 
 function reset()
     global mime_type, file_path, figure_count
-    mime_type = None
-    file_path = None
-    figure_count = None
+    mime_type = nothing
+    file_path = nothing
+    figure_count = nothing
     delete!(ENV, "GKS_WSTYPE")
     delete!(ENV, "GKS_FILEPATH")
     emergencyclosegks()
@@ -3736,7 +3734,7 @@ function show()
         return content
     elseif mime_type == "iterm"
         content = string(osc_seq(), "1337;File=inline=1;height=24;preserveAspectRatio=0:", Base64.base64encode(open(read,file_path)), st_seq())
-        if figure_count != None
+        if figure_count != nothing
             figure_count += 1
             (figure_count > 1) && print("\e[24A")
         end
@@ -3749,7 +3747,7 @@ function show()
         rm(file_path)
         return nothing
     end
-    return None
+    return nothing
 end
 
 function setregenflags(flags=0)

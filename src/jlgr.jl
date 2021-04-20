@@ -5,11 +5,9 @@ import GR
 using Serialization
 using Sockets
 
-const None = Union{}
-
 function search(s::AbstractString, c::Char)
     result = findfirst(isequal(c), s)
-    result != nothing ? result : 0
+    result !== nothing ? result : 0
 end
 
 signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
@@ -77,7 +75,7 @@ function Figure(width=600, height=450)
     kvs[:subplot] = [0, 1, 0, 1]
     kvs[:clear] = true
     kvs[:update] = true
-    kvs[:panzoom] = None
+    kvs[:panzoom] = nothing
     PlotObject(obj, args, kvs)
 end
 
@@ -324,7 +322,7 @@ function set_window(kind)
     end
     plt.kvs[:scale] = scale
 
-    if plt.kvs[:panzoom] != None
+    if plt.kvs[:panzoom] !== nothing
         xmin, xmax, ymin, ymax = GR.panzoom(plt.kvs[:panzoom]...)
         plt.kvs[:xrange] = (xmin, xmax)
         plt.kvs[:yrange] = (ymin, ymax)
@@ -344,7 +342,7 @@ function set_window(kind)
         xmax += 0.5
     end
     if scale & GR.OPTION_X_LOG == 0
-        if !haskey(plt.kvs, :xlim) && plt.kvs[:panzoom] == None && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
+        if !haskey(plt.kvs, :xlim) && plt.kvs[:panzoom] === nothing && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
             xmin, xmax = GR.adjustlimits(xmin, xmax)
         end
         if haskey(plt.kvs, :xticks)
@@ -372,7 +370,7 @@ function set_window(kind)
         ymin = scale & GR.OPTION_Y_LOG == 0 ? 0 : 1
     end
     if scale & GR.OPTION_Y_LOG == 0
-        if !haskey(plt.kvs, :ylim) && plt.kvs[:panzoom] == None && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
+        if !haskey(plt.kvs, :ylim) && plt.kvs[:panzoom] === nothing && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
             ymin, ymax = GR.adjustlimits(ymin, ymax)
         end
         if haskey(plt.kvs, :yticks)
@@ -437,7 +435,7 @@ end
 function ticklabel_fun(labels::AbstractVecOrMat{T}) where T <: AbstractString
     (x, y, svalue, value) -> begin
         pos = findfirst(t->(value≈t), collect(1:length(labels)))
-        lab = (pos == nothing) ? "" : labels[pos]
+        lab = (pos === nothing) ? "" : labels[pos]
         GR.textext(x, y, lab)
     end
 end
@@ -1119,7 +1117,7 @@ function plot_data(flag=true)
     GR.init()
 
     target = GR.displayname()
-    if flag && target != None
+    if flag && target !== nothing
         if target == "js" || target == "meta" || target == "pluto"
             send_meta(0)
         else

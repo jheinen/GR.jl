@@ -32,7 +32,7 @@ function main()
 
   while isopen(c)
     spectrum = take!(c)
-    if spectrum == nothing
+    if spectrum === nothing
       break
     end
 
