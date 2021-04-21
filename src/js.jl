@@ -417,4 +417,6 @@ function initjs()
     send_c, recv_c
 end
 
+precompile(initjs, ())
+
 end # module
