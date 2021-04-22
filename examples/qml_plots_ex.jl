@@ -42,7 +42,7 @@ function mousePosition(eventx, eventy, deltay)
   "($(round(x,digits=4)), $(round(y,digits=4)))"
 end
 
-load(qmlfile,
+loadqml(qmlfile,
   paint_cfunction = @safe_cfunction(paint, Cvoid, (CxxPtr{QPainter}, CxxPtr{JuliaPaintedItem})),
   parameters = JuliaPropertyMap("nbins" => nbins))
 
