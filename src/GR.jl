@@ -250,13 +250,13 @@ const ENCODING_UTF8 = 301
 
 const grdir = Ref("")
 const grdir_default = joinpath(dirname(@__FILE__), "..", "deps", "gr")
-display_name = nothing
-mime_type = nothing
-file_path = nothing
-figure_count = nothing
-send_c = C_NULL
-recv_c = C_NULL
-text_encoding = ENCODING_UTF8
+const display_name = Ref("")
+const mime_type = Ref("")
+const file_path = Ref("")
+const figure_count = Ref(-1)
+const send_c = Ref(C_NULL)
+const recv_c = Ref(C_NULL)
+const text_encoding = Ref(ENCODING_UTF8)
 const check_env = Ref(true)
 
 isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
@@ -368,7 +368,6 @@ end
 """
 
 function init(always=false)
-    global display_name, mime_type, file_path, send_c, recv_c, text_encoding
     if !libs_loaded[]
         load_libs()
         return
@@ -378,17 +377,17 @@ function init(always=false)
         ENV["GKS_FONTPATH"] = grdir[]
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
-            display_name = ENV["GRDISPLAY"]
-            if display_name == "js" || display_name == "pluto"
-                send_c, recv_c = js.initjs()
+            display_name[] = ENV["GRDISPLAY"]
+            if display_name[] == "js" || display_name[] == "pluto"
+                send_c[], recv_c[] = js.initjs()
             end
         elseif "GKS_NO_GUI" in keys(ENV)
             return
         elseif isijulia() || ispluto() || isvscode() || isatom()
-            mime_type = "svg"
-            file_path = tempname() * ".svg"
+            mime_type[] = "svg"
+            file_path[] = tempname() * ".svg"
             ENV["GKSwstype"] = "svg"
-            ENV["GKS_FILEPATH"] = file_path
+            ENV["GKS_FILEPATH"] = file_path[]
         elseif gr_provider[] == "BinaryBuilder"
             if !haskey(ENV, "GKSwstype")
                 ENV["GKSwstype"] = "gksqt"
@@ -407,12 +406,12 @@ function init(always=false)
             end
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
-            text_encoding = ENCODING_UTF8
+            text_encoding[] = ENCODING_UTF8
         elseif "GKS_ENCODING" in keys(ENV)
             if ENV["GKS_ENCODING"] == "latin1" || ENV["GKS_ENCODING"] == "latin-1"
-                text_encoding = ENCODING_LATIN1
+                text_encoding[] = ENCODING_LATIN1
             else
-                text_encoding = ENCODING_UTF8
+                text_encoding[] = ENCODING_UTF8
             end
         else
             ENV["GKS_ENCODING"] = "utf8"
@@ -673,7 +672,7 @@ function polymarker(x, y)
 end
 
 function latin1(string)
-  if text_encoding == ENCODING_UTF8
+  if text_encoding[] == ENCODING_UTF8
     # add null character '\0' for SubString types (see GR.jl SubString issue #336)
     if typeof(string) == SubString{String}
       return string * "\0"
@@ -3668,83 +3667,77 @@ function _readfile(path)
 end
 
 function isinline()
-    global mime_type
-    return !(mime_type in (nothing, "mov", "mp4", "webm"))
+    return !(mime_type[] in ("", "mov", "mp4", "webm"))
 end
 
 function displayname()
-    global display_name
-    return display_name
+    return display_name[]
 end
 
 function inline(mime="svg", scroll=true)
-    global mime_type, file_path, figure_count, send_c, recv_c
     init()
-    if mime_type != mime
+    if mime_type[] != mime
         if mime == "iterm"
-            file_path = tempname() * ".pdf"
+            file_path[] = tempname() * ".pdf"
             ENV["GKS_WSTYPE"] = "pdf"
         elseif mime == "mlterm"
-            file_path = tempname() * ".six"
+            file_path[] = tempname() * ".six"
             ENV["GKS_WSTYPE"] = "six"
         elseif mime == "js"
-            file_path = nothing
+            file_path[] = nothing
             ENV["GRDISPLAY"] = "js"
-            send_c, recv_c = js.initjs()
+            send_c[], recv_c[] = js.initjs()
         else
-            file_path = tempname() * "." * mime
+            file_path[] = tempname() * "." * mime
             ENV["GKS_WSTYPE"] = mime
         end
-        if file_path !== nothing
-            ENV["GKS_FILEPATH"] = file_path
+        if file_path[] !== nothing
+            ENV["GKS_FILEPATH"] = file_path[]
         end
         emergencyclosegks()
-        mime_type = mime
+        mime_type[] = mime
     end
-    figure_count = scroll ? nothing : 0
-    mime_type
+    figure_count[] = scroll ? -1 : 0
+    mime_type[]
 end
 
 function reset()
-    global mime_type, file_path, figure_count
-    mime_type = nothing
-    file_path = nothing
-    figure_count = nothing
+    mime_type[] = ""
+    file_path[] = ""
+    figure_count[] = -1 
     delete!(ENV, "GKS_WSTYPE")
     delete!(ENV, "GKS_FILEPATH")
     emergencyclosegks()
 end
 
 function show()
-    global mime_type, file_path, figure_count
-
     emergencyclosegks()
-    if mime_type == "svg"
-        content = SVG(_readfile(file_path))
-        rm(file_path)
+    if mime_type[] == "svg"
+        content = SVG(_readfile(file_path[]))
+        rm(file_path[])
         return content
-    elseif mime_type == "png"
-        content = PNG(_readfile(file_path))
-        rm(file_path)
+    elseif mime_type[] == "png"
+        content = PNG(_readfile(file_path[]))
+        rm(file_path[])
         return content
-    elseif mime_type in ("mov", "mp4", "webm")
-        mimespec = mime_type == "mov" ? "video/mp4" : "video/$mime_type"
-        content = HTML(string("""<video autoplay controls><source type="$mimespec" src="data:$mimespec;base64,""", Base64.base64encode(open(read,file_path)),""""></video>"""))
-        rm(file_path)
+    elseif mime_type[] in ("mov", "mp4", "webm")
+        mimespec = mime_type[] == "mov" ? "video/mp4" : "video/$(mime_type[])"
+        content = HTML(string("""<video autoplay controls><source type="$mimespec" src="data:$mimespec;base64,""", Base64.base64encode(open(read,file_path[])),""""></video>"""))
+        rm(file_path[])
         return content
-    elseif mime_type == "iterm"
-        content = string(osc_seq(), "1337;File=inline=1;height=24;preserveAspectRatio=0:", Base64.base64encode(open(read,file_path)), st_seq())
-        if figure_count != nothing
-            figure_count += 1
-            (figure_count > 1) && print("\e[24A")
+    elseif mime_type[] == "iterm"
+        content = string(osc_seq(), "1337;File=inline=1;height=24;preserveAspectRatio=0:", Base64.base64encode(open(read,file_path[])), st_seq())
+        if figure_count[] != -1
+            figure_count[] += 1
+            (figure_count[] > 1) && print("\e[24A")
         end
         println(content)
-        rm(file_path)
+        rm(file_path[])
         return nothing
-    elseif mime_type == "mlterm"
-        content = read(file_path, String)
+    elseif mime_type[] == "mlterm"
+        content = read(file_path[], String)
         println(content)
-        rm(file_path)
+        rm(file_path[])
         return nothing
     end
     return nothing
@@ -4011,11 +4004,10 @@ function check_for_updates()
 end
 
 function openmeta(target=0, device="localhost", port=8002)
-    global send_c, recv_c
     handle = ccall(libGRM_ptr(:grm_open),
                    Ptr{Nothing},
                    (Int32, Cstring, Int64, Ptr{Cvoid}, Ptr{Cvoid}),
-                   target, device, port, send_c, recv_c)
+                   target, device, port, send_c[], recv_c[])
     return handle
 end
 
@@ -4236,12 +4228,11 @@ function inqtext3d(x::Real, y::Real, z::Real, string, axis::Int)
 end
 
 function settextencoding(encoding)
-    global text_encoding
     ccall( libGR_ptr(:gr_settextencoding),
         Nothing,
         (Int32, ),
         encoding)
-    text_encoding = encoding
+    text_encoding[] = encoding
 end
 
 function inqtextencoding()

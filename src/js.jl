@@ -6,8 +6,11 @@ pxwidth = 640
 pxheight = 480
 
 id_count = 0
-js_running = false
-checking_js = false
+const js_running = Ref(false)
+const checking_js = Ref(false)
+const port = Ref(0)
+const connected = Ref(false)
+const connect_cond = Ref(Condition())
 conditions = Dict()
 l = ReentrantLock()
 
@@ -20,7 +23,7 @@ mutable struct JSTermWidget
 end
 
 function inject_js()
-  global wss, port
+  global wss
 
   wss = nothing
   _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
@@ -39,7 +42,7 @@ function inject_js()
   else
       display(HTML(string("""
         <script type="text/javascript" id="jsterm-javascript">
-          WEB_SOCKET_ADDRESS = 'ws://127.0.0.1:""", port, """';
+          WEB_SOCKET_ADDRESS = 'ws://127.0.0.1:""", port[], """';
           if (typeof jsterm === 'undefined') {
             """, _gr_js, """
             jsterm = new JSTerm();
@@ -51,19 +54,18 @@ function inject_js()
 end
 
 function check_js()
-    global js_running, checking_js, port
-    if !checking_js
-        checking_js = true
+    if !checking_js[]
+        checking_js[] = true
         d = Dict("text/html"=>string("""
           <script type="text/javascript">
-            WEB_SOCKET_ADDRESS = 'ws://127.0.0.1:""", port, """';
+            WEB_SOCKET_ADDRESS = 'ws://127.0.0.1:""", port[], """';
             if (typeof JSTerm !== 'undefined') {
               if (typeof jsterm === 'undefined') {
                 jsterm = new JSTerm();
               }
               jsterm.connectWs();
             } else {
-              ws = new WebSocket('ws://127.0.0.1:""", port, """');
+              ws = new WebSocket('ws://127.0.0.1:""", port[], """');
               ws.onopen = function() {
                 ws.send("inject-js");
                 ws.close();
@@ -78,10 +80,10 @@ end
 
 
 function JSTermWidget(id::Int, width::Int, height::Int, disp::Int)
-  global id_count, js_running
+  global id_count
   if GR.isijulia()
     id_count += 1
-    if !js_running
+    if !js_running[]
       @async check_js()
     end
     JSTermWidget(id, width, height, disp, false)
@@ -159,7 +161,7 @@ function send_command(msg, msgtype, id=nothing)
     else
       m = merge(msg, Dict("type" => msgtype))
     end
-    if !js_running
+    if !js_running[]
       conditions["sendonconnect"] = Condition()
       @async check_js()
       wait(conditions["sendonconnect"])
@@ -169,7 +171,7 @@ function send_command(msg, msgtype, id=nothing)
         HTTP.write(ws, Array{UInt8}(JSON.json(m)))
       catch e
         ws = nothing
-        js_running = false
+        js_running[] = false
       end
     end
   else
@@ -250,17 +252,16 @@ function settooltip(tthtml, ttdata, id)
   return nothing
 end
 
-pluto_data = Dict()
-pluto_disp = ""
+const pluto_data = Ref(Dict())
+const pluto_disp = Ref("")
 
 function get_pluto_html()
-  global pluto_data, pluto_disp, plutoisinit
-  str = JSON.json(pluto_data)
+  str = JSON.json(pluto_data[])
   # remove leading and trailing '"'
   str = str[2:lastindex(str)]
-  if plutoisinit
+  if plutoisinit[]
     return HTML(string("""
-      <div id="jsterm-display-""", pluto_disp, """\">
+      <div id="jsterm-display-""", pluto_disp[], """\">
       </div>
       <script type="text/javascript">
         function defer() {
@@ -272,7 +273,7 @@ function get_pluto_html()
             }
             jsterm.draw({
               "json": '""", str, """',
-              "display": '""", pluto_disp, """'
+              "display": '""", pluto_disp[], """'
             })
           }
         }
@@ -285,9 +286,9 @@ function get_pluto_html()
 end
 
 function jsterm_send(data::String, disp)
-  global js_running, draw_end_condition, ws, conditions, pluto_data, pluto_disp
+  global draw_end_condition, ws, conditions
   if GR.isijulia()
-    if !js_running
+    if !js_running[]
       conditions["sendonconnect"] = Condition()
       @async check_js()
       wait(conditions["sendonconnect"])
@@ -299,12 +300,12 @@ function jsterm_send(data::String, disp)
           wait(conditions[disp])
         catch e
           ws = nothing
-          js_running = false
+          js_running[] = false
         end
       end
   elseif GR.displayname() == "pluto"
-    pluto_data = data
-    pluto_disp = disp
+    pluto_data[] = data
+    pluto_disp[] = disp
   else
     error("jsterm_send is only available in IJulia environments and Pluto.jl notebooks")
   end
@@ -320,7 +321,7 @@ end
 
 function recv(name::Cstring, id::Int32, msg::Cstring)
     # receives string from C and sends it to JS via Comm
-    global js_running, draw_end_condition
+    global draw_end_condition
 
     id = string(UUIDs.uuid4());
     jsterm_send(unsafe_string(msg), id)
@@ -332,12 +333,12 @@ function send(name::Cstring, id::Int32)
     return convert(Cstring, "String")
 end
 
-send_c = nothing
-recv_c = nothing
-init = false
+const send_c = Ref(C_NULL)
+const recv_c = Ref(C_NULL)
+const init = Ref(false)
 
 function ws_cb(webs)
-  global comm_msg_callback, ws, js_running, conditions, checking_js
+  global comm_msg_callback, ws, conditions
   check = false
   while !eof(webs)
     data = readavailable(webs)
@@ -349,13 +350,13 @@ function ws_cb(webs)
         d = Dict("text/html"=>string(""))
         transient = Dict("display_id"=>"jsterm_check")
         Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "update_display_data", Dict("data"=>d, "metadata"=>Dict(), "transient"=>transient)))
-        checking_js = false
+        checking_js[] = false
       elseif data == "js-running"
         d = Dict("text/html"=>string(""))
         transient = Dict("display_id"=>"jsterm_check")
         Main.IJulia.send_ipython(Main.IJulia.publish[], Main.IJulia.msg_pub(Main.IJulia.execute_msg, "update_display_data", Dict("data"=>d, "metadata"=>Dict(), "transient"=>transient)))
         ws = webs
-        js_running = true
+        js_running[] = true
         if haskey(conditions, "sendonconnect")
           notify(conditions["sendonconnect"])
         end
@@ -366,27 +367,25 @@ function ws_cb(webs)
   end
   if !check
     ws = nothing
-    js_running = false
+    js_running[] = false
     @async check_js()
   end
 end
 
-plutoisinit = false
+const plutoisinit = Ref(false)
 
 function init_pluto(jssource="https://gr-framework.org/downloads/gr-0.57.2.js")
-  global plutoisinit
-  plutoisinit = true
+  plutoisinit[] = true
   return HTML(string("""
     <script type="text/javascript" src=" """, jssource, """ "></script>
   """))
 end
 
 function initjs()
-    global send_c, recv_c, init, checking_js, port, connect_cond, connected
-    if !init
-      init = true
-      send_c = @cfunction(send, Cstring, (Cstring, Int32))
-      recv_c = @cfunction(recv, Int32, (Cstring, Int32, Cstring))
+    if !init[]
+      init[] = true
+      send_c[] = @cfunction(send, Cstring, (Cstring, Int32))
+      recv_c[] = @cfunction(recv, Int32, (Cstring, Int32, Cstring))
       @eval js begin
         import UUIDs
         import HTTP
@@ -394,27 +393,26 @@ function initjs()
         import JSON
       end
       if GR.isijulia()
-        connect_cond = Condition()
-        connected = false
+        connect_cond[] = Condition()
+        connected[] = false
         ws_server_task = @async begin
-          global port, connect_cond, connected
-          #port, server = Sockets.listenany(8081)
-          port = 8081
+          #port[], server = Sockets.listenany(8081)
+          port[] = 8081
           #server = Sockets.listen(8081)
           #@async HTTP.listen(server=server, verbose=true) do webs
           @async HTTP.WebSockets.listen("0.0.0.0", UInt16(8081)) do webs
             ws_cb(webs)
             #HTTP.WebSockets.upgrade(ws_cb, webs)
           end
-          connected = true
-          notify(connect_cond)
+          connected[] = true
+          notify(connect_cond[])
         end
-        if !connected
-          wait(connect_cond)
+        if !connected[]
+          wait(connect_cond[])
         end
       end
     end
-    send_c, recv_c
+    send_c[], recv_c[]
 end
 
 precompile(initjs, ())
