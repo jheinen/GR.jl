@@ -252,7 +252,7 @@ function settooltip(tthtml, ttdata, id)
   return nothing
 end
 
-const pluto_data = Ref(Dict())
+const pluto_data = Ref("")
 const pluto_disp = Ref("")
 
 function get_pluto_html()
