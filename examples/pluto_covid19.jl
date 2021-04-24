@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.12.11
+# v0.14.3
 
 using Markdown
 using InteractiveUtils
@@ -59,7 +59,7 @@ begin
 end;
 
 # ╔═╡ 918f640a-2699-11eb-02d8-998ed76c614a
-plot(day, confirmed, xlim=(0, ndays+1), ylim=(10, 20_000_000), ylog=true,
+plot(day, confirmed, xlim=(0, ndays+1), ylim=(10, 100_000_000), ylog=true,
      title="Confirmed SARS–CoV–2 infections", xlabel="Day", ylabel="Confirmed",
      labels=countries, location=4)
 
