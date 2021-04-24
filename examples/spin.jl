@@ -52,7 +52,7 @@ function main()
 
   while isopen(c)
     magmom = take!(c)
-    if magmom == nothing
+    if magmom === nothing
       break
     end
 

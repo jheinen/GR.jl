@@ -2,13 +2,16 @@ __precompile__()
 
 module GR
 
+@static if isdefined(Base, :Experimental) &&
+           isdefined(Base.Experimental, Symbol("@optlevel"))
+    Base.Experimental.@optlevel 1
+end
+
 if Sys.KERNEL == :NT
   const os = :Windows
 else
   const os = Sys.KERNEL
 end
-
-const None = Union{}
 
 const depsfile = joinpath(dirname(@__DIR__), "deps", "deps.jl")
 const depsfile_succeeded = Ref(true)
@@ -247,13 +250,13 @@ const ENCODING_UTF8 = 301
 
 const grdir = Ref("")
 const grdir_default = joinpath(dirname(@__FILE__), "..", "deps", "gr")
-display_name = None
-mime_type = None
-file_path = None
-figure_count = None
-send_c = C_NULL
-recv_c = C_NULL
-text_encoding = ENCODING_UTF8
+const display_name = Ref("")
+const mime_type = Ref("")
+const file_path = Ref("")
+const figure_count = Ref(-1)
+const send_c = Ref(C_NULL)
+const recv_c = Ref(C_NULL)
+const text_encoding = Ref(ENCODING_UTF8)
 const check_env = Ref(true)
 
 isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
@@ -276,12 +279,7 @@ function __init__()
     # Initially depsfile_succeeded[] is true
     if depsfile_succeeded[]
         try
-            contents = isfile(depsfile) ? Meta.parse( strip( read(depsfile, String) ) ) : nothing
-            if contents isa Expr && contents.head == :incomplete
-                depsfile_succeeded[] = false
-            else
-                depsfile_succeeded[] = true
-            end
+            contents = isfile(depsfile) ? strip( read(depsfile, String) ) : ""
         catch err
             depsfile_succeeded[] = false
             @debug "Parsing depsfile failed" depsfile contents err
@@ -290,7 +288,7 @@ function __init__()
 
     # If the first line is either "import GR_jll" or "using GR_jll" then
     # we are using the BinaryBuilder method
-    if contents == :(import GR_jll) || contents == :(using GR_jll)
+    if contents == "import GR_jll" || contents == "using GR_jll"
         gr_provider[] = "BinaryBuilder"
     else
         gr_provider[] = "GR"
@@ -370,7 +368,6 @@ end
 """
 
 function init(always=false)
-    global display_name, mime_type, file_path, send_c, recv_c, text_encoding
     if !libs_loaded[]
         load_libs()
         return
@@ -380,17 +377,17 @@ function init(always=false)
         ENV["GKS_FONTPATH"] = grdir[]
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
-            display_name = ENV["GRDISPLAY"]
-            if display_name == "js" || display_name == "pluto"
-                send_c, recv_c = js.initjs()
+            display_name[] = ENV["GRDISPLAY"]
+            if display_name[] == "js" || display_name[] == "pluto"
+                send_c[], recv_c[] = js.initjs()
             end
         elseif "GKS_NO_GUI" in keys(ENV)
             return
         elseif isijulia() || ispluto() || isvscode() || isatom()
-            mime_type = "svg"
-            file_path = tempname() * ".svg"
+            mime_type[] = "svg"
+            file_path[] = tempname() * ".svg"
             ENV["GKSwstype"] = "svg"
-            ENV["GKS_FILEPATH"] = file_path
+            ENV["GKS_FILEPATH"] = file_path[]
         elseif gr_provider[] == "BinaryBuilder"
             if !haskey(ENV, "GKSwstype")
                 ENV["GKSwstype"] = "gksqt"
@@ -409,12 +406,12 @@ function init(always=false)
             end
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
-            text_encoding = ENCODING_UTF8
+            text_encoding[] = ENCODING_UTF8
         elseif "GKS_ENCODING" in keys(ENV)
-            if ENV["GKS_ENCODING"] in ("latin1", "latin-1")
-                text_encoding = ENCODING_LATIN1
+            if ENV["GKS_ENCODING"] == "latin1" || ENV["GKS_ENCODING"] == "latin-1"
+                text_encoding[] = ENCODING_LATIN1
             else
-                text_encoding = ENCODING_UTF8
+                text_encoding[] = ENCODING_UTF8
             end
         else
             ENV["GKS_ENCODING"] = "utf8"
@@ -675,7 +672,7 @@ function polymarker(x, y)
 end
 
 function latin1(string)
-  if text_encoding == ENCODING_UTF8
+  if text_encoding[] == ENCODING_UTF8
     # add null character '\0' for SubString types (see GR.jl SubString issue #336)
     if typeof(string) == SubString{String}
       return string * "\0"
@@ -3381,211 +3378,211 @@ function inqmathtex(x, y, string)
   return tbx, tby
 end
 
-ASF_BUNDLED = 0
-ASF_INDIVIDUAL = 1
+const ASF_BUNDLED = 0
+const ASF_INDIVIDUAL = 1
 
-NOCLIP = 0
-CLIP = 1
+const NOCLIP = 0
+const CLIP = 1
 
-COORDINATES_WC = 0
-COORDINATES_NDC = 1
+const COORDINATES_WC = 0
+const COORDINATES_NDC = 1
 
-INTSTYLE_HOLLOW = 0
-INTSTYLE_SOLID = 1
-INTSTYLE_PATTERN = 2
-INTSTYLE_HATCH = 3
+const INTSTYLE_HOLLOW = 0
+const INTSTYLE_SOLID = 1
+const INTSTYLE_PATTERN = 2
+const INTSTYLE_HATCH = 3
 
-TEXT_HALIGN_NORMAL = 0
-TEXT_HALIGN_LEFT = 1
-TEXT_HALIGN_CENTER = 2
-TEXT_HALIGN_RIGHT = 3
-TEXT_VALIGN_NORMAL = 0
-TEXT_VALIGN_TOP = 1
-TEXT_VALIGN_CAP = 2
-TEXT_VALIGN_HALF = 3
-TEXT_VALIGN_BASE = 4
-TEXT_VALIGN_BOTTOM = 5
+const TEXT_HALIGN_NORMAL = 0
+const TEXT_HALIGN_LEFT = 1
+const TEXT_HALIGN_CENTER = 2
+const TEXT_HALIGN_RIGHT = 3
+const TEXT_VALIGN_NORMAL = 0
+const TEXT_VALIGN_TOP = 1
+const TEXT_VALIGN_CAP = 2
+const TEXT_VALIGN_HALF = 3
+const TEXT_VALIGN_BASE = 4
+const TEXT_VALIGN_BOTTOM = 5
 
-TEXT_PATH_RIGHT = 0
-TEXT_PATH_LEFT = 1
-TEXT_PATH_UP = 2
-TEXT_PATH_DOWN = 3
+const TEXT_PATH_RIGHT = 0
+const TEXT_PATH_LEFT = 1
+const TEXT_PATH_UP = 2
+const TEXT_PATH_DOWN = 3
 
-TEXT_PRECISION_STRING = 0
-TEXT_PRECISION_CHAR = 1
-TEXT_PRECISION_STROKE = 2
-TEXT_PRECISION_OUTLINE = 3
+const TEXT_PRECISION_STRING = 0
+const TEXT_PRECISION_CHAR = 1
+const TEXT_PRECISION_STROKE = 2
+const TEXT_PRECISION_OUTLINE = 3
 
-LINETYPE_SOLID = 1
-LINETYPE_DASHED = 2
-LINETYPE_DOTTED = 3
-LINETYPE_DASHED_DOTTED = 4
-LINETYPE_DASH_2_DOT = -1
-LINETYPE_DASH_3_DOT = -2
-LINETYPE_LONG_DASH = -3
-LINETYPE_LONG_SHORT_DASH = -4
-LINETYPE_SPACED_DASH = -5
-LINETYPE_SPACED_DOT = -6
-LINETYPE_DOUBLE_DOT = -7
-LINETYPE_TRIPLE_DOT = -8
+const LINETYPE_SOLID = 1
+const LINETYPE_DASHED = 2
+const LINETYPE_DOTTED = 3
+const LINETYPE_DASHED_DOTTED = 4
+const LINETYPE_DASH_2_DOT = -1
+const LINETYPE_DASH_3_DOT = -2
+const LINETYPE_LONG_DASH = -3
+const LINETYPE_LONG_SHORT_DASH = -4
+const LINETYPE_SPACED_DASH = -5
+const LINETYPE_SPACED_DOT = -6
+const LINETYPE_DOUBLE_DOT = -7
+const LINETYPE_TRIPLE_DOT = -8
 
-MARKERTYPE_DOT = 1
-MARKERTYPE_PLUS = 2
-MARKERTYPE_ASTERISK = 3
-MARKERTYPE_CIRCLE = 4
-MARKERTYPE_DIAGONAL_CROSS = 5
-MARKERTYPE_SOLID_CIRCLE = -1
-MARKERTYPE_TRIANGLE_UP = -2
-MARKERTYPE_SOLID_TRI_UP = -3
-MARKERTYPE_TRIANGLE_DOWN = -4
-MARKERTYPE_SOLID_TRI_DOWN = -5
-MARKERTYPE_SQUARE = -6
-MARKERTYPE_SOLID_SQUARE = -7
-MARKERTYPE_BOWTIE = -8
-MARKERTYPE_SOLID_BOWTIE = -9
-MARKERTYPE_HOURGLASS = -10
-MARKERTYPE_SOLID_HGLASS = -11
-MARKERTYPE_DIAMOND = -12
-MARKERTYPE_SOLID_DIAMOND = -13
-MARKERTYPE_STAR = -14
-MARKERTYPE_SOLID_STAR = -15
-MARKERTYPE_TRI_UP_DOWN = -16
-MARKERTYPE_SOLID_TRI_RIGHT = -17
-MARKERTYPE_SOLID_TRI_LEFT = -18
-MARKERTYPE_HOLLOW_PLUS = -19
-MARKERTYPE_SOLID_PLUS = -20
-MARKERTYPE_PENTAGON = -21
-MARKERTYPE_HEXAGON = -22
-MARKERTYPE_HEPTAGON = -23
-MARKERTYPE_OCTAGON = -24
-MARKERTYPE_STAR_4 = -25
-MARKERTYPE_STAR_5 = -26
-MARKERTYPE_STAR_6 = -27
-MARKERTYPE_STAR_7 = -28
-MARKERTYPE_STAR_8 = -29
-MARKERTYPE_VLINE = -30
-MARKERTYPE_HLINE = -31
-MARKERTYPE_OMARK = -32
+const MARKERTYPE_DOT = 1
+const MARKERTYPE_PLUS = 2
+const MARKERTYPE_ASTERISK = 3
+const MARKERTYPE_CIRCLE = 4
+const MARKERTYPE_DIAGONAL_CROSS = 5
+const MARKERTYPE_SOLID_CIRCLE = -1
+const MARKERTYPE_TRIANGLE_UP = -2
+const MARKERTYPE_SOLID_TRI_UP = -3
+const MARKERTYPE_TRIANGLE_DOWN = -4
+const MARKERTYPE_SOLID_TRI_DOWN = -5
+const MARKERTYPE_SQUARE = -6
+const MARKERTYPE_SOLID_SQUARE = -7
+const MARKERTYPE_BOWTIE = -8
+const MARKERTYPE_SOLID_BOWTIE = -9
+const MARKERTYPE_HOURGLASS = -10
+const MARKERTYPE_SOLID_HGLASS = -11
+const MARKERTYPE_DIAMOND = -12
+const MARKERTYPE_SOLID_DIAMOND = -13
+const MARKERTYPE_STAR = -14
+const MARKERTYPE_SOLID_STAR = -15
+const MARKERTYPE_TRI_UP_DOWN = -16
+const MARKERTYPE_SOLID_TRI_RIGHT = -17
+const MARKERTYPE_SOLID_TRI_LEFT = -18
+const MARKERTYPE_HOLLOW_PLUS = -19
+const MARKERTYPE_SOLID_PLUS = -20
+const MARKERTYPE_PENTAGON = -21
+const MARKERTYPE_HEXAGON = -22
+const MARKERTYPE_HEPTAGON = -23
+const MARKERTYPE_OCTAGON = -24
+const MARKERTYPE_STAR_4 = -25
+const MARKERTYPE_STAR_5 = -26
+const MARKERTYPE_STAR_6 = -27
+const MARKERTYPE_STAR_7 = -28
+const MARKERTYPE_STAR_8 = -29
+const MARKERTYPE_VLINE = -30
+const MARKERTYPE_HLINE = -31
+const MARKERTYPE_OMARK = -32
 
-OPTION_X_LOG = 1
-OPTION_Y_LOG = 2
-OPTION_Z_LOG = 4
-OPTION_FLIP_X = 8
-OPTION_FLIP_Y = 16
-OPTION_FLIP_Z = 32
+const OPTION_X_LOG = 1
+const OPTION_Y_LOG = 2
+const OPTION_Z_LOG = 4
+const OPTION_FLIP_X = 8
+const OPTION_FLIP_Y = 16
+const OPTION_FLIP_Z = 32
 
-OPTION_LINES = 0
-OPTION_MESH = 1
-OPTION_FILLED_MESH = 2
-OPTION_Z_SHADED_MESH = 3
-OPTION_COLORED_MESH = 4
-OPTION_CELL_ARRAY = 5
-OPTION_SHADED_MESH = 6
+const OPTION_LINES = 0
+const OPTION_MESH = 1
+const OPTION_FILLED_MESH = 2
+const OPTION_Z_SHADED_MESH = 3
+const OPTION_COLORED_MESH = 4
+const OPTION_CELL_ARRAY = 5
+const OPTION_SHADED_MESH = 6
 
-MODEL_RGB = 0
-MODEL_HSV = 1
+const MODEL_RGB = 0
+const MODEL_HSV = 1
 
-COLORMAP_UNIFORM = 0
-COLORMAP_TEMPERATURE = 1
-COLORMAP_GRAYSCALE = 2
-COLORMAP_GLOWING = 3
-COLORMAP_RAINBOWLIKE = 4
-COLORMAP_GEOLOGIC = 5
-COLORMAP_GREENSCALE = 6
-COLORMAP_CYANSCALE = 7
-COLORMAP_BLUESCALE = 8
-COLORMAP_MAGENTASCALE = 9
-COLORMAP_REDSCALE = 10
-COLORMAP_FLAME = 11
-COLORMAP_BROWNSCALE = 12
-COLORMAP_PILATUS = 13
-COLORMAP_AUTUMN = 14
-COLORMAP_BONE = 15
-COLORMAP_COOL = 16
-COLORMAP_COPPER = 17
-COLORMAP_GRAY = 18
-COLORMAP_HOT = 19
-COLORMAP_HSV = 20
-COLORMAP_JET = 21
-COLORMAP_PINK = 22
-COLORMAP_SPECTRAL = 23
-COLORMAP_SPRING = 24
-COLORMAP_SUMMER = 25
-COLORMAP_WINTER = 26
-COLORMAP_GIST_EARTH = 27
-COLORMAP_GIST_HEAT = 28
-COLORMAP_GIST_NCAR = 29
-COLORMAP_GIST_RAINBOW = 30
-COLORMAP_GIST_STERN = 31
-COLORMAP_AFMHOT = 32
-COLORMAP_BRG = 33
-COLORMAP_BWR = 34
-COLORMAP_COOLWARM = 35
-COLORMAP_CMRMAP = 36
-COLORMAP_CUBEHELIX = 37
-COLORMAP_GNUPLOT = 38
-COLORMAP_GNUPLOT2 = 39
-COLORMAP_OCEAN = 40
-COLORMAP_RAINBOW = 41
-COLORMAP_SEISMIC = 42
-COLORMAP_TERRAIN = 43
-COLORMAP_VIRIDIS = 44
-COLORMAP_INFERNO = 45
-COLORMAP_PLASMA = 46
-COLORMAP_MAGMA = 47
+const COLORMAP_UNIFORM = 0
+const COLORMAP_TEMPERATURE = 1
+const COLORMAP_GRAYSCALE = 2
+const COLORMAP_GLOWING = 3
+const COLORMAP_RAINBOWLIKE = 4
+const COLORMAP_GEOLOGIC = 5
+const COLORMAP_GREENSCALE = 6
+const COLORMAP_CYANSCALE = 7
+const COLORMAP_BLUESCALE = 8
+const COLORMAP_MAGENTASCALE = 9
+const COLORMAP_REDSCALE = 10
+const COLORMAP_FLAME = 11
+const COLORMAP_BROWNSCALE = 12
+const COLORMAP_PILATUS = 13
+const COLORMAP_AUTUMN = 14
+const COLORMAP_BONE = 15
+const COLORMAP_COOL = 16
+const COLORMAP_COPPER = 17
+const COLORMAP_GRAY = 18
+const COLORMAP_HOT = 19
+const COLORMAP_HSV = 20
+const COLORMAP_JET = 21
+const COLORMAP_PINK = 22
+const COLORMAP_SPECTRAL = 23
+const COLORMAP_SPRING = 24
+const COLORMAP_SUMMER = 25
+const COLORMAP_WINTER = 26
+const COLORMAP_GIST_EARTH = 27
+const COLORMAP_GIST_HEAT = 28
+const COLORMAP_GIST_NCAR = 29
+const COLORMAP_GIST_RAINBOW = 30
+const COLORMAP_GIST_STERN = 31
+const COLORMAP_AFMHOT = 32
+const COLORMAP_BRG = 33
+const COLORMAP_BWR = 34
+const COLORMAP_COOLWARM = 35
+const COLORMAP_CMRMAP = 36
+const COLORMAP_CUBEHELIX = 37
+const COLORMAP_GNUPLOT = 38
+const COLORMAP_GNUPLOT2 = 39
+const COLORMAP_OCEAN = 40
+const COLORMAP_RAINBOW = 41
+const COLORMAP_SEISMIC = 42
+const COLORMAP_TERRAIN = 43
+const COLORMAP_VIRIDIS = 44
+const COLORMAP_INFERNO = 45
+const COLORMAP_PLASMA = 46
+const COLORMAP_MAGMA = 47
 
-FONT_TIMES_ROMAN = 101
-FONT_TIMES_ITALIC = 102
-FONT_TIMES_BOLD = 103
-FONT_TIMES_BOLDITALIC = 104
-FONT_HELVETICA = 105
-FONT_HELVETICA_OBLIQUE = 106
-FONT_HELVETICA_BOLD = 107
-FONT_HELVETICA_BOLDOBLIQUE = 108
-FONT_COURIER = 109
-FONT_COURIER_OBLIQUE = 110
-FONT_COURIER_BOLD = 111
-FONT_COURIER_BOLDOBLIQUE = 112
-FONT_SYMBOL = 113
-FONT_BOOKMAN_LIGHT = 114
-FONT_BOOKMAN_LIGHTITALIC = 115
-FONT_BOOKMAN_DEMI = 116
-FONT_BOOKMAN_DEMIITALIC = 117
-FONT_NEWCENTURYSCHLBK_ROMAN = 118
-FONT_NEWCENTURYSCHLBK_ITALIC = 119
-FONT_NEWCENTURYSCHLBK_BOLD = 120
-FONT_NEWCENTURYSCHLBK_BOLDITALIC = 121
-FONT_AVANTGARDE_BOOK = 122
-FONT_AVANTGARDE_BOOKOBLIQUE = 123
-FONT_AVANTGARDE_DEMI = 124
-FONT_AVANTGARDE_DEMIOBLIQUE = 125
-FONT_PALATINO_ROMAN = 126
-FONT_PALATINO_ITALIC = 127
-FONT_PALATINO_BOLD = 128
-FONT_PALATINO_BOLDITALIC = 129
-FONT_ZAPFCHANCERY_MEDIUMITALIC = 130
-FONT_ZAPFDINGBATS = 131
+const FONT_TIMES_ROMAN = 101
+const FONT_TIMES_ITALIC = 102
+const FONT_TIMES_BOLD = 103
+const FONT_TIMES_BOLDITALIC = 104
+const FONT_HELVETICA = 105
+const FONT_HELVETICA_OBLIQUE = 106
+const FONT_HELVETICA_BOLD = 107
+const FONT_HELVETICA_BOLDOBLIQUE = 108
+const FONT_COURIER = 109
+const FONT_COURIER_OBLIQUE = 110
+const FONT_COURIER_BOLD = 111
+const FONT_COURIER_BOLDOBLIQUE = 112
+const FONT_SYMBOL = 113
+const FONT_BOOKMAN_LIGHT = 114
+const FONT_BOOKMAN_LIGHTITALIC = 115
+const FONT_BOOKMAN_DEMI = 116
+const FONT_BOOKMAN_DEMIITALIC = 117
+const FONT_NEWCENTURYSCHLBK_ROMAN = 118
+const FONT_NEWCENTURYSCHLBK_ITALIC = 119
+const FONT_NEWCENTURYSCHLBK_BOLD = 120
+const FONT_NEWCENTURYSCHLBK_BOLDITALIC = 121
+const FONT_AVANTGARDE_BOOK = 122
+const FONT_AVANTGARDE_BOOKOBLIQUE = 123
+const FONT_AVANTGARDE_DEMI = 124
+const FONT_AVANTGARDE_DEMIOBLIQUE = 125
+const FONT_PALATINO_ROMAN = 126
+const FONT_PALATINO_ITALIC = 127
+const FONT_PALATINO_BOLD = 128
+const FONT_PALATINO_BOLDITALIC = 129
+const FONT_ZAPFCHANCERY_MEDIUMITALIC = 130
+const FONT_ZAPFDINGBATS = 131
 
-PATH_STOP      = 0x00
-PATH_MOVETO    = 0x01
-PATH_LINETO    = 0x02
-PATH_CURVE3    = 0x03
-PATH_CURVE4    = 0x04
-PATH_CLOSEPOLY = 0x4f
+const PATH_STOP      = 0x00
+const PATH_MOVETO    = 0x01
+const PATH_LINETO    = 0x02
+const PATH_CURVE3    = 0x03
+const PATH_CURVE4    = 0x04
+const PATH_CLOSEPOLY = 0x4f
 
-GDP_DRAW_PATH = 1
-GDP_DRAW_LINES = 2
-GDP_DRAW_MARKERS = 3
+const GDP_DRAW_PATH = 1
+const GDP_DRAW_LINES = 2
+const GDP_DRAW_MARKERS = 3
 
-MPL_SUPPRESS_CLEAR = 1
-MPL_POSTPONE_UPDATE = 2
+const MPL_SUPPRESS_CLEAR = 1
+const MPL_POSTPONE_UPDATE = 2
 
-XFORM_BOOLEAN = 0
-XFORM_LINEAR = 1
-XFORM_LOG = 2
-XFORM_LOGLOG = 3
-XFORM_CUBIC = 4
-XFORM_EQUALIZED = 5
+const XFORM_BOOLEAN = 0
+const XFORM_LINEAR = 1
+const XFORM_LOG = 2
+const XFORM_LOGLOG = 3
+const XFORM_CUBIC = 4
+const XFORM_EQUALIZED = 5
 
 # GR3 functions
 include("gr3.jl")
@@ -3670,86 +3667,80 @@ function _readfile(path)
 end
 
 function isinline()
-    global mime_type
-    return !(mime_type in (None, "mov", "mp4", "webm"))
+    return !(mime_type[] in ("", "mov", "mp4", "webm"))
 end
 
 function displayname()
-    global display_name
-    return display_name
+    return display_name[]
 end
 
 function inline(mime="svg", scroll=true)
-    global mime_type, file_path, figure_count, send_c, recv_c
     init()
-    if mime_type != mime
+    if mime_type[] != mime
         if mime == "iterm"
-            file_path = tempname() * ".pdf"
+            file_path[] = tempname() * ".pdf"
             ENV["GKS_WSTYPE"] = "pdf"
         elseif mime == "mlterm"
-            file_path = tempname() * ".six"
+            file_path[] = tempname() * ".six"
             ENV["GKS_WSTYPE"] = "six"
         elseif mime == "js"
-            file_path = None
+            file_path[] = nothing
             ENV["GRDISPLAY"] = "js"
-            send_c, recv_c = js.initjs()
+            send_c[], recv_c[] = js.initjs()
         else
-            file_path = tempname() * "." * mime
+            file_path[] = tempname() * "." * mime
             ENV["GKS_WSTYPE"] = mime
         end
-        if file_path != None
-            ENV["GKS_FILEPATH"] = file_path
+        if file_path[] !== nothing
+            ENV["GKS_FILEPATH"] = file_path[]
         end
         emergencyclosegks()
-        mime_type = mime
+        mime_type[] = mime
     end
-    figure_count = scroll ? None : 0
-    mime_type
+    figure_count[] = scroll ? -1 : 0
+    mime_type[]
 end
 
 function reset()
-    global mime_type, file_path, figure_count
-    mime_type = None
-    file_path = None
-    figure_count = None
+    mime_type[] = ""
+    file_path[] = ""
+    figure_count[] = -1 
     delete!(ENV, "GKS_WSTYPE")
     delete!(ENV, "GKS_FILEPATH")
     emergencyclosegks()
 end
 
 function show()
-    global mime_type, file_path, figure_count
-
     emergencyclosegks()
-    if mime_type == "svg"
-        content = SVG(_readfile(file_path))
-        rm(file_path)
+    if mime_type[] == "svg"
+        content = SVG(_readfile(file_path[]))
+        rm(file_path[])
         return content
-    elseif mime_type == "png"
-        content = PNG(_readfile(file_path))
-        rm(file_path)
+    elseif mime_type[] == "png"
+        content = PNG(_readfile(file_path[]))
+        rm(file_path[])
         return content
-    elseif mime_type in ("mov", "mp4", "webm")
-        mimespec = mime_type == "mov" ? "video/mp4" : "video/$mime_type"
-        content = HTML(string("""<video autoplay controls><source type="$mimespec" src="data:$mimespec;base64,""", Base64.base64encode(open(read,file_path)),""""></video>"""))
-        rm(file_path)
+    elseif mime_type[] in ("mov", "mp4", "webm")
+        mimespec = mime_type[] == "mov" ? "video/mp4" : "video/$(mime_type[])"
+        content = HTML(string("""<video autoplay controls><source type="$mimespec" src="data:$mimespec;base64,""", Base64.base64encode(open(read,file_path[])),""""></video>"""))
+        rm(file_path[])
         return content
-    elseif mime_type == "iterm"
-        content = string(osc_seq(), "1337;File=inline=1;height=24;preserveAspectRatio=0:", Base64.base64encode(open(read,file_path)), st_seq())
-        if figure_count != None
-            figure_count += 1
-            (figure_count > 1) && print("\e[24A")
+    elseif mime_type[] == "iterm"
+        content = string(osc_seq(), "1337;File=inline=1;height=24;preserveAspectRatio=0:", Base64.base64encode(open(read,file_path[])), st_seq())
+        if figure_count[] != -1
+            figure_count[] += 1
+            (figure_count[] > 1) && print("\e[24A")
         end
         println(content)
-        rm(file_path)
+        rm(file_path[])
         return nothing
-    elseif mime_type == "mlterm"
-        content = read(file_path, String)
+    elseif mime_type[] == "mlterm"
+        content = read(file_path[], String)
         println(content)
-        rm(file_path)
+        rm(file_path[])
         return nothing
     end
-    return None
+    return nothing
 end
 
 function setregenflags(flags=0)
@@ -4013,11 +4004,10 @@ function check_for_updates()
 end
 
 function openmeta(target=0, device="localhost", port=8002)
-    global send_c, recv_c
     handle = ccall(libGRM_ptr(:grm_open),
                    Ptr{Nothing},
                    (Int32, Cstring, Int64, Ptr{Cvoid}, Ptr{Cvoid}),
-                   target, device, port, send_c, recv_c)
+                   target, device, port, send_c[], recv_c[])
     return handle
 end
 
@@ -4238,12 +4228,11 @@ function inqtext3d(x::Real, y::Real, z::Real, string, axis::Int)
 end
 
 function settextencoding(encoding)
-    global text_encoding
     ccall( libGR_ptr(:gr_settextencoding),
         Nothing,
         (Int32, ),
         encoding)
-    text_encoding = encoding
+    text_encoding[] = encoding
 end
 
 function inqtextencoding()
@@ -4266,5 +4255,14 @@ end
 
 # JS functions
 include("js.jl")
+
+precompile(init,(Bool,))
+precompile(ispluto,())
+precompile(isvscode,())
+precompile(isatom,())
+precompile(updatews,())
+
+precompile(polyline, (Vector{Float64}, Vector{Float64}))
+precompile(axes, (Float64, Float64, Int64, Int64, Int64, Int64, Float64))
 
 end # module

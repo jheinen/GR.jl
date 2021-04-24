@@ -3,8 +3,6 @@ module GR3
 import GR
 import Libdl
 
-const None = Union{}
-
 macro triplet(t)
     :( Tuple{$t, $t, $t} )
 end
@@ -107,7 +105,7 @@ function save(filename, width, height)
   elseif ext == ".html"
     content = HTML("<iframe src=\"files/$filename\" width=$width height=$height></iframe>")
   else
-    content = None
+    content = nothing
   end
   return content
 end
@@ -374,7 +372,7 @@ function volume(data::Array{Float64,3}, algorithm::Int64)
 end
 
 function createslicemeshes(grid; x::Union{Real, Nothing}=nothing, y::Union{Real, Nothing}=nothing, z::Union{Real, Nothing}=nothing, step::Union{Tuple{Real, Real, Real}, Nothing}=nothing, offset::Union{Tuple{Real, Real, Real}, Nothing}=nothing)
-    if x == nothing && y == nothing && z == nothing
+    if x === nothing && y === nothing && z === nothing
         x = 0.5
         y = 0.5
         z = 0.5
@@ -391,14 +389,14 @@ function createslicemeshes(grid; x::Union{Real, Nothing}=nothing, y::Union{Real,
     scaling_factor = typemax(UInt16) / input_max
     grid = Array{UInt16, 3}(floor.(grid * scaling_factor))
     nx, ny, nz = size(grid)
-    if step == nothing && offset == nothing
+    if step === nothing && offset === nothing
         step = (2.0/(nx-1), 2.0/(ny-1), 2.0/(nz-1))
         offset = (-1.0, -1.0, -1.0)
-    elseif offset == nothing
+    elseif offset === nothing
         offset = (-step[1] * (nx-1) / 2.0,
                   -step[2] * (ny-1) / 2.0,
                   -step[3] * (nz-1) / 2.0)
-    elseif step == nothing
+    elseif step === nothing
         step = (-offset[1] * 2.0 / (nx-1),
                 -offset[2] * 2.0 / (ny-1),
                 -offset[3] * 2.0 / (nz-1))
@@ -408,7 +406,7 @@ function createslicemeshes(grid; x::Union{Real, Nothing}=nothing, y::Union{Real,
     step_x, step_y, step_z = convert(Tuple{Float64, Float64, Float64}, step)
     offset_x, offset_y, offset_z = convert(Tuple{Float64, Float64, Float64}, offset)
 
-    if x != nothing
+    if x !== nothing
         x = convert(UInt32, floor(clamp(x, 0, 1) * nx))
         mesh = Cint[0]
         ccall(GR.libGR3_ptr(:gr3_createxslicemesh),
@@ -429,7 +427,7 @@ function createslicemeshes(grid; x::Union{Real, Nothing}=nothing, y::Union{Real,
         _mesh_x = nothing
     end
 
-    if y != nothing
+    if y !== nothing
         y = convert(UInt32, floor(clamp(y, 0, 1) * ny))
         mesh = Cint[0]
         ccall(GR.libGR3_ptr(:gr3_createyslicemesh),
@@ -450,7 +448,7 @@ function createslicemeshes(grid; x::Union{Real, Nothing}=nothing, y::Union{Real,
         _mesh_y = nothing
     end
 
-    if z != nothing
+    if z !== nothing
         z = convert(UInt32, floor(clamp(z, 0, 1) * nz))
         mesh = Cint[0]
         ccall(GR.libGR3_ptr(:gr3_createzslicemesh),
@@ -514,7 +512,7 @@ export drawzslicemesh
 function drawslicemeshes(data; x::Union{Real, Nothing}=nothing, y::Union{Real, Nothing}=nothing, z::Union{Real, Nothing}=nothing, step::Union{Tuple{Real, Real, Real}, Nothing}=nothing, offset::Union{Tuple{Real, Real, Real}, Nothing}=nothing, position::Tuple{Real, Real, Real}=(0, 0, 0), direction::Tuple{Real, Real, Real}=(0, 0, 1), up::Tuple{Real, Real, Real}=(0, 1, 0), color::Tuple{Real, Real, Real}=(1, 1, 1), scale::Tuple{Real, Real, Real}=(1, 1, 1))
     meshes = createslicemeshes(data, x=x, y=y, z=z, step=step, offset=offset)
     for mesh in meshes
-        if mesh != nothing
+        if mesh !== nothing
             drawmesh(mesh, 1, position, direction, up, color, scale)
             deletemesh(mesh)
         end
@@ -522,41 +520,41 @@ function drawslicemeshes(data; x::Union{Real, Nothing}=nothing, y::Union{Real, N
 end
 export drawslicemeshes
 
-IA_END_OF_LIST = 0
-IA_FRAMEBUFFER_WIDTH = 1
-IA_FRAMEBUFFER_HEIGHT = 2
+const IA_END_OF_LIST = 0
+const IA_FRAMEBUFFER_WIDTH = 1
+const IA_FRAMEBUFFER_HEIGHT = 2
 
-ERROR_NONE = 0
-ERROR_INVALID_VALUE = 1
-ERROR_INVALID_ATTRIBUTE = 2
-ERROR_INIT_FAILED = 3
-ERROR_OPENGL_ERR = 4
-ERROR_OUT_OF_MEM = 5
-ERROR_NOT_INITIALIZED = 6
-ERROR_CAMERA_NOT_INITIALIZED = 7
-ERROR_UNKNOWN_FILE_EXTENSION = 8
-ERROR_CANNOT_OPEN_FILE = 9
-ERROR_EXPORT = 10
+const ERROR_NONE = 0
+const ERROR_INVALID_VALUE = 1
+const ERROR_INVALID_ATTRIBUTE = 2
+const ERROR_INIT_FAILED = 3
+const ERROR_OPENGL_ERR = 4
+const ERROR_OUT_OF_MEM = 5
+const ERROR_NOT_INITIALIZED = 6
+const ERROR_CAMERA_NOT_INITIALIZED = 7
+const ERROR_UNKNOWN_FILE_EXTENSION = 8
+const ERROR_CANNOT_OPEN_FILE = 9
+const ERROR_EXPORT = 10
 
-QUALITY_OPENGL_NO_SSAA  = 0
-QUALITY_OPENGL_2X_SSAA  = 2
-QUALITY_OPENGL_4X_SSAA  = 4
-QUALITY_OPENGL_8X_SSAA  = 8
-QUALITY_OPENGL_16X_SSAA = 16
-QUALITY_POVRAY_NO_SSAA  = 0+1
-QUALITY_POVRAY_2X_SSAA  = 2+1
-QUALITY_POVRAY_4X_SSAA  = 4+1
-QUALITY_POVRAY_8X_SSAA  = 8+1
-QUALITY_POVRAY_16X_SSAA = 16+1
+const QUALITY_OPENGL_NO_SSAA  = 0
+const QUALITY_OPENGL_2X_SSAA  = 2
+const QUALITY_OPENGL_4X_SSAA  = 4
+const QUALITY_OPENGL_8X_SSAA  = 8
+const QUALITY_OPENGL_16X_SSAA = 16
+const QUALITY_POVRAY_NO_SSAA  = 0+1
+const QUALITY_POVRAY_2X_SSAA  = 2+1
+const QUALITY_POVRAY_4X_SSAA  = 4+1
+const QUALITY_POVRAY_8X_SSAA  = 8+1
+const QUALITY_POVRAY_16X_SSAA = 16+1
 
-DRAWABLE_OPENGL = 1
-DRAWABLE_GKS = 2
+const DRAWABLE_OPENGL = 1
+const DRAWABLE_GKS = 2
 
-SURFACE_DEFAULT     =  0
-SURFACE_NORMALS     =  1
-SURFACE_FLAT        =  2
-SURFACE_GRTRANSFORM =  4
-SURFACE_GRCOLOR     =  8
-SURFACE_GRZSHADED   = 16
+const SURFACE_DEFAULT     =  0
+const SURFACE_NORMALS     =  1
+const SURFACE_FLAT        =  2
+const SURFACE_GRTRANSFORM =  4
+const SURFACE_GRCOLOR     =  8
+const SURFACE_GRZSHADED   = 16
 
 end # module
