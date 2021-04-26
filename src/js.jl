@@ -375,6 +375,7 @@ end
 const plutoisinit = Ref(false)
 
 function init_pluto(jssource="https://gr-framework.org/downloads/gr-0.57.2.js")
+  GR.init()
   plutoisinit[] = true
   return HTML(string("""
     <script type="text/javascript" src=" """, jssource, """ "></script>
