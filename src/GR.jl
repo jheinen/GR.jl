@@ -370,7 +370,7 @@ end
 function init(always=false)
     if !libs_loaded[]
         load_libs()
-        return
+        # return
     end
     if check_env[] || always
         ENV["GRDIR"] = grdir[]
