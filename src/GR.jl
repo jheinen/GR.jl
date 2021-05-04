@@ -1,5 +1,23 @@
 __precompile__()
+"""
+    GR is a universal framework for cross-platform visualization applications.
+    It offers developers a compact, portable and consistent graphics library
+    for their programs. Applications range from publication quality 2D graphs
+    to the representation of complex 3D scenes.
 
+    See https://gr-framework.org/julia.html for full documentation.
+
+    Basic usage:
+    ```julia
+    using GR
+    GR.init() # optional
+    plot(
+        [0, 0.2, 0.4, 0.6, 0.8, 1.0],
+        [0.3, 0.5, 0.4, 0.2, 0.6, 0.7]
+    )
+    # GR.show() # Use if in a Jupyter Notebook
+    ```
+"""
 module GR
 
 @static if isdefined(Base, :Experimental) &&
@@ -367,9 +385,38 @@ function set_callback()
 end
 """
 
-function init(always=false)
+"""
+    init(always::Bool = false)
+
+    Initialize GR's environmental variables before plotting and ensure that the
+    binary shared libraries are loaded. Initialization usually only needs to be
+    done once, but reinitialized may be required when settings change.
+
+    The `always` argument is true if initialization should be forced in the
+    current and subsequent calls. It is `false` by default so that
+    initialization only is done once.
+
+    This is distinct from the GR module's `__init__` which only locates the
+    shared binary libraries to be used.
+
+    # Extended Help
+
+    Environmental variables which influence `init`:
+    GRDISPLAY - if "js" or "pluto", javascript support is initialized
+    GKS_NO_GUI - no initialization is done
+    GKS_IGNORE_ENCODING - Force use of UTF-8 for font encoding, ignore GKS_ENCODING
+
+    Environmental variables set by `init`:
+    GRDIR - directory of GR shared library files
+    GKS_FONTPATH - path to GR fonts, often the same as GRDIR
+    GKS_USE_CAIRO_PNG
+    GKSwstype - Graphics workstation type, see help for `openws`
+    GKS_QT - Command to start QT backend via gksqt executable
+    GKS_ENCODING - Sets the text encoding (e.g. Latin1 or UTF-8)
+"""
+function init(always::Bool = false)
     if !libs_loaded[]
-        load_libs()
+        load_libs(always)
         return
     end
     if check_env[] || always
@@ -381,13 +428,16 @@ function init(always=false)
             if display_name[] == "js" || display_name[] == "pluto"
                 send_c[], recv_c[] = js.initjs()
             end
+            @debug "Found GRDISPLAY in ENV" display_name[]
         elseif "GKS_NO_GUI" in keys(ENV)
+            @debug "Found GKS_NO_GUI in ENV, returning"
             return
         elseif isijulia() || ispluto() || isvscode() || isatom()
             mime_type[] = "svg"
             file_path[] = tempname() * ".svg"
             ENV["GKSwstype"] = "svg"
             ENV["GKS_FILEPATH"] = file_path[]
+            @debug "Found an embedded environment" mime_type[] file_path[] ENV["GKSwstype"] ENV["GKS_FILEPATH"]
         elseif gr_provider[] == "BinaryBuilder"
             if !haskey(ENV, "GKSwstype")
                 ENV["GKSwstype"] = "gksqt"
@@ -404,17 +454,21 @@ function init(always=false)
                 env = (os == :Darwin) ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
                 ENV["GKS_QT"] = string("env $env=", GR_jll.LIBPATH[], " ", GR_jll.gksqt_path)
             end
+            @debug "BinaryBuilder Setup" ENV["GKSwstype"] os ENV["GKS_QT"] ENV["PATH"] GR_jll.LIBPATH[] GR_jll.gksqt_path
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
             text_encoding[] = ENCODING_UTF8
+            @debug "Found GKS_IGNORE_ENCODING in ENV" text_encoding[]
         elseif "GKS_ENCODING" in keys(ENV)
             if ENV["GKS_ENCODING"] == "latin1" || ENV["GKS_ENCODING"] == "latin-1"
                 text_encoding[] = ENCODING_LATIN1
             else
                 text_encoding[] = ENCODING_UTF8
             end
+            @debug "Found GKS_ENCODING in ENV" text_encoding[]
         else
             ENV["GKS_ENCODING"] = "utf8"
+            @debug "Default GKS_ENCODING" ENV["GKS_ENCODING"]
         end
         check_env[] = always
     end
@@ -3677,6 +3731,7 @@ end
 function inline(mime="svg", scroll=true)
     init()
     if mime_type[] != mime
+        @debug "MIME type change" mime_type[] mime
         if mime == "iterm"
             file_path[] = tempname() * ".pdf"
             ENV["GKS_WSTYPE"] = "pdf"
@@ -3694,10 +3749,12 @@ function inline(mime="svg", scroll=true)
         if file_path[] !== nothing
             ENV["GKS_FILEPATH"] = file_path[]
         end
+        @debug mime file_path[] ENV["GKS_WSTYPE"]
         emergencyclosegks()
         mime_type[] = mime
     end
     figure_count[] = scroll ? -1 : 0
+    @debug mime_type[]
     mime_type[]
 end
 

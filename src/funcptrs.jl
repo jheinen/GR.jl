@@ -24,7 +24,13 @@ const libGR3_ptrs = LibGR3_Ptrs()
 
 const libs_loaded = Ref(false)
 
-function load_libs()
+"""
+    load_libs(always = false)
+
+    Load shared GR libraries from either GR_jll or from GR tarball.
+    always is a boolean flag that is passed through to 
+"""
+function load_libs(always::Bool = false)
     if gr_provider[] == "BinaryBuilder"
         try
             @eval GR import GR_jll
@@ -63,12 +69,12 @@ function load_libs()
     libs_loaded[] = true
 
     check_env[] = true
-    init(true)
+    init(always)
 end
 
 function get_func_ptr(handle::Ref{Ptr{Nothing}}, ptrs::Union{LibGR_Ptrs, LibGRM_Ptrs, LibGR3_Ptrs}, func::Symbol)
     if !libs_loaded[]
-        load_libs()
+        load_libs(true)
     end
     s = getfield(ptrs, func)
     if s == C_NULL
@@ -88,4 +94,4 @@ precompile(get_func_ptr, (Base.RefValue{Ptr{Nothing}},LibGR3_Ptrs, Symbol) )
 precompile(libGR_ptr, (Symbol,))
 precompile(libGRM_ptr, (Symbol,))
 precompile(libGR3_ptr, (Symbol,))
-precompile(load_libs, ())
+precompile(load_libs, (Bool,))
