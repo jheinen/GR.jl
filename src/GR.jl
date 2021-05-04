@@ -394,7 +394,7 @@ function init(always=false)
             end
             if os == :Windows
                 if !haskey(ENV, "GKS_QT")
-                    ENV["GKS_QT"] = string("set PATH=", GR_jll.LIBPATH[], " & \"", GR_jll.gksqt_path,"\"")
+                    ENV["GKS_QT"] = string("set PATH=", GR_jll.LIBPATH[], " & \"", GR_jll.gksqt_path, "\"")
                 elseif ENV["GKS_QT"] == ""
                     ENV["PATH"] = GR_jll.LIBPATH[]
                     gkqst = run(`$(GR_jll.gksqt_path)`; wait = false)
