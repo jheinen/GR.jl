@@ -49,12 +49,16 @@ ApplicationWindow {
         from: 10
         to: 60
         stepSize: 1
+        onValueChanged: {
+          parameters.nbins = nbinsSlider.value;
+          painter.update()
+        }
       }
     }
 
     JuliaPaintedItem {
       id: painter
-      paintFunction : paint_cfunction
+      paintFunction: paint_cfunction
       Layout.fillWidth: true
       Layout.fillHeight: true
 
@@ -66,14 +70,6 @@ ApplicationWindow {
         }
         onWheel: {
           Julia.mousePosition(wheel.x, wheel.y, wheel.angleDelta.y);
-          painter.update()
-        }
-      }
-
-      Connections {
-        target: nbinsSlider
-        function onValueChanged() {
-          parameters.nbins = nbinsSlider.value;
           painter.update()
         }
       }
