@@ -1,4 +1,4 @@
-import PortAudio, LibSndFile, FileIO
+import PortAudio, FileIO
 using GR
 using FFTW
 
