@@ -28,11 +28,19 @@ function points_from_image(img, npts)
 end
 
 w, h, img = readimage("julia_logo.png")
-x, y, cols = points_from_image(img, 30000)
+x, y, cols = points_from_image(img, 30_000)
+
+setwsviewport(0, 0.24, 0, 0.16)
+setwswindow(0, 1, 0, 2/3)
+
+setviewport(0, 1, 0, 2/3)
+setwindow(0, w, 0, h)
+
+setmarkersize(2/3)
+setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
 
 settransparency(0.5)
-setmarkersize(0.5)
-scatter(x, y, size=(900,600))
+polymarker(x, y)
 
 n, tri = delaunay(x, y)
 for i in 1:n
