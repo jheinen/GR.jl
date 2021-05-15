@@ -3768,7 +3768,9 @@ function reset()
 end
 
 function show()
-    emergencyclosegks()
+    if !isempty(mime_type[])
+        emergencyclosegks()
+    end
     if mime_type[] == "svg"
         content = SVG(_readfile(file_path[]))
         rm(file_path[])
