@@ -42,7 +42,7 @@ setviewport(0, 1, 0, 2/3)
 setwindow(0, w, 0, h)
 
 setmarkersize(2/3)
-setborderwidth(0.5)
+setborderwidth(0.2)
 setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
 
 settransparency(0.5)
@@ -57,6 +57,8 @@ for i in 1:n
     color[i] = cols[tri[i,1]]
 end
 attributes = vec(hcat(tri, color)')
+
+setlinewidth(0.4)
 
 # Draw a vector of triangles for given vertices x and y using point indices and color triplets
 #   x: x coordinates
