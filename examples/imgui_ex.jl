@@ -59,7 +59,7 @@ img_width, img_height = 500, 500
 image_id = ImGui_ImplOpenGL3_CreateImageTexture(img_width, img_height)
 
 ENV["GKS_WSTYPE"] = "100"
-image = rand(GLuint, 4, img_width, img_height) # allocate the memory 
+image = rand(GLuint, img_width, img_height) # allocate the memory
 mem = Printf.@sprintf("%p",pointer(image))
 conid = Printf.@sprintf("!%dx%d@%s.mem",  img_width, img_height, mem[3:end])
 

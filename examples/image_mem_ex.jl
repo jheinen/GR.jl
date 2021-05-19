@@ -6,7 +6,7 @@ using BenchmarkTools
 
 w, h = (800, 600)
 
-image = rand(UInt8, 4, w, h)  # allocate the memory 
+image = rand(UInt32, w, h)  # allocate the memory
 mem = Printf.@sprintf("%p", pointer(image))
 conid = Printf.@sprintf("!%dx%d@%s.mem",  w, h, mem[3:end])
 
@@ -29,5 +29,5 @@ setwswindow(0, 1, 0, 3/4)
 setviewport(0, 1, 0, 3/4)
 setwindow(0, 1, 0, 3/4)
 
-drawimage(0, 1, 0, 3/4, w, h, reshape(reinterpret(UInt32, image), w, h))
+drawimage(0, 1, 0, 3/4, w, h, image)
 updatews()
