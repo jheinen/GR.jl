@@ -1563,7 +1563,7 @@ function plot_args(args; fmt=:xys)
         if fmt == :xys && length(args) > 0
             if isa(args[1], AbstractString)
                 spec = popfirst!(args)
-            else
+            elseif length(args) == 1
                 c = popfirst!(args)
             end
         end
