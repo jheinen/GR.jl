@@ -143,4 +143,5 @@ const libGR_syms = [
 :gr_settextencoding
 :gr_inqtextencoding
 :gr_loadfont
+:gr_inqvpsize
 ]

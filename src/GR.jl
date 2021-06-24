@@ -203,6 +203,7 @@ export
   settextencoding,
   inqtextencoding,
   loadfont,
+  inqvpsize,
   # Convenience functions
   jlgr,
   colormap,
@@ -4310,6 +4311,17 @@ function loadfont(name::String)
         (Cstring, Ptr{Cint}),
         name, font)
   return Int(font[1])
+end
+
+function inqvpsize()
+  width = Cint[0]
+  height = Cint[0]
+  device_pixel_ratio = Cdouble[0]
+  ccall( libGR_ptr(:gr_inqvpsize),
+        Nothing,
+        (Ptr{Cint}, Ptr{Cint}, Ptr{Cdouble}),
+        width, height, device_pixel_ratio)
+  return width[1], height[1], device_pixel_ratio[1]
 end
 
 # JS functions
