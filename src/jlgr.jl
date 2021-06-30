@@ -420,8 +420,9 @@ function set_window(kind)
     end
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         rotation = get(plt.kvs, :rotation, 40)
-        tilt = get(plt.kvs, :tilt, 70)
-        GR.setspace(zmin, zmax, rotation, tilt)
+        tilt = get(plt.kvs, :tilt, 60)
+        GR.setwindow3d(xmin, xmax, ymin, ymax, zmin, zmax)
+        GR.setspace3d(-rotation, tilt, 30, 0)
     end
 
     plt.kvs[:scale] = scale
