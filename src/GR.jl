@@ -196,6 +196,7 @@ export
   setperspectiveprojection,
   setorthographicprojection,
   settransformationparameters,
+  setresamplemethod,
   setwindow3d,
   setspace3d,
   text3d,
@@ -4254,6 +4255,13 @@ function settransformationparameters(camera_pos_x::Real, camera_pos_y::Real, cam
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64),
         camera_pos_x, camera_pos_y, camera_pos_z, up_x, up_y, up_z, focus_point_x, focus_point_y, focus_point_z)
+end
+
+function setresamplemethod(method::Int)
+  ccall( libGR_ptr(:gr_setresamplemethod),
+        Nothing,
+        (Int32, ),
+        method)
 end
 
 function setwindow3d(xmin::Real, xmax::Real, ymin::Real, ymax::Real, zmin::Real, zmax::Real)

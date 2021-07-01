@@ -136,6 +136,7 @@ const libGR_syms = [
 :gr_setperspectiveprojection
 :gr_setorthographicprojection
 :gr_settransformationparameters
+:gr_setresamplemethod
 :gr_setwindow3d
 :gr_setspace3d
 :gr_text3d
