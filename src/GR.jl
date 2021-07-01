@@ -4257,10 +4257,10 @@ function settransformationparameters(camera_pos_x::Real, camera_pos_y::Real, cam
         camera_pos_x, camera_pos_y, camera_pos_z, up_x, up_y, up_z, focus_point_x, focus_point_y, focus_point_z)
 end
 
-function setresamplemethod(method::Int)
+function setresamplemethod(method::UInt32)
   ccall( libGR_ptr(:gr_setresamplemethod),
         Nothing,
-        (Int32, ),
+        (UInt32, ),
         method)
 end
 
