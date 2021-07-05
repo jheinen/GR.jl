@@ -134,7 +134,11 @@ function set_viewport(kind, subplot)
         vp1, vp2, vp3, vp4 = vp
     end
     left_margin = haskey(plt.kvs, :ylabel) ? 0.05 : 0
-    right_margin = kind in (:contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :polarheatmap, :nonuniformpolarheatmap, :surface, :trisurf, :volume) ? 0.1 : 0
+    if vp2 >= 0.9 && kind in (:contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :polarheatmap, :nonuniformpolarheatmap, :surface, :trisurf, :volume)
+        right_margin = vp2 - 0.9
+    else
+        right_margin = 0
+    end
     bottom_margin = haskey(plt.kvs, :xlabel) ? 0.05 : 0
     top_margin = haskey(plt.kvs, :title) ?  0.075 : 0
     viewport[1] = vp1 + (0.075 + left_margin) * (vp2 - vp1)
@@ -458,7 +462,7 @@ function draw_axes(kind, pass=1)
     GR.setlinecolorind(1)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     GR.setlinewidth(1)
-    charheight = max(0.018 * diag, 0.012)
+    charheight = max(0.024 * diag, 0.012)
     GR.setcharheight(charheight)
     ticksize = 0.0075 * diag
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
@@ -671,7 +675,7 @@ function colorbar(off=0, colors=256)
     end
     h = 0.5 * (zmax - zmin) / (colors - 1)
     GR.setwindow(0, 1, zmin, zmax)
-    GR.setviewport(viewport[2] + 0.02 + off, viewport[2] + 0.05 + off,
+    GR.setviewport(viewport[2] + off, viewport[2] + 0.03 + off,
                    viewport[3], viewport[4])
     l = zeros(Int32, 1, colors)
     l[1,:] = Int[round(Int, _i) for _i in linspace(1000, 1255, colors)]
