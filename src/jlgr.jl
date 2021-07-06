@@ -462,10 +462,10 @@ function draw_axes(kind, pass=1)
     GR.setlinecolorind(1)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     GR.setlinewidth(1)
-    charheight = max(0.024 * diag, 0.012)
-    GR.setcharheight(charheight)
     ticksize = 0.0075 * diag
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
+        charheight = max(0.024 * diag, 0.012)
+        GR.setcharheight(charheight)
         ztick, zorg, majorz = plt.kvs[:zaxis]
         if pass == 1 && drawgrid
             GR.grid3d(xtick, 0, ztick, xorg[1], yorg[2], zorg[1], 2, 0, 2)
@@ -475,6 +475,8 @@ function draw_axes(kind, pass=1)
             GR.axes3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, majory, 0, ticksize)
         end
     else
+        charheight = max(0.018 * diag, 0.012)
+        GR.setcharheight(charheight)
         if kind in (:heatmap, :nonuniformheatmap, :shade)
             ticksize = -ticksize
         else
