@@ -1,9 +1,70 @@
 module jlgr
 
 import GR
+# These methods are extended in jlgr
+import GR: hexbin, contour, contourf, surface
 
 using Serialization
 using Sockets
+
+export
+colormap,
+figure,
+gcf,
+hold,
+usecolorscheme,
+subplot,
+plot,
+oplot,
+semilogx,
+semilogy,
+loglog,
+step,
+scatter,
+stem,
+barplot,
+histogram,
+polarhistogram,
+contour,
+contourf,
+hexbin,
+heatmap,
+heatmap,
+polarheatmap,
+nonuniformpolarheatmap,
+wireframe,
+surface,
+volume,
+plot3,
+scatter3,
+title,
+redraw,
+xlabel,
+ylabel,
+drawgrid,
+xticks,
+yticks,
+zticks,
+xticklabels,
+yticklabels,
+legend,
+xlim,
+ylim,
+savefig,
+meshgrid,
+meshgrid,
+peaks,
+imshow,
+isosurface,
+isosurface,
+cart2sph,
+sph2cart,
+polar,
+trisurf,
+tricont,
+shade,
+setpanzoom,
+mainloop
 
 function search(s::AbstractString, c::Char)
     result = findfirst(isequal(c), s)
@@ -2604,6 +2665,8 @@ function isosurface(V; kv...)
 
     plot_data()
 end
+# Backwards compatability where isovalue can be specified as a second positional argument
+isosurface(V, v; kv...) = isosurface(V; isovalue = v, kv...)
 
 function cart2sph(x, y, z)
     azimuth = atan.(y, x)
