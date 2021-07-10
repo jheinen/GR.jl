@@ -339,6 +339,13 @@ function __init__()
         if isdir(grdir[]) && gr_provider[] == "GR"
             # No need to rebuild, just use grdir_default as grdir
         else
+            # In case "LoadError: InitError: Evaluation into the closed module `GR` breaks incremental compilation" occurs,
+            # allow the user to disable the rebuild attempt by setting the environmental variable JULIA_GR_REBUILD to false.
+            # An error will still occur recommending the user build GR manually via `Pkg.build("GR")``
+            # https://github.com/jheinen/GR.jl/issues/413
+            if attempt_to_rebuild[]
+                attempt_to_rebuild[] = parse(Bool, get(ENV,"JULIA_GR_REBUILD", "true"))
+            end
             # Rebuild if no file at grdir_default or gr_provider[] == "BinaryBuilder"
             if attempt_to_rebuild[]
                 attempt_to_rebuild[] = false # Avoid infinite loop
@@ -350,18 +357,25 @@ function __init__()
                     ENV["JULIA_GR_PROVIDER"] = "GR"
                     @info "Switching provider to GR due to error in depsfile" depsfile
                 end
-                @eval GR begin
-                    include(buildfile)
-                    Builder.build()
+                try
+                    @eval GR begin
+                        include(buildfile)
+                        Builder.build()
+                    end
+                    # Try to read depsfile again
+                    depsfile_succeeded[] = true
+                    GR.__init__()
+                    @info "GR was successfully rebuilt"
+                    return
+                catch err
+                    @warn "GR attempted to rebuild but failed due to $err. Setting ENV[\"JULIA_GR_REBUILD\"] = false."
+                    # Prevent future automatic rebuild attempts.
+                    ENV["JULIA_GR_REBUILD"] = "false"
                 end
-                # Try to read depsfile again
-                depsfile_succeeded[] = true
-                GR.__init__()
-                @info "GR was successfully rebuilt"
-                return
             end
             error("""
             GR was not built correctly and could not be automatically rebuilt.
+            get(ENV, "JULIA_GR_REBUILD", "true") == $(get(ENV, "JULIA_GR_REBUILD", "true"))
             $(grdir[]) is not a directory.
             GR_jll could not be loaded.
 
