@@ -195,8 +195,8 @@ function set_viewport(kind, subplot)
         vp1, vp2, vp3, vp4 = vp
     end
     left_margin = haskey(plt.kvs, :ylabel) ? 0.05 : 0
-    if vp2 >= 0.9 && kind in (:contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :polarheatmap, :nonuniformpolarheatmap, :surface, :trisurf, :volume)
-        right_margin = vp2 - 0.9
+    if kind in (:contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :polarheatmap, :nonuniformpolarheatmap, :surface, :trisurf, :volume)
+        right_margin = (vp2 - vp1) * 0.1
     else
         right_margin = 0
     end
@@ -738,7 +738,7 @@ function colorbar(off=0, colors=256)
     end
     h = 0.5 * (zmax - zmin) / (colors - 1)
     GR.setwindow(0, 1, zmin, zmax)
-    GR.setviewport(viewport[2] + off, viewport[2] + 0.03 + off,
+    GR.setviewport(viewport[2] + 0.02 + off, viewport[2] + 0.05 + off,
                    viewport[3], viewport[4])
     l = zeros(Int32, 1, colors)
     l[1,:] = Int[round(Int, _i) for _i in linspace(1000, 1255, colors)]
