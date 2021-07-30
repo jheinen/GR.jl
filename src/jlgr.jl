@@ -273,7 +273,7 @@ function Extrema64(a)
     amin, amax
 end
 
-function minmax()
+function minmax(kind)
     xmin = ymin = zmin = cmin =  typemax(Float64)
     xmax = ymax = zmax = cmax = -typemax(Float64)
     scale = plt.kvs[:scale]
@@ -285,6 +285,8 @@ function minmax()
             x0, x1 = Extrema64(x)
             xmin = min(x0, xmin)
             xmax = max(x1, xmax)
+        elseif kind == :volume
+            xmin, xmax = -1, 1
         else
             xmin, xmax = 0, 1
         end
@@ -295,6 +297,8 @@ function minmax()
             y0, y1 = Extrema64(y)
             ymin = min(y0, ymin)
             ymax = max(y1, ymax)
+        elseif kind == :volume
+            ymin, ymax = -1, 1
         else
             ymin, ymax = 0, 1
         end
@@ -392,7 +396,7 @@ function set_window(kind)
         plt.kvs[:xrange] = (xmin, xmax)
         plt.kvs[:yrange] = (ymin, ymax)
     else
-        minmax()
+        minmax(kind)
     end
 
     if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap, :trisurf, :volume)
