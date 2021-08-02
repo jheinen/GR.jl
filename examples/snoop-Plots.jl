@@ -123,6 +123,8 @@ zd = [xd[i] * exp(-xd[i]^2 - yd[i]^2) for i = 1:100]
 GR.setviewport(0.1, 0.95, 0.1, 0.95)
 GR.setwindow(-2, 2, -2, 2)
 GR.setspace(-0.5, 0.5, 0, 90)
+GR.setprojectiontype(0)
+
 GR.setcolormap(0)
 GR.setlinecolorind(1)
 GR.setmarkersize(1)

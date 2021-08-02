@@ -124,6 +124,7 @@ setwswindow(0, 1, 0, 1)
 setviewport(0.1, 0.95, 0.1, 0.95)
 setwindow(-2, 2, -2, 2)
 setspace(-0.5, 0.5, 0, 90)
+setprojectiontype(0)
 
 setcolormap(0)
 setlinecolorind(1)
