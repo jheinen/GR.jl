@@ -19,7 +19,7 @@ oplot,
 semilogx,
 semilogy,
 loglog,
-step,
+stairs,
 scatter,
 stem,
 barplot,
@@ -80,7 +80,7 @@ const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :step, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap, :trisurf, :tricont, :shade, :volume]
+const plot_kind = [:line, :stairs, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap, :trisurf, :tricont, :shade, :volume]
 
 const arg_fmt = [:xys, :xyac, :xyzc]
 
@@ -206,7 +206,7 @@ function set_viewport(kind, subplot)
     viewport[3] = vp3 + (0.075 + bottom_margin) * (vp4 - vp3)
     viewport[4] = vp3 + (0.975 - top_margin) * (vp4 - vp3)
 
-    if kind in (:line, :step, :scatter, :stem) && haskey(plt.kvs, :labels)
+    if kind in (:line, :stairs, :scatter, :stem) && haskey(plt.kvs, :labels)
         location = get(plt.kvs, :location, 1)
         if location in (11, 12, 13)
             w, h = legend_size()
@@ -1276,7 +1276,7 @@ function plot_data(flag=true)
                 end
                 hasmarker(mask) && GR.polymarker(x, y)
             end
-        elseif kind == :step
+        elseif kind == :stairs
             mask = GR.uselinespec(spec)
             if hasline(mask)
                 where = get(plt.kvs, :where, "mid")
@@ -1520,7 +1520,7 @@ function plot_data(flag=true)
         GR.restorestate()
     end
 
-    if kind in (:line, :step, :scatter, :stem) && haskey(plt.kvs, :labels)
+    if kind in (:line, :stairs, :scatter, :stem) && haskey(plt.kvs, :labels)
         draw_legend()
     end
 
@@ -1789,20 +1789,20 @@ This function can receive one or more of the following:
     julia> x = LinRange(-2, 2, 40)
     julia> y = 2 .* x .+ 4
     julia> # Plot x and y
-    julia> step(x, y)
+    julia> stairs(x, y)
     julia> # Plot x and a callable
-    julia> step(x, x -> x^3 + x^2 + x)
+    julia> stairs(x, x -> x^3 + x^2 + x)
     julia> # Plot y, using its indices for the x values
-    julia> step(y)
+    julia> stairs(y)
     julia> # Use next y step directly after x each position
-    julia> step(y, where="pre")
+    julia> stairs(y, where="pre")
     julia> # Use next y step between two x positions
-    julia> step(y, where="mid")
+    julia> stairs(y, where="mid")
     julia> # Use next y step immediately before next x position
-    julia> step(y, where="post")
+    julia> stairs(y, where="post")
 """
-function step(args...; kv...)
-    create_context(:step, Dict(kv))
+function stairs(args...; kv...)
+    create_context(:stairs, Dict(kv))
 
     plt.args = plot_args(args, fmt=:xyac)
 

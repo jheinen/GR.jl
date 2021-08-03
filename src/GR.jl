@@ -218,7 +218,7 @@ export
   semilogx,
   semilogy,
   loglog,
-  step,
+  stairs,
   scatter,
   stem,
   barplot,
