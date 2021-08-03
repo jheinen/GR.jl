@@ -1068,7 +1068,7 @@ function plot_iso(V)
     nx, ny, nz = size(V)
     isovalue = (get(plt.kvs, :isovalue, 0.5) - _min(V)) / (_max(V) - _min(V))
     rotation = get(plt.kvs, :rotation, 40) * π / 180.0
-    tilt = get(plt.kvs, :tilt, 70) * π / 180.0
+    tilt = get(plt.kvs, :tilt, 60) * π / 180.0
     r = 2.5
     gr3.clear()
     mesh = gr3.createisosurfacemesh(values, (2/(nx-1), 2/(ny-1), 2/(nz-1)),
@@ -1393,7 +1393,6 @@ function plot_data(flag=true)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
                 zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
-            GR.setprojectiontype(0)
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 0)
             clabels = get(plt.kvs, :clabels, false)
@@ -1411,7 +1410,6 @@ function plot_data(flag=true)
                 x, y, z = GR.gridit(x, y, z, 200, 200)
                 zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
-            GR.setprojectiontype(0)
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 0)
             clabels = get(plt.kvs, :clabels, false)
