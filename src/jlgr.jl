@@ -56,7 +56,6 @@ meshgrid,
 peaks,
 imshow,
 isosurface,
-isosurface,
 cart2sph,
 sph2cart,
 polar,
@@ -1083,6 +1082,7 @@ function plot_iso(V)
     gr3.setbackgroundcolor(1, 1, 1, 0)
     gr3.drawmesh(mesh, 1, (0, 0, 0), (0, 0, 1), (0, 1, 0), color, (1, 1, 1))
     gr3.cameralookat(r*sin(tilt)*sin(rotation), r*cos(tilt), r*sin(tilt)*cos(rotation), 0, 0, 0, 0, 1, 0)
+    gr3.setcameraprojectionparameters(45, 1, 200)
     gr3.drawimage(xmin, xmax, ymin, ymax, 500, 500, gr3.DRAWABLE_GKS)
     gr3.deletemesh(mesh)
     GR.selntran(1)
