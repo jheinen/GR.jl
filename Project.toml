@@ -22,4 +22,4 @@ UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 [compat]
 HTTP = "0.8, 0.9"
 JSON = "0.20, 0.21, 1"
-julia = "1.6"
+julia = "1.3"
