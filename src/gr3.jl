@@ -337,18 +337,28 @@ function surface(px, py, pz, option::Int)
   nz = length(pz)
   if ndims(pz) == 1
     out_of_bounds = nz != nx * ny
+  elseif ndims(px) == ndims(py) == ndims(pz) == 2
+    nx, ny = size(pz)
+    out_of_bounds = size(px)[1] != ny || size(px)[2] != nx ||
+                    size(py)[1] != ny || size(py)[2] != nx
   elseif ndims(pz) == 2
     out_of_bounds = size(pz)[1] != nx || size(pz)[2] != ny
   else
     out_of_bounds = true
   end
   if !out_of_bounds
-    if ndims(pz) == 2
-      pz = reshape(pz, nx * ny)
+    if option != GR.OPTION_3D_MESH
+      if ndims(pz) == 2
+        pz = reshape(pz, nx * ny)
+      end
+      _px = [ Float32(x) for x in px ]
+      _py = [ Float32(y) for y in py ]
+      _pz = [ Float32(z) for z in pz ]
+    else
+      _px = px'
+      _py = py'
+      _pz = pz
     end
-    _px = [ Float32(x) for x in px ]
-    _py = [ Float32(y) for y in py ]
-    _pz = [ Float32(z) for z in pz ]
     ccall(GR.libGR3_ptr(:gr3_surface),
           Nothing,
           (Int32, Int32, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Int32),

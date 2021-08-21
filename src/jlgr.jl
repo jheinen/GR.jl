@@ -1450,14 +1450,19 @@ function plot_data(flag=true)
             GR.surface(x, y, z, GR.OPTION_FILLED_MESH)
             draw_axes(kind, 2)
         elseif kind == :surface
-            if length(x) == length(y) == length(z)
-                x, y, z = GR.gridit(x, y, z, 200, 200)
+            if isa(x, AbstractMatrix) && isa(y, AbstractMatrix) && isa(z, AbstractMatrix)
+                option = GR.OPTION_3D_MESH
+            else
+                option = GR.OPTION_COLORED_MESH
+                if length(x) == length(y) == length(z)
+                    x, y, z = GR.gridit(x, y, z, 200, 200)
+                end
             end
             if get(plt.kvs, :accelerate, true)
                 gr3.clear()
-                GR.gr3.surface(x, y, z, GR.OPTION_COLORED_MESH)
+                GR.gr3.surface(x, y, z, option)
             else
-                GR.surface(x, y, z, GR.OPTION_COLORED_MESH)
+                GR.surface(x, y, z, option)
             end
             draw_axes(kind, 2)
             colorbar(0.05)
@@ -1686,9 +1691,11 @@ function plot_args(args; fmt=:xys)
                 @assert size(x) == size(y)
                 xyzc = [ (view(x,:,j), view(y,:,j), z, c) for j = 1:size(y, 2) ]
             end
-        elseif isa(x, AbstractVector) && isa(y, AbstractVector) &&
-               (isa(z, AbstractVector) || typeof(z) == Array{Float64,2} ||
-                typeof(z) == Array{Int32,2} || typeof(z) == Array{Any,2})
+        elseif (isa(x, AbstractVector) && isa(y, AbstractVector) &&
+                (isa(z, AbstractVector) || typeof(z) == Array{Float64,2} ||
+                 typeof(z) == Array{Int32,2} || typeof(z) == Array{Any,2})) ||
+                (isa(x, AbstractMatrix) && isa(y, AbstractMatrix) &&
+                (isa(z, AbstractMatrix)))
             xyzc = [ (x, y, z, c) ]
         else
             xyzc = [ (vec(float(x)), vec(float(y)), vec(float(z)), c) ]
