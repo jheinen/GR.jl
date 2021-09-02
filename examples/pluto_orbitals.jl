@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.14.1
+# v0.15.1
 
 using Markdown
 using InteractiveUtils
@@ -11,6 +11,12 @@ macro bind(def, element)
         global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : missing
         el
     end
+end
+
+# ╔═╡ 5323b5ac-0c51-4952-8f27-4f489c1f2d1a
+begin
+    import Pkg
+    Pkg.activate() # disable Pluto's package management
 end
 
 # ╔═╡ d8aeb9f4-990c-11eb-0dbb-078cda4928d5
@@ -100,12 +106,13 @@ end
 
 # ╔═╡ 16697f21-f879-48d1-ad41-f39e1dde5830
 begin
-	n, m, l = parse.(Int, split(Ψ, ','))
+    n, m, l = parse.(Int, split(Ψ, ','))
     Ψv = calculate_electronic_density(n, m, l)
     isosurface(Ψv, isovalue=iso, rotation=ϕ)
 end
 
 # ╔═╡ Cell order:
+# ╠═5323b5ac-0c51-4952-8f27-4f489c1f2d1a
 # ╠═d8aeb9f4-990c-11eb-0dbb-078cda4928d5
 # ╠═6127fb6a-22fc-4f35-8228-cc06ffebf9c0
 # ╠═7aa443bd-b706-41e2-bdc8-0d8c10c99b02

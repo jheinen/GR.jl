@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.14.8
+# v0.15.1
 
 using Markdown
 using InteractiveUtils
@@ -13,21 +13,25 @@ macro bind(def, element)
     end
 end
 
+# ╔═╡ 43e5cbb6-5557-492e-9aeb-f7cbde220e15
+begin
+    import Pkg
+    Pkg.activate() # disable Pluto's package management
+end
+
 # ╔═╡ e2d1cb38-2698-11eb-2e59-632faa201d6f
 begin
     using DelimitedFiles
-	using PlutoUI
+    using PlutoUI
 
-	ENV["GRDISPLAY"] = "pluto"
+    ENV["GRDISPLAY"] = "pluto"
     using GR
-	
-    GR.js.init_pluto()
 end
 
 # ╔═╡ 49d120ea-2699-11eb-203d-fddbb33bb08b
 begin
-	url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
-	download(url, "covid19.csv")
+    url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+    download(url, "covid19.csv")
 end;
 
 # ╔═╡ 4b5f800a-2699-11eb-2528-b5917c0461cf
@@ -42,20 +46,20 @@ end;
 
 # ╔═╡ 75ad9770-2699-11eb-0db7-5948da39d6e1
 begin
-	cummulated = Dict()
-	for i in 1:ncountries
-		country = data[i,2]
-		if country in countries
-			if !haskey(cummulated, country) cummulated[country] = zeros(ndays) end
-			cummulated[country] .+= collect(data[i,5:end])
-		end
-	end
+    cummulated = Dict()
+    for i in 1:ncountries
+        country = data[i,2]
+        if country in countries
+            if !haskey(cummulated, country) cummulated[country] = zeros(ndays) end
+            cummulated[country] .+= collect(data[i,5:end])
+        end
+    end
 end
 
 # ╔═╡ 86c70334-2699-11eb-1b52-cfa50b314e2b
 begin
-	day = collect(Float64, 1:ndays);
-	confirmed = hcat([cummulated[country] for country in countries]...)
+    day = collect(Float64, 1:ndays);
+    confirmed = hcat([cummulated[country] for country in countries]...)
 end;
 
 # ╔═╡ 918f640a-2699-11eb-02d8-998ed76c614a
@@ -64,6 +68,7 @@ plot(day, confirmed, xlim=(0, ndays+1), ylim=(10, 100_000_000), ylog=true,
      labels=countries, location=4)
 
 # ╔═╡ Cell order:
+# ╠═43e5cbb6-5557-492e-9aeb-f7cbde220e15
 # ╠═e2d1cb38-2698-11eb-2e59-632faa201d6f
 # ╠═49d120ea-2699-11eb-203d-fddbb33bb08b
 # ╠═4b5f800a-2699-11eb-2528-b5917c0461cf
