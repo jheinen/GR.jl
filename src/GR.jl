@@ -335,7 +335,7 @@ function __init__()
     end
 
     if grdir[] == "" || !depsfile_succeeded[]
-        grdir[] = grdir_default 
+        grdir[] = grdir_default
         if isdir(grdir[]) && gr_provider[] == "GR"
             # No need to rebuild, just use grdir_default as grdir
         else
@@ -427,7 +427,7 @@ function init(always::Bool = false)
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name[] = ENV["GRDISPLAY"]
-            if display_name[] == "js" || display_name[] == "pluto"
+            if display_name[] == "js" || display_name[] == "pluto" || display_name[] == "js-server"
                 send_c[], recv_c[] = js.initjs()
             end
             @debug "Found GRDISPLAY in ENV" display_name[]
@@ -3717,7 +3717,7 @@ end
 function reset()
     mime_type[] = ""
     file_path[] = ""
-    figure_count[] = -1 
+    figure_count[] = -1
     delete!(ENV, "GKS_WSTYPE")
     delete!(ENV, "GKS_FILEPATH")
     emergencyclosegks()

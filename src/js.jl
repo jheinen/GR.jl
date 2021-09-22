@@ -81,7 +81,7 @@ end
 
 function JSTermWidget(id::Int, width::Int, height::Int, disp::Int)
   global id_count
-  if GR.isijulia()
+  if GR.isijulia() && GR.displayname() == "js-server"
     id_count += 1
     if !js_running[]
       @async check_js()
@@ -155,7 +155,7 @@ end
 
 function send_command(msg, msgtype, id=nothing)
   global wss, ws
-  if GR.isijulia()
+  if GR.isijulia() && GR.displayname() == "js-server"
     if id !== nothing
       m = merge(msg, Dict("type" => msgtype, "id" => id))
     else
@@ -174,8 +174,10 @@ function send_command(msg, msgtype, id=nothing)
         js_running[] = false
       end
     end
+  elseif GR.displayname() == "js-server"
+    error("'js-server' is only available in IJulia environments.")
   else
-    error("send_command is only available in IJulia environments")
+    error(str("Display '", GR.displayname(), "' does not support send_command()."))
   end
 end
 
@@ -255,20 +257,44 @@ end
 const pluto_data = Ref("")
 const pluto_disp = Ref("")
 
-function get_pluto_html()
+function get_html()
   outp = string("""
     <div id="jsterm-display-""", pluto_disp[], """\">
     </div>
     <script type="text/javascript">
       if (typeof jsterm === "undefined") {
-        var jsterm = new JSTerm(true);
+        var jsterm = null;
       }
-      jsterm.draw({
-        "json": '""", pluto_data[], """',
-        "display": '""", pluto_disp[], """'
-      })
+      function run_on_start(data, display) {
+        if (typeof JSTerm === "undefined") {
+          setTimeout(function() {run_on_start(data, display)}, 100);
+          return;
+        }
+        if (jsterm === null) {
+          jsterm = new JSTerm(true);
+        }
+        jsterm.draw({
+          "json": data,
+          "display": display
+        })
+      }
+      run_on_start('""", pluto_data[], """', '""", pluto_disp[], """');
     </script>
   """)
+  if GR.isijulia()
+    display(HTML(string("""
+      <script type="text/javascript">
+        if (typeof JSTerm === "undefined" && document.getElementById('jstermImport') == null) {
+          let jstermScript = document.createElement("script");
+          jstermScript.setAttribute("src", \"""", jssource[], """\");
+          jstermScript.setAttribute("type", "text/javascript")
+          jstermScript.setAttribute("id", "jstermImport")
+          document.body.appendChild(jstermScript);
+        }
+      </script>
+    """, outp)))
+    return
+  end
   if plutoisinit[]
     return HTML(outp)
   else
@@ -278,23 +304,23 @@ end
 
 function jsterm_send(data::String, disp)
   global draw_end_condition, ws, conditions
-  if GR.isijulia()
+  if GR.isijulia() && GR.displayname() == "js-server"
     if !js_running[]
       conditions["sendonconnect"] = Condition()
       @async check_js()
       wait(conditions["sendonconnect"])
     end
-      if ws !== nothing
-        try
-          conditions[disp] = Condition()
-          HTTP.write(ws, Array{UInt8}(JSON.json(Dict("json" => data, "type"=>"draw", "display"=>disp))))
-          wait(conditions[disp])
-        catch e
-          ws = nothing
-          js_running[] = false
-        end
+    if ws !== nothing
+      try
+        conditions[disp] = Condition()
+        HTTP.write(ws, Array{UInt8}(JSON.json(Dict("json" => data, "type"=>"draw", "display"=>disp))))
+        wait(conditions[disp])
+      catch e
+        ws = nothing
+        js_running[] = false
       end
-  elseif GR.displayname() == "pluto"
+    end
+  elseif GR.displayname() == "pluto" || GR.displayname() == "js"
     pluto_data[] = data
     pluto_disp[] = disp
   else
@@ -380,27 +406,29 @@ function initjs()
       recv_c[] = @cfunction(recv, Int32, (Cstring, Int32, Cstring))
       @eval js begin
         import UUIDs
-        import HTTP
-        import Sockets
         import JSON
       end
-      if GR.isijulia()
-        connect_cond[] = Condition()
-        connected[] = false
-        ws_server_task = @async begin
-          #port[], server = Sockets.listenany(8081)
-          port[] = 8081
-          #server = Sockets.listen(8081)
-          #@async HTTP.listen(server=server, verbose=true) do webs
-          @async HTTP.WebSockets.listen("0.0.0.0", UInt16(8081)) do webs
-            ws_cb(webs)
-            #HTTP.WebSockets.upgrade(ws_cb, webs)
+      if GR.displayname() == "js-server"
+        if GR.isijulia()
+          @eval js begin
+            import HTTP
+            import Sockets
           end
-          connected[] = true
-          notify(connect_cond[])
-        end
-        if !connected[]
-          wait(connect_cond[])
+          connect_cond[] = Condition()
+          connected[] = false
+          ws_server_task = @async begin
+            port[], server = Sockets.listenany(8081)
+            @async HTTP.listen(server=server) do webs
+              HTTP.WebSockets.upgrade(ws_cb, webs)
+            end
+            connected[] = true
+            notify(connect_cond[])
+          end
+          if !connected[]
+            wait(connect_cond[])
+          end
+        else
+          error("'js-server' is only available in IJulia environments.")
         end
       end
     end
