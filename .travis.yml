@@ -8,7 +8,7 @@ services:
   - xvfb
 julia:
   - 1.5.4
-  - 1.6.1
+  - 1.6.3
   - nightly
 notifications:
   email: false
