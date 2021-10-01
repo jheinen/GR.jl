@@ -205,6 +205,7 @@ export
   inqtextencoding,
   loadfont,
   inqvpsize,
+  inqtransformationparameters,
   # Convenience functions
   jlgr,
   colormap,
@@ -4284,6 +4285,23 @@ function inqvpsize()
         (Ptr{Cint}, Ptr{Cint}, Ptr{Cdouble}),
         width, height, device_pixel_ratio)
   return width[1], height[1], device_pixel_ratio[1]
+end
+
+function inqtransformationparameters()
+  cam_x = Cdouble[0]
+  cam_y = Cdouble[0]
+  cam_z = Cdouble[0]
+  up_x = Cdouble[0]
+  up_y = Cdouble[0]
+  up_z = Cdouble[0]
+  foc_x = Cdouble[0]
+  foc_y = Cdouble[0]
+  foc_z = Cdouble[0]
+  ccall( libGR_ptr(:gr_inqtransformationparameters),
+        Nothing,
+        (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
+        cam_x, cam_y, cam_z, up_x, up_y, up_z, foc_x, foc_y, foc_z)
+  return cam_x[1], cam_y[1], cam_z[1], up_x[1], up_y[1], up_z[1], foc_x[1], foc_y[1], foc_z[1]
 end
 
 # JS functions
