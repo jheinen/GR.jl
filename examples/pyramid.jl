@@ -19,6 +19,6 @@ setwindow(-1, 1, -1, 1)
 setwindow3d(0, 1, 0, 1, 0, 1)
 setspace3d(30, 80, 0, 0)
 
-polygonmesh3d(x, y, z, [(connections...)...], colors)
+polygonmesh3d(x, y, z, vcat(connections...), colors)
 
 updatews()
