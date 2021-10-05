@@ -146,4 +146,5 @@ const libGR_syms = [
 :gr_loadfont
 :gr_inqvpsize
 :gr_inqtransformationparameters
+:gr_polygonmesh3d
 ]

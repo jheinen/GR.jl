@@ -206,6 +206,7 @@ export
   loadfont,
   inqvpsize,
   inqtransformationparameters,
+  polygonmesh3d,
   # Convenience functions
   jlgr,
   colormap,
@@ -4302,6 +4303,16 @@ function inqtransformationparameters()
         (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
         cam_x, cam_y, cam_z, up_x, up_y, up_z, foc_x, foc_y, foc_z)
   return cam_x[1], cam_y[1], cam_z[1], up_x[1], up_y[1], up_z[1], foc_x[1], foc_y[1], foc_z[1]
+end
+
+function polygonmesh3d(px, py, pz, connections, colors)
+  @assert length(px) == length(py) == length(pz)
+  num_points = length(px)
+  num_connections = length(colors)
+  ccall( libGR_ptr(:gr_polygonmesh3d),
+        Nothing,
+        (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Ptr{Int32}, Ptr{Int32}),
+        num_points, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz), num_connections, convert(Vector{Int32}, connections), convert(Vector{Int32}, colors))
 end
 
 # JS functions
