@@ -75,6 +75,8 @@ export
   polymarker,
   text,
   inqtext,
+  textx,
+  inqtextx,
   fillarea,
   cellarray,
   nonuniformcellarray,
@@ -800,6 +802,23 @@ function inqtext(x, y, string)
         Nothing,
         (Float64, Float64, Ptr{UInt8}, Ptr{Cdouble}, Ptr{Cdouble}),
         x, y, latin1(string), tbx, tby)
+  return tbx, tby
+end
+
+function textx(x::Real, y::Real, string, opts::UInt32)
+  ccall( libGR_ptr(:gr_textx),
+        Nothing,
+        (Float64, Float64, Ptr{UInt8}, UInt32),
+        x, y, latin1(string), opts)
+end
+
+function inqtextx(x, y, string, opts::UInt32)
+  tbx = Cdouble[0, 0, 0, 0]
+  tby = Cdouble[0, 0, 0, 0]
+  ccall( libGR_ptr(:gr_inqtextx),
+        Nothing,
+        (Float64, Float64, Ptr{UInt8}, UInt32, Ptr{Cdouble}, Ptr{Cdouble}),
+        x, y, latin1(string), opts, tbx, tby)
   return tbx, tby
 end
 

@@ -14,6 +14,8 @@ const libGR_syms = [
 :gr_polymarker
 :gr_text
 :gr_inqtext
+:gr_textx
+:gr_inqtextx
 :gr_fillarea
 :gr_cellarray
 :gr_nonuniformcellarray
