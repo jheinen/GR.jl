@@ -9,7 +9,7 @@ function main()
     GR.settextfontprec(2, 0)
     y = 0
     for i in 0:1
-        GR.text(0.05, 0.85-y, " !\"#\$%&'()*+,-./")
+        GR.text(0.05, 0.85-y, " !\"#\$\$%&'()*+,-./")
         GR.text(0.05, 0.80-y, "0123456789:;<=>?")
         GR.text(0.05, 0.75-y, "@ABCDEFGHIJKLMNO")
         GR.text(0.05, 0.70-y, "PQRSTUVWXYZ[\\]^_")
