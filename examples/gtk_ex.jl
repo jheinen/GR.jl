@@ -49,7 +49,6 @@ function value_changed(widget::Gtk.GtkScale)
 end
 
 win = Window("Gtk") |> (bx = Box(:v))
-Gtk.set_gtk_property!(win, :double_buffered, false)
 lb = Label("(-, -)")
 sl = Scale(false, 10, 100, 1)
 Gtk.GAccessor.value(sl, 30)
