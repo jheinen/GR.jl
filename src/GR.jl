@@ -438,6 +438,9 @@ function init(always::Bool = false)
         elseif "GKS_NO_GUI" in keys(ENV)
             @debug "Found GKS_NO_GUI in ENV, returning"
             return
+        elseif "GKS_WSTYPE" in keys(ENV)
+            mime_type[] = ""
+            @debug "Force user-defined output type" ENV["GKS_WSTYPE"]
         elseif isijulia() || ispluto() || isvscode() || isatom()
             mime_type[] = "svg"
             file_path[] = tempname() * ".svg"
