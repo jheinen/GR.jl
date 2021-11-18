@@ -3710,9 +3710,6 @@ function inline(mime="svg", scroll=true)
     if mime_type[] != mime
         @debug "MIME type change" mime_type[] mime
         if mime == "iterm"
-            file_path[] = tempname() * ".pdf"
-            ENV["GKS_WSTYPE"] = "pdf"
-        elseif mime == "iterm2"
             file_path[] = tempname() * ".png"
             ENV["GKS_WSTYPE"] = "png"
         elseif mime == "mlterm"
@@ -3764,7 +3761,7 @@ function show()
         content = HTML(string("""<video autoplay controls><source type="$mimespec" src="data:$mimespec;base64,""", Base64.base64encode(open(read,file_path[])),""""></video>"""))
         rm(file_path[])
         return content
-    elseif mime_type[] in ("iterm", "iterm2")
+    elseif mime_type[] == "iterm"
         content = string(osc_seq(), "1337;File=inline=1;height=24;preserveAspectRatio=0:", Base64.base64encode(open(read,file_path[])), st_seq())
         if figure_count[] != -1
             figure_count[] += 1
