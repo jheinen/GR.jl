@@ -1888,6 +1888,18 @@ primitives.
     +---------------+--------------------+
     |OPTION_FLIP_Z  |Flip Z-axis         |
     +---------------+--------------------+
+    |OPTION_X_LOG2  |log2 scaled X-axis  |
+    +---------------+--------------------+
+    |OPTION_Y_LOG2  |log2 scaled Y-axis  |
+    +---------------+--------------------+
+    |OPTION_Z_LOG2  |log2 scaled Z-axis  |
+    +---------------+--------------------+
+    |OPTION_X_LN    |ln scaled X-axis    |
+    +---------------+--------------------+
+    |OPTION_Y_LN    |ln scaled Y-axis    |
+    +---------------+--------------------+
+    |OPTION_Z_LN    |ln scaled Z-axis    |
+    +---------------+--------------------+
 
 `setscale` defines the current transformation according to the given scale
 specification which may be or'ed together using any of the above options. GR uses
@@ -3554,6 +3566,12 @@ const OPTION_Z_LOG = 4
 const OPTION_FLIP_X = 8
 const OPTION_FLIP_Y = 16
 const OPTION_FLIP_Z = 32
+const OPTION_X_LOG2 = 64
+const OPTION_Y_LOG2 = 128
+const OPTION_Z_LOG2 = 256
+const OPTION_X_LN = 512
+const OPTION_Y_LN = 1024
+const OPTION_Z_LN = 2048
 
 const OPTION_LINES = 0
 const OPTION_MESH = 1
