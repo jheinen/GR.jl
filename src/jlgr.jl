@@ -1388,7 +1388,7 @@ function plot_data(flag=true)
         elseif kind == :contour
             zmin, zmax = plt.kvs[:zrange]
             if length(x) == length(y) == length(z)
-                x, y, z = GR.gridit(x, y, z, 200, 200)
+                x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
                 zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
             GR.setspace(zmin, zmax, 0, 90)
@@ -1405,7 +1405,7 @@ function plot_data(flag=true)
         elseif kind == :contourf
             zmin, zmax = plt.kvs[:zrange]
             if length(x) == length(y) == length(z)
-                x, y, z = GR.gridit(x, y, z, 200, 200)
+                x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
                 zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
             GR.setspace(zmin, zmax, 0, 90)
@@ -1442,7 +1442,7 @@ function plot_data(flag=true)
             colorbar(0, levels)
         elseif kind == :wireframe
             if length(x) == length(y) == length(z)
-                x, y, z = GR.gridit(x, y, z, 50, 50)
+                x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 50, 50)
             end
             GR.setfillcolorind(0)
             GR.surface(x, y, z, GR.OPTION_FILLED_MESH)
@@ -1453,7 +1453,7 @@ function plot_data(flag=true)
             else
                 option = GR.OPTION_COLORED_MESH
                 if length(x) == length(y) == length(z)
-                    x, y, z = GR.gridit(x, y, z, 200, 200)
+                    x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
                 end
             end
             if get(plt.kvs, :accelerate, true)
