@@ -239,7 +239,11 @@ function set_viewport(kind, subplot)
         xmin, xmax, ymin, ymax = viewport
         xcenter = 0.5 * (xmin + xmax)
         ycenter = 0.5 * (ymin + ymax)
-        r = 0.5 * min(xmax - xmin, ymax - ymin)
+        r = 0.45 * min(xmax - xmin, ymax - ymin)
+        if haskey(plt.kvs, :title)
+            r *= 0.975
+            ycenter -= 0.025 * r
+        end
         GR.setviewport(xcenter - r, xcenter + r, ycenter - r, ycenter + r)
     end
 end
@@ -588,6 +592,7 @@ end
 
 function draw_polar_axes()
     viewport = plt.kvs[:viewport]
+    vp = plt.kvs[:vp]
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     charheight = max(0.018 * diag, 0.012)
 
@@ -622,6 +627,11 @@ function draw_polar_axes()
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_HALF)
         x, y = GR.wctondc(1.1 * cosf, 1.1 * sinf)
         GR.textext(x, y, string(alpha, "^o"))
+    end
+
+    if haskey(plt.kvs, :title)
+        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
+        text(0.5 * (viewport[1] + viewport[2]), vp[4] - 0.02, plt.kvs[:title])
     end
     GR.restorestate()
 end
