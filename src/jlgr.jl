@@ -213,6 +213,22 @@ function set_viewport(kind, subplot)
             viewport[2] -= w + 0.1
         end
     end
+
+    if kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap)
+        xmin, xmax, ymin, ymax = viewport
+        xcenter = 0.5 * (xmin + xmax)
+        ycenter = 0.5 * (ymin + ymax)
+        r = 0.45 * min(xmax - xmin, ymax - ymin)
+        if haskey(plt.kvs, :title)
+            r *= 0.975
+            ycenter -= 0.025 * r
+        end
+        viewport[1] = xcenter - r;
+        viewport[2] = xcenter + r;
+        viewport[3] = ycenter - r;
+        viewport[4] = ycenter + r;
+    end
+
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
 
     plt.kvs[:viewport] = viewport
@@ -233,18 +249,6 @@ function set_viewport(kind, subplot)
         end
         GR.selntran(1)
         GR.restorestate()
-    end
-
-    if kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap)
-        xmin, xmax, ymin, ymax = viewport
-        xcenter = 0.5 * (xmin + xmax)
-        ycenter = 0.5 * (ymin + ymax)
-        r = 0.45 * min(xmax - xmin, ymax - ymin)
-        if haskey(plt.kvs, :title)
-            r *= 0.975
-            ycenter -= 0.025 * r
-        end
-        GR.setviewport(xcenter - r, xcenter + r, ycenter - r, ycenter + r)
     end
 end
 
