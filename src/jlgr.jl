@@ -1147,9 +1147,10 @@ function send_meta(target)
             elseif k in [:xlim, :ylim, :zlim, :clim, :size]
                 GR.sendmetaref(handle, string(k), 'D', to_double(v))
             elseif k in [:title, :xlabel, :ylabel, :zlabel]
-                GR.sendmetaref(handle, string(k), 's', string(v))
+                GR.sendmetaref(handle, string(k), 's', String(v))
             elseif k in [:labels]
-                GR.sendmetaref(handle, string(k), 'S', v, length(v))
+                s = [String(el) for el in v]
+                GR.sendmetaref(handle, string(k), 'S', s, length(s))
             elseif k in [:xflip, :yflip, :zflip, :xlog, :ylog, :zlog]
                 GR.sendmetaref(handle, string(k), 'i', v ? 1 : 0)
             end
