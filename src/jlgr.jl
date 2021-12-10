@@ -1482,9 +1482,9 @@ function plot_data(flag=true)
         elseif kind == :volume
             algorithm = get(plt.kvs, :algorithm, 0)
             gr3.clear()
-            dmin, dmax = GR.gr3.volume(z, algorithm)
+            dmin, dmax = GR.gr3.volume(c, algorithm)
             draw_axes(kind, 2)
-            plt.kvs[:zrange] = dmin, dmax
+            plt.kvs[:crange] = dmin, dmax
             colorbar(0.05)
         elseif kind == :plot3
             GR.polyline3d(x, y, z)
@@ -2334,7 +2334,7 @@ end
 function volume(V; kv...)
     create_context(:volume, Dict(kv))
 
-    plt.args = [(Nothing, Nothing, V, Nothing, "")]
+    plt.args = [(Nothing, Nothing, Nothing, V, "")]
 
     plot_data()
 end
