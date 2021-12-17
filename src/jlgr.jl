@@ -316,6 +316,10 @@ function minmax(kind)
             z0, z1 = Extrema64(z)
             zmin = min(z0, zmin)
             zmax = max(z1, zmax)
+        elseif kind == :volume
+            zmin, zmax = -1, 1
+        else
+            zmin, zmax = 0, 1
         end
         if given(c)
             c0, c1 = Extrema64(c)
@@ -1484,7 +1488,7 @@ function plot_data(flag=true)
             gr3.clear()
             dmin, dmax = GR.gr3.volume(c, algorithm)
             draw_axes(kind, 2)
-            plt.kvs[:crange] = dmin, dmax
+            plt.kvs[:zrange] = dmin, dmax
             colorbar(0.05)
         elseif kind == :plot3
             GR.polyline3d(x, y, z)
