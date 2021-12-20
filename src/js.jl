@@ -26,11 +26,7 @@ function inject_js()
   global wss
 
   wss = nothing
-  if !haskey(ENV, "GRJS")
-    gr_js_source = joinpath(ENV["GRDIR"], "lib", "gr.js")
-  else
-    gr_js_source = ENV["GRJS"]
-  end
+  gr_js_source = joinpath(ENV["GRDIR"], "lib", "gr.js")
   _gr_js = if isfile(gr_js_source)
     _gr_js = try
       _gr_js = open(gr_js_source) do f
@@ -412,6 +408,9 @@ function initjs()
       @eval js begin
         import UUIDs
         import JSON
+      end
+      if contains(GR.version(), ".post")
+        jssource[] = "https://gr-framework.org/downloads/gr-latest.js"
       end
       if GR.displayname() == "js-server"
         if GR.isijulia()
