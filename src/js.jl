@@ -26,9 +26,14 @@ function inject_js()
   global wss
 
   wss = nothing
-  _gr_js = if isfile(joinpath(ENV["GRDIR"], "lib", "gr.js"))
+  if !haskey(ENV, "GRJS")
+    gr_js_source = joinpath(ENV["GRDIR"], "lib", "gr.js")
+  else
+    gr_js_source = ENV["GRJS"]
+  end
+  _gr_js = if isfile(gr_js_source)
     _gr_js = try
-      _gr_js = open(joinpath(ENV["GRDIR"], "lib", "gr.js")) do f
+      _gr_js = open(gr_js_source) do f
         _gr_js = read(f, String)
         _gr_js
       end
@@ -38,7 +43,7 @@ function inject_js()
     _gr_js
   end
   if _gr_js === nothing
-      error(string("Unable to open '", joinpath(ENV["GRDIR"], "lib", "gr.js"), "'."))
+      error(string("Unable to open '", gr_js_source, "'."))
   else
       display(HTML(string("""
         <script type="text/javascript" id="jsterm-javascript">
