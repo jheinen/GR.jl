@@ -100,6 +100,10 @@ heatmap(z)
 
 imshow(z)
 
+ρ = LinRange(0., 7, 200)
+θ = LinRange(0., 2π, 360)
+polarheatmap(θ, ρ, sin.(2ρ) .* cos.(θ'))
+
 s = LinRange(-1, 1, 40)
 v = 1 .- (s .^ 2 .+ (s .^ 2)' .+ reshape(s,1,1,:) .^ 2) .^ 0.5
 isosurface(v, isovalue=0.2)

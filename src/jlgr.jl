@@ -29,9 +29,7 @@ contour,
 contourf,
 hexbin,
 heatmap,
-heatmap,
 polarheatmap,
-nonuniformpolarheatmap,
 wireframe,
 surface,
 volume,
@@ -2235,7 +2233,7 @@ function polarheatmap(D; kv...)
     end
 end
 
-function nonuniformpolarheatmap(x, y, z; kv...)
+function polarheatmap(x, y, z; kv...)
     create_context(:nonuniformpolarheatmap, Dict(kv))
 
     if ndims(z) == 2
