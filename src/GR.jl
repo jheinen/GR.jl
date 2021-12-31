@@ -2206,10 +2206,6 @@ between 0° and 90°.
 
 """
 function setspace(zmin::Real, zmax::Real, rotation::Int, tilt::Int)
-  ccall( libGR_ptr(:gr_setprojectiontype),
-        Nothing,
-        (Int32, ),
-        0)
   space = ccall( libGR_ptr(:gr_setspace),
                 Int32,
                 (Float64, Float64, Int32, Int32),

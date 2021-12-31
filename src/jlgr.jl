@@ -493,7 +493,7 @@ function set_window(kind)
     end
 
     plt.kvs[:window] = xmin, xmax, ymin, ymax
-    if !(kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap, :trisurf))
+    if !(kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap))
         GR.setwindow(xmin, xmax, ymin, ymax)
     else
         GR.setwindow(-1, 1, -1, 1)
