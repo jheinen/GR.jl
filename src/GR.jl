@@ -20,6 +20,8 @@ __precompile__()
 """
 module GR
 
+using RelocatableFolders
+
 @static if isdefined(Base, :Experimental) &&
            isdefined(Base.Experimental, Symbol("@optlevel"))
     Base.Experimental.@optlevel 1
@@ -31,10 +33,10 @@ else
   const os = Sys.KERNEL
 end
 
-const depsfile = joinpath(dirname(@__DIR__), "deps", "deps.jl")
+@path const depsfile = joinpath(dirname(@__DIR__), "deps", "deps.jl")
 const depsfile_succeeded = Ref(true)
 # Include Builder module in case we need to rebuild
-const buildfile = joinpath(dirname(@__DIR__), "deps", "build.jl")
+@path const buildfile = joinpath(dirname(@__DIR__), "deps", "build.jl")
 
 if os == :Windows
     const libGR = "libGR.dll"
