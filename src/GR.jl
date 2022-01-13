@@ -20,6 +20,8 @@ __precompile__()
 """
 module GR
 
+using RelocatableFolders
+
 @static if isdefined(Base, :Experimental) &&
            isdefined(Base.Experimental, Symbol("@optlevel"))
     Base.Experimental.@optlevel 1
@@ -31,10 +33,10 @@ else
   const os = Sys.KERNEL
 end
 
-const depsfile = joinpath(dirname(@__DIR__), "deps", "deps.jl")
+const depsfile = @path joinpath(dirname(@__DIR__), "deps", "deps.jl")
 const depsfile_succeeded = Ref(true)
 # Include Builder module in case we need to rebuild
-const buildfile = joinpath(dirname(@__DIR__), "deps", "build.jl")
+const buildfile = @path joinpath(dirname(@__DIR__), "deps", "build.jl")
 
 if os == :Windows
     const libGR = "libGR.dll"
@@ -2206,10 +2208,6 @@ between 0° and 90°.
 
 """
 function setspace(zmin::Real, zmax::Real, rotation::Int, tilt::Int)
-  ccall( libGR_ptr(:gr_setprojectiontype),
-        Nothing,
-        (Int32, ),
-        0)
   space = ccall( libGR_ptr(:gr_setspace),
                 Int32,
                 (Float64, Float64, Int32, Int32),

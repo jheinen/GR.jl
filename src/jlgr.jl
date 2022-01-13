@@ -493,7 +493,7 @@ function set_window(kind)
     end
 
     plt.kvs[:window] = xmin, xmax, ymin, ymax
-    if !(kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap, :trisurf))
+    if !(kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap))
         GR.setwindow(xmin, xmax, ymin, ymax)
     else
         GR.setwindow(-1, 1, -1, 1)
@@ -1408,6 +1408,7 @@ function plot_data(flag=true)
                 x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
                 zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
+            GR.setprojectiontype(0)
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 0)
             clabels = get(plt.kvs, :clabels, false)
@@ -1425,6 +1426,7 @@ function plot_data(flag=true)
                 x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
                 zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
+            GR.setprojectiontype(0)
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 0)
             clabels = get(plt.kvs, :clabels, false)
