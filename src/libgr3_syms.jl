@@ -31,4 +31,6 @@ const libGR3_syms = [
 :gr3_createxslicemesh
 :gr3_createyslicemesh
 :gr3_createzslicemesh
+:gr3_setlightsources
+:gr3_getlightsources
 ]

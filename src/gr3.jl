@@ -530,6 +530,28 @@ function drawslicemeshes(data; x::Union{Real, Nothing}=nothing, y::Union{Real, N
 end
 export drawslicemeshes
 
+function setlightsources(num_lights, directions, colors)
+  @assert length(directions) == length(colors)
+  _directions = [ Float32(x) for x in directions ]
+  _colors = [ Float32(x) for x in colors ]
+  ccall(GR.libGR3_ptr(:gr3_setlightsources),
+        Nothing,
+        (Int32, Ptr{Float32}, Ptr{Float32}),
+        num_lights, @ArrayToVector(Float32, _directions), @ArrayToVector(Float32, _colors))
+end
+export setlightsources
+
+function getlightsources(num_lights)
+  directions = Vector{Cfloat}(undef, num_lights * 3)
+  colors = Vector{Cfloat}(undef, num_lights * 3)
+  ccall(GR.libGR3_ptr(:gr3_getlightsources),
+        Nothing,
+        (Int32, Ptr{Cfloat}, Ptr{Cfloat}),
+        num_lights, directions, colors)
+  return directions, colors
+end
+export getlightsources
+
 const IA_END_OF_LIST = 0
 const IA_FRAMEBUFFER_WIDTH = 1
 const IA_FRAMEBUFFER_HEIGHT = 2
