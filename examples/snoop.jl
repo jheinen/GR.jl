@@ -117,6 +117,8 @@ x = randn(rng, N)
 y = randn(rng, N)
 shade(x, y)
 
+setprojectiontype(0)
+
 clearws()
 xd = -2 .+ 4 * rand(rng, 100)
 yd = -2 .+ 4 * rand(rng, 100)
