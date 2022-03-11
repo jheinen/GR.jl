@@ -87,11 +87,3 @@ end
 libGR_ptr(func) = get_func_ptr(libGR_handle, libGR_ptrs, func)
 libGRM_ptr(func) = get_func_ptr(libGRM_handle, libGRM_ptrs, func)
 libGR3_ptr(func) = get_func_ptr(libGR3_handle, libGR3_ptrs, func)
-
-precompile(get_func_ptr, (Base.RefValue{Ptr{Nothing}},LibGR_Ptrs, Symbol) )
-precompile(get_func_ptr, (Base.RefValue{Ptr{Nothing}},LibGRM_Ptrs, Symbol) )
-precompile(get_func_ptr, (Base.RefValue{Ptr{Nothing}},LibGR3_Ptrs, Symbol) )
-precompile(libGR_ptr, (Symbol,))
-precompile(libGRM_ptr, (Symbol,))
-precompile(libGR3_ptr, (Symbol,))
-precompile(load_libs, (Bool,))

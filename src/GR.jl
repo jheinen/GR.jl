@@ -4383,13 +4383,7 @@ end
 # JS functions
 include("js.jl")
 
-precompile(init,(Bool,))
-precompile(ispluto,())
-precompile(isvscode,())
-precompile(isatom,())
-precompile(updatews,())
-
-precompile(polyline, (Vector{Float64}, Vector{Float64}))
-precompile(axes, (Float64, Float64, Int64, Int64, Int64, Int64, Float64))
+include("precompile.jl")
+_precompile_()
 
 end # module
