@@ -781,12 +781,11 @@ end
 function to_rgba(value, cmap)
     if !isnan(value)
         r, g, b = cmap[round(Int, value * 255 + 1), :]
-        a = 1.0
+        0xff000000 + round(UInt32, b * 255) << 16 +
+        round(UInt32, g * 255) << 8  + round(UInt32, r * 255)
     else
-        r, g, b, a = zeros(4)
+        zero(UInt32)
     end
-    round(UInt32, a * 255) << 24 + round(UInt32, b * 255) << 16 +
-    round(UInt32, g * 255) << 8  + round(UInt32, r * 255)
 end
 
 function create_context(kind::Symbol, dict=plt.kvs)
