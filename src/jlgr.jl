@@ -70,10 +70,6 @@ end
 
 signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
 
-macro _tuple(t)
-    :( Tuple{$t} )
-end
-
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
@@ -126,7 +122,7 @@ end
 
 function Figure(width=600, height=450)
     obj = Dict()
-    args = @_tuple(Any)
+    args = nothing
     kvs = Dict()
     kvs[:size] = (width, height)
     kvs[:ax] = false
@@ -867,7 +863,7 @@ that the next plot will be drawn on top of the previous one.
 """
 function hold(flag)
     global ctx
-    if plt.args != @_tuple(Any)
+    if plt.args !== nothing
         plt.kvs[:ax] = flag
         plt.kvs[:clear] = !flag
         for k in (:window, :scale, :xaxis, :yaxis, :zaxis)
@@ -1197,7 +1193,7 @@ end
 function plot_data(flag=true)
     global scheme, background
 
-    if plt.args == @_tuple(Any)
+    if plt.args === nothing
         return
     end
 
