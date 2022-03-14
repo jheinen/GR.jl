@@ -1106,11 +1106,9 @@ function plot_polar(θ, ρ)
 end
 
 function RGB(color)
-    rgb = zeros(3)
-    rgb[1] = float((color >> 16) & 0xff) / 255.0
-    rgb[2] = float((color >> 8)  & 0xff) / 255.0
-    rgb[3] = float( color        & 0xff) / 255.0
-    rgb
+    float((color >> 16) & 0xff) / 255,
+    float((color >> 8)  & 0xff) / 255,
+    float( color        & 0xff) / 255
 end
 
 to_double(a) = Float64[float(el) for el in a]
