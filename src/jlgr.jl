@@ -115,15 +115,15 @@ function _max(a)
 end
 
 mutable struct PlotObject
-  obj
+  obj::Dict{Symbol, Any}
   args
-  kvs
+  kvs::Dict{Symbol, Any}
 end
 
 function Figure(width=600, height=450)
-    obj = Dict()
+    obj = Dict{Symbol, Any}()
     args = nothing
-    kvs = Dict()
+    kvs = Dict{Symbol, Any}()
     kvs[:size] = (width, height)
     kvs[:ax] = false
     kvs[:subplot] = [0, 1, 0, 1]
@@ -138,7 +138,7 @@ function gcf()
 end
 
 plt = Figure()
-ctx = Dict()
+const ctx = Dict{Symbol, Any}()
 scheme = 0
 background = 0xffffff
 handle = nothing
@@ -255,7 +255,7 @@ function fix_minmax(a, b)
 end
 
 function given(a)
-    a != nothing && a != "Nothing"
+    a !== nothing && a != "Nothing"
 end
 
 function Extrema64(a)
@@ -808,8 +808,8 @@ function create_context(dict::AbstractDict)
 end
 
 function restore_context()
-    global ctx
-    ctx = copy(plt.kvs)
+    empty!(ctx)
+    merge!(ctx, plt.kvs)
     plt.kvs = copy(plt.obj)
 end
 
@@ -862,7 +862,6 @@ that the next plot will be drawn on top of the previous one.
     julia> hold(false)
 """
 function hold(flag)
-    global ctx
     if plt.args !== nothing
         plt.kvs[:ax] = flag
         plt.kvs[:clear] = !flag
@@ -2809,9 +2808,8 @@ function shade(args...; kv...)
 end
 
 function setpanzoom(x, y, zoom)
-    global ctx
-
-    plt.kvs = copy(ctx)
+    empty!(plt.kvs)
+    merge!(plt.kvs, ctx)
     plt.kvs[:panzoom] = (x, y, zoom)
 
     plot_data()
