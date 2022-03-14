@@ -1677,33 +1677,43 @@ function plot_args(args; fmt=:xys)
             isvector(c) && (c = vec(c))
         end
 
-        local xyzc
         if !given(z)
             if isa(x, AbstractVector) && isa(y, AbstractVector)
-                xyzc = [ (x, y, z, c) ]
+                push!(pltargs, (x, y, z, c, spec))
             elseif isa(x, AbstractVector)
-                xyzc = length(x) == size(y, 1) ?
-                       [ (x, view(y,:,j), z, c) for j = 1:size(y, 2) ] :
-                       [ (x, view(y,i,:), z, c) for i = 1:size(y, 1) ]
+                if length(x) == size(y, 1)
+                    for j = 1:size(y, 2)
+                        push!(pltargs, (x, view(y,:,j), z, c, spec))
+                    end
+                else
+                    for i = 1:size(y, 1)
+                        push!(pltargs, (x, view(y,i,:), z, c, spec))
+                    end
+                end
             elseif isa(y, AbstractVector)
-                xyzc = size(x, 1) == length(y) ?
-                       [ (view(x,:,j), y, z, c) for j = 1:size(x, 2) ] :
-                       [ (view(x,i,:), y, z, c) for i = 1:size(x, 1) ]
+                if size(x, 1) == length(y)
+                    for j = 1:size(x, 2)
+                        push!(pltargs, (view(x,:,j), y, z, c, spec))
+                    end
+                else
+                    for i = 1:size(x, 1)
+                       push!(pltargs, (view(x,i,:), y, z, c, spec))
+                    end
+                end
             else
                 @assert size(x) == size(y)
-                xyzc = [ (view(x,:,j), view(y,:,j), z, c) for j = 1:size(y, 2) ]
+                for j = 1:size(y, 2)
+                    push!(pltargs, (view(x,:,j), view(y,:,j), z, c, spec))
+                end
             end
         elseif (isa(x, AbstractVector) && isa(y, AbstractVector) &&
                 (isa(z, AbstractVector) || typeof(z) == Array{Float64,2} ||
                  typeof(z) == Array{Int32,2} || typeof(z) == Array{Any,2})) ||
                 (isa(x, AbstractMatrix) && isa(y, AbstractMatrix) &&
                 (isa(z, AbstractMatrix)))
-            xyzc = [ (x, y, z, c) ]
-        else
-            xyzc = [ (vec(float(x)), vec(float(y)), vec(float(z)), c) ]
-        end
-        for (x, y, z, c) in xyzc
             push!(pltargs, (x, y, z, c, spec))
+        else
+            push!(pltargs, (vec(float(x)), vec(float(y)), vec(float(z)), c, spec) )
         end
     end
 
