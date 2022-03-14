@@ -140,7 +140,6 @@ end
 plt = Figure()
 const ctx = Dict{Symbol, Any}()
 scheme = 0
-background = 0xffffff
 handle = nothing
 
 isrowvec(x::AbstractArray) = ndims(x) == 2 && size(x, 1) == 1 && size(x, 2) > 1
@@ -1190,7 +1189,7 @@ function contains_NaN(a)
 end
 
 function plot_data(flag=true)
-    global scheme, background
+    global scheme
 
     if plt.args === nothing
         return
@@ -1218,9 +1217,6 @@ function plot_data(flag=true)
     if scheme != 0
         for colorind in 1:8
             color = colors[colorind, scheme]
-            if colorind == 1
-                background = color
-            end
             r, g, b = RGB(color)
             GR.setcolorrep(colorind - 1, r, g, b)
             if scheme != 1
