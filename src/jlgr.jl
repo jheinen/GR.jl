@@ -74,10 +74,6 @@ const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
 
-const plot_kind = [:line, :stairs, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap, :trisurf, :tricont, :shade, :volume]
-
-const arg_fmt = [:xys, :xyac, :xyzc]
-
 const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale]
 
 const colors = [
@@ -98,7 +94,7 @@ const fonts = Dict(
     "CMUSerif-Math" => 232,
     "DejaVuSans" => 233)
 
-const distinct_cmap = [ 0, 1, 984, 987, 989, 983, 994, 988 ]
+const distinct_cmap = (0, 1, 984, 987, 989, 983, 994, 988)
 
 function linspace(start, stop, length)
   range(start, stop=stop, length=length)
@@ -155,7 +151,7 @@ function set_viewport(kind, subplot)
     else
         dpi = width / mwidth * 0.0254
         if dpi > 200
-            w, h = [x * dpi / 100 for x in plt.kvs[:size]]
+            w, h = plt.kvs[:size] .* dpi / 100
         else
             w, h = plt.kvs[:size]
         end
