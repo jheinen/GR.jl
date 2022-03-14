@@ -96,6 +96,13 @@ const fonts = Dict(
 
 const distinct_cmap = (0, 1, 984, 987, 989, 983, 994, 988)
 
+const default_kvs = Dict{Symbol, Any}(
+                    :ax      => false,
+                    :subplot => [0, 1, 0, 1],
+                    :clear   => true,
+                    :update  => true,
+                    :panzoom => nothing)
+
 function linspace(start, stop, length)
   range(start, stop=stop, length=length)
 end
@@ -119,13 +126,8 @@ end
 function Figure(width=600, height=450)
     obj = Dict{Symbol, Any}()
     args = nothing
-    kvs = Dict{Symbol, Any}()
+    kvs = copy(default_kvs)
     kvs[:size] = (width, height)
-    kvs[:ax] = false
-    kvs[:subplot] = [0, 1, 0, 1]
-    kvs[:clear] = true
-    kvs[:update] = true
-    kvs[:panzoom] = nothing
     PlotObject(obj, args, kvs)
 end
 
