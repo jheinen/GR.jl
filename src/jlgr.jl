@@ -259,7 +259,7 @@ function fix_minmax(a, b)
 end
 
 function given(a)
-    a != Nothing && a != "Nothing"
+    a != nothing && a != "Nothing"
 end
 
 function Extrema64(a)
@@ -334,32 +334,32 @@ function minmax(kind)
     zmin, zmax = fix_minmax(zmin, zmax)
     if haskey(plt.kvs, :xlim)
         x0, x1 = plt.kvs[:xlim]
-        if x0 === Nothing x0 = xmin end
-        if x1 === Nothing x1 = xmax end
+        if x0 === nothing x0 = xmin end
+        if x1 === nothing x1 = xmax end
         plt.kvs[:xrange] = (x0, x1)
     else
         plt.kvs[:xrange] = xmin, xmax
     end
     if haskey(plt.kvs, :ylim)
         y0, y1 = plt.kvs[:ylim]
-        if y0 === Nothing y0 = ymin end
-        if y1 === Nothing y1 = ymax end
+        if y0 === nothing y0 = ymin end
+        if y1 === nothing y1 = ymax end
         plt.kvs[:yrange] = (y0, y1)
     else
         plt.kvs[:yrange] = ymin, ymax
     end
     if haskey(plt.kvs, :zlim)
         z0, z1 = plt.kvs[:zlim]
-        if z0 === Nothing z0 = zmin end
-        if z1 === Nothing z1 = zmax end
+        if z0 === nothing z0 = zmin end
+        if z1 === nothing z1 = zmax end
         plt.kvs[:zrange] = (z0, z1)
     else
         plt.kvs[:zrange] = zmin, zmax
     end
     if haskey(plt.kvs, :clim)
         c0, c1 = plt.kvs[:clim]
-        if c0 === Nothing c0 = cmin end
-        if c1 === Nothing c1 = cmax end
+        if c0 === nothing c0 = cmin end
+        if c1 === nothing c1 = cmax end
         plt.kvs[:crange] = (c0, c1)
     else
         plt.kvs[:crange] = cmin, cmax
@@ -1571,16 +1571,16 @@ function plot_args(args; fmt=:xys)
             if elt <: Complex
                 x = real(a)
                 y = imag(a)
-                z = Nothing
-                c = Nothing
+                z = nothing
+                c = nothing
             elseif elt <: Real || isa(a, Function)
                 if fmt == :xys
                     if length(args) >= 1 &&
                        (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || isa(args[1], Function))
                         x = a
                         y = popfirst!(args)
-                        z = Nothing
-                        c = Nothing
+                        z = nothing
+                        c = nothing
                     else
                         y = a
                         n = isrowvec(y) ? size(y, 2) : size(y, 1)
@@ -1590,8 +1590,8 @@ function plot_args(args; fmt=:xys)
                         else
                             x = linspace(1, n, n)
                         end
-                        z = Nothing
-                        c = Nothing
+                        z = nothing
+                        c = nothing
                     end
                 elseif fmt == :xyac || fmt == :xyzc
                     if length(args) >= 3 &&
@@ -1614,13 +1614,13 @@ function plot_args(args; fmt=:xys)
                         if !isa(z, Function)
                             z = z'
                         end
-                        c = Nothing
+                        c = nothing
                     elseif fmt == :xyac && length(args) >= 1 &&
                        (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || isa(args[1], Function))
                         x = a
                         y = popfirst!(args)
-                        z = Nothing
-                        c = Nothing
+                        z = nothing
+                        c = nothing
                     elseif fmt == :xyzc && length(args) == 0
                         z = a'
                         nx, ny = size(z)
@@ -1636,7 +1636,7 @@ function plot_args(args; fmt=:xys)
                         else
                             y = linspace(1, ny, ny)
                         end
-                        c = Nothing
+                        c = nothing
                     end
                 end
             else
@@ -1958,11 +1958,11 @@ function barplot(labels, heights; kv...)
     horizontal = pop!(kv, :horizontal, false)
     create_context(:bar, kv)
     if horizontal
-        plt.args = [(hc, wc, Nothing, Nothing, "")]
+        plt.args = [(hc, wc, nothing, nothing, "")]
         yticks(1,1)
         yticklabels(string.(labels))
     else
-        plt.args = [(wc, hc, Nothing, Nothing, "")]
+        plt.args = [(wc, hc, nothing, nothing, "")]
         xticks(1,1)
         xticklabels(string.(labels))
     end
@@ -1990,7 +1990,7 @@ end
 """
 Draw a histogram.
 
-If **nbins** is **Nothing** or 0, this function computes the number of
+If **nbins** is **nothing** or 0, this function computes the number of
 bins as 3.3 * log10(n) + 1,  with n as the number of elements in x,
 otherwise the given number of bins is used for the histogram.
 
@@ -2013,7 +2013,7 @@ function histogram(x; kv...)
 
     nbins = get(plt.kvs, :nbins, 0)
     x, y = hist(x, nbins)
-    plt.args = [(x, y, Nothing, Nothing, "")]
+    plt.args = [(x, y, nothing, nothing, "")]
 
     plot_data()
 end
@@ -2021,7 +2021,7 @@ end
 """
 Draw a polar histogram.
 
-If **nbins** is **Nothing** or 0, this function computes the number of
+If **nbins** is **nothing** or 0, this function computes the number of
 bins as 3.3 * log10(n) + 1,  with n as the number of elements in x,
 otherwise the given number of bins is used for the histogram.
 
@@ -2044,7 +2044,7 @@ function polarhistogram(x; kv...)
 
     nbins = get(plt.kvs, :nbins, 0)
     x, y = hist(x, nbins)
-    plt.args = [(x, y, Nothing, Nothing, "")]
+    plt.args = [(x, y, nothing, nothing, "")]
 
     plot_data()
 end
@@ -2200,7 +2200,7 @@ function heatmap(D; kv...)
         z = D'
         width, height = size(z)
 
-        plt.args = [(1:width, 1:height, z, Nothing, "")]
+        plt.args = [(1:width, 1:height, z, nothing, "")]
 
         plot_data()
     else
@@ -2212,7 +2212,7 @@ function heatmap(x, y, z; kv...)
     create_context(:nonuniformheatmap, Dict(kv))
 
     if ndims(z) == 2
-        plt.args = [(x, y, z', Nothing, "")]
+        plt.args = [(x, y, z', nothing, "")]
 
         plot_data()
     else
@@ -2227,7 +2227,7 @@ function polarheatmap(D; kv...)
         z = D'
         width, height = size(z)
 
-        plt.args = [(1:width, 1:height, z, Nothing, "")]
+        plt.args = [(1:width, 1:height, z, nothing, "")]
 
         plot_data()
     else
@@ -2239,7 +2239,7 @@ function polarheatmap(x, y, z; kv...)
     create_context(:nonuniformpolarheatmap, Dict(kv))
 
     if ndims(z) == 2
-        plt.args = [(x, y, z', Nothing, "")]
+        plt.args = [(x, y, z', nothing, "")]
 
         plot_data()
     else
@@ -2338,7 +2338,7 @@ end
 function volume(V; kv...)
     create_context(:volume, Dict(kv))
 
-    plt.args = [(Nothing, Nothing, Nothing, V, "")]
+    plt.args = [(nothing, nothing, nothing, V, "")]
 
     plot_data()
 end
@@ -2528,18 +2528,18 @@ end
 Set the limits for the x-axis.
 
 The x-axis limits can either be passed as individual arguments or as a
-tuple of (**x_min**, **x_max**). Setting either limit to **Nothing** will
+tuple of (**x_min**, **x_max**). Setting either limit to **nothing** will
 cause it to be automatically determined based on the data, which is the
 default behavior.
 
 :param x_min:
 	- the x-axis lower limit, or
-	- **Nothing** to use an automatic lower limit, or
+	- **nothing** to use an automatic lower limit, or
 	- a tuple of both x-axis limits
 :param x_max:
 	- the x-axis upper limit, or
-	- **Nothing** to use an automatic upper limit, or
-	- **Nothing** if both x-axis limits were passed as first argument
+	- **nothing** to use an automatic upper limit, or
+	- **nothing** if both x-axis limits were passed as first argument
 :param adjust: whether or not the limits may be adjusted
 
 **Usage examples:**
@@ -2551,9 +2551,9 @@ default behavior.
     julia> # Reset the x-axis limits to be determined automatically
     julia> xlim()
     julia> # Reset the x-axis upper limit and set the lower limit to 0
-    julia> xlim((0, Nothing))
+    julia> xlim((0, nothing))
     julia> # Reset the x-axis lower limit and set the upper limit to 1
-    julia> xlim((Nothing, 1))
+    julia> xlim((nothing, 1))
 """
 function xlim(a)
     plt.kvs[:xlim] = a
@@ -2563,18 +2563,18 @@ end
 Set the limits for the y-axis.
 
 The y-axis limits can either be passed as individual arguments or as a
-tuple of (**y_min**, **y_max**). Setting either limit to **Nothing** will
+tuple of (**y_min**, **y_max**). Setting either limit to **nothing** will
 cause it to be automatically determined based on the data, which is the
 default behavior.
 
 :param y_min:
 	- the y-axis lower limit, or
-	- **Nothing** to use an automatic lower limit, or
+	- **nothing** to use an automatic lower limit, or
 	- a tuple of both y-axis limits
 :param y_max:
 	- the y-axis upper limit, or
-	- **Nothing** to use an automatic upper limit, or
-	- **Nothing** if both y-axis limits were passed as first argument
+	- **nothing** to use an automatic upper limit, or
+	- **nothing** if both y-axis limits were passed as first argument
 :param adjust: whether or not the limits may be adjusted
 
 **Usage examples:**
@@ -2586,9 +2586,9 @@ default behavior.
     julia> # Reset the y-axis limits to be determined automatically
     julia> ylim()
     julia> # Reset the y-axis upper limit and set the lower limit to 0
-    julia> ylim((0, Nothing))
+    julia> ylim((0, nothing))
     julia> # Reset the y-axis lower limit and set the upper limit to 1
-    julia> ylim((Nothing, 1))
+    julia> ylim((nothing, 1))
 """
 function ylim(a)
     plt.kvs[:ylim] = a
@@ -2660,7 +2660,7 @@ two-dimensional array and the current colormap.
 function imshow(I; kv...)
     create_context(:imshow, Dict(kv))
 
-    plt.args = [(Nothing, Nothing, Nothing, I, "")]
+    plt.args = [(nothing, nothing, nothing, I, "")]
 
     plot_data()
 end
@@ -2689,7 +2689,7 @@ the isovalue will be seen as inside the isosurface.
 function isosurface(V; kv...)
     create_context(:isosurface, Dict(kv))
 
-    plt.args = [(Nothing, Nothing, Nothing, V, "")]
+    plt.args = [(nothing, nothing, nothing, V, "")]
 
     plot_data()
 end
