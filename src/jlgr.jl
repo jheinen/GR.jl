@@ -1546,9 +1546,12 @@ function plot_args(@nospecialize args; fmt=:xys)
 
     args = Any[args...]
 
-    parsed_args = NTuple{5,Any}[]
+    pltargs = NTuple{5, Any}[]
 
     while length(args) > 0
+
+        # parse arguments for plotting
+
         local x, y, z, c
         a = popfirst!(args)
         if isa(a, AbstractVecOrMat) || isa(a, Function)
@@ -1646,13 +1649,8 @@ function plot_args(@nospecialize args; fmt=:xys)
                 c = popfirst!(args)
             end
         end
-        push!(parsed_args, (x, y, z, c, spec))
-    end
 
-    pltargs = NTuple{5, Any}[]
-
-    for arg in parsed_args
-        x, y, z, c, spec = arg
+        # Setup arguments for plotting
 
         isa(x, UnitRange) && (x = collect(x))
         isa(y, UnitRange) && (y = collect(y))
