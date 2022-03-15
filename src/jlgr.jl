@@ -145,6 +145,8 @@ isrowvec(x::AbstractArray) = ndims(x) == 2 && size(x, 1) == 1 && size(x, 2) > 1
 isvector(x::AbstractVector) = true
 isvector(x::AbstractMatrix) = size(x, 1) == 1
 
+
+
 function set_viewport(kind, subplot)
     mwidth, mheight, width, height = GR.inqdspsize()
     if haskey(plt[].kvs, :figsize)
@@ -251,10 +253,6 @@ function fix_minmax(a, b)
     a, b
 end
 
-function given(a)
-    a !== nothing && a != "Nothing"
-end
-
 function Extrema64(a)
     amin =  typemax(Float64)
     amax = -typemax(Float64)
@@ -276,7 +274,7 @@ function minmax(kind)
     xmax = ymax = zmax = cmax = -typemax(Float64)
     scale = plt[].kvs[:scale]
     for (x, y, z, c, spec) in plt[].args
-        if given(x)
+        if x !== nothing
             if scale & GR.OPTION_X_LOG != 0
                 x = map(v -> v>0 ? v : NaN, x)
             end
@@ -288,7 +286,7 @@ function minmax(kind)
         else
             xmin, xmax = 0, 1
         end
-        if given(y)
+        if y !== nothing
             if scale & GR.OPTION_Y_LOG != 0
                 y = map(v -> v>0 ? v : NaN, y)
             end
@@ -300,7 +298,7 @@ function minmax(kind)
         else
             ymin, ymax = 0, 1
         end
-        if given(z)
+        if z !== nothing
             if scale & GR.OPTION_Z_LOG != 0
                 z = map(v -> v>0 ? v : NaN, z)
             end
@@ -312,11 +310,11 @@ function minmax(kind)
         else
             zmin, zmax = 0, 1
         end
-        if given(c)
+        if c !== nothing
             c0, c1 = Extrema64(c)
             cmin = min(c0, cmin)
             cmax = max(c1, cmax)
-        elseif given(z)
+        elseif z !== nothing
             c0, c1 = Extrema64(z)
             cmin = min(c0, cmin)
             cmax = max(c1, cmax)
@@ -517,7 +515,6 @@ end
 function draw_axes(kind, pass=1)
     viewport = plt[].kvs[:viewport]
     vp = plt[].kvs[:vp]
-    ratio = plt[].kvs[:ratio]
     xtick, xorg, majorx = plt[].kvs[:xaxis]
     ytick, yorg, majory = plt[].kvs[:yaxis]
     drawgrid = get(plt[].kvs, :grid, true)
@@ -1150,11 +1147,11 @@ function send_meta(target)
         num_series = length(plt[].args)
         GR.sendmetaref(handle, "series", 'O', "[", num_series)
         for (i, (x, y, z, c, spec)) in enumerate(plt[].args)
-            given(x) && send_data(handle, "x", to_double(x))
-            given(y) && send_data(handle, "y", to_double(y))
-            given(z) && send_data(handle, "z", to_double(z))
-            given(c) && send_data(handle, "c", to_double(c))
-            given(spec) && GR.sendmetaref(handle, "spec", 's', spec)
+            x !== nothing && send_data(handle, "x", to_double(x))
+            y !== nothing && send_data(handle, "y", to_double(y))
+            z !== nothing && send_data(handle, "z", to_double(z))
+            c !== nothing && send_data(handle, "c", to_double(c))
+            spec !== nothing && GR.sendmetaref(handle, "spec", 's', spec)
             GR.sendmetaref(handle, "", 'O', i < num_series ? "," : "]", 1)
         end
         if plt[].kvs[:kind] == :hist
@@ -1265,7 +1262,7 @@ function plot_data(flag=true)
         end
         if kind == :line
             mask = GR.uselinespec(spec)
-            if given(c)
+            if c !== nothing
                 linewidth = get(plt[].kvs, :linewidth, 1)
                 z = ones(length(x)) * linewidth
                 GR.polyline(x, y, z, c)
@@ -1325,8 +1322,8 @@ function plot_data(flag=true)
             hasmarker(mask) && GR.polymarker(x, y)
         elseif kind == :scatter
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
-            if given(z) || given(c)
-                if given(c)
+            if z !== nothing || c !== nothing
+                if c !== nothing
                     cmin, cmax = plt[].kvs[:crange]
                     c = map(x -> normalize_color(x, cmin, cmax), c)
                 end
@@ -1481,7 +1478,7 @@ function plot_data(flag=true)
             draw_axes(kind, 2)
         elseif kind == :scatter3
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
-            if given(c)
+            if c !== nothing
                 cmin, cmax = plt[].kvs[:crange]
                 c = map(x -> normalize_color(x, cmin, cmax), c)
                 cind = Int[round(Int, 1000 + _i * 255) for _i in c]
@@ -1669,18 +1666,18 @@ function plot_args(@nospecialize args; fmt=:xys)
         else
             isvector(y) && (y = vec(y))
         end
-        if given(z)
+        if z !== nothing
             if fmt == :xyzc && isa(z, Function)
                 z = [z(a,b) for a in x, b in y]
             else
                 isvector(z) && (z = vec(z))
             end
         end
-        if given(c)
+        if c !== nothing
             isvector(c) && (c = vec(c))
         end
 
-        if !given(z)
+        if z === nothing
             if isa(x, AbstractVector) && isa(y, AbstractVector)
                 push!(pltargs, (x, y, z, c, spec))
             elseif isa(x, AbstractVector)
