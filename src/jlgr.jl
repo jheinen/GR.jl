@@ -780,7 +780,10 @@ end
 
 function to_rgba(value, cmap)
     if !isnan(value)
-        r, g, b = cmap[round(Int, value * 255 + 1), :]
+        i = round(Int, value * 255 + 1)
+        r = cmap[i, 1]
+        g = cmap[i, 2]
+        b = cmap[i, 3]
         0xff000000 + round(UInt32, b * 255) << 16 +
         round(UInt32, g * 255) << 8  + round(UInt32, r * 255)
     else
