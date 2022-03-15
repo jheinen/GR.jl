@@ -119,13 +119,13 @@ end
 
 mutable struct PlotObject
   obj::Dict{Symbol, Any}
-  args
+  args::Vector{NTuple{5, Any}}
   kvs::Dict{Symbol, Any}
 end
 
 function Figure(width=600, height=450)
     obj = Dict{Symbol, Any}()
-    args = nothing
+    args = []
     kvs = copy(default_kvs)
     kvs[:size] = (width, height)
     PlotObject(obj, args, kvs)
@@ -860,7 +860,7 @@ that the next plot will be drawn on top of the previous one.
     julia> hold(false)
 """
 function hold(flag)
-    if plt[].args !== nothing
+    if !isempty(plt[].args)
         plt[].kvs[:ax] = flag
         plt[].kvs[:clear] = !flag
         for k in (:window, :scale, :xaxis, :yaxis, :zaxis)
@@ -1186,7 +1186,7 @@ end
 
 function plot_data(flag=true)
 
-    if plt[].args === nothing
+    if isempty(plt[].args)
         return
     end
 
@@ -1545,9 +1545,11 @@ function plot_data(flag=true)
     return
 end
 
-function plot_args(args; fmt=:xys)
+function plot_args(@nospecialize args; fmt=:xys)
+
     args = Any[args...]
-    parsed_args = Any[]
+
+    parsed_args = NTuple{5,Any}[]
 
     while length(args) > 0
         local x, y, z, c
@@ -1650,7 +1652,7 @@ function plot_args(args; fmt=:xys)
         push!(parsed_args, (x, y, z, c, spec))
     end
 
-    pltargs = Any[]
+    pltargs = NTuple{5, Any}[]
 
     for arg in parsed_args
         x, y, z, c, spec = arg
