@@ -137,7 +137,7 @@ end
 
 plt = Figure()
 const ctx = Dict{Symbol, Any}()
-scheme = 0
+const scheme = Ref(0)
 handle = nothing
 
 isrowvec(x::AbstractArray) = ndims(x) == 2 && size(x, 1) == 1 && size(x, 2) > 1
@@ -873,9 +873,8 @@ function hold(flag)
 end
 
 function usecolorscheme(index)
-    global scheme
     if 1 <= index <= 4
-        scheme = index
+        scheme[] = index
     else
         println("Invalid color sheme")
     end
@@ -1184,7 +1183,6 @@ function contains_NaN(a)
 end
 
 function plot_data(flag=true)
-    global scheme
 
     if plt.args === nothing
         return
@@ -1209,17 +1207,17 @@ function plot_data(flag=true)
 
     plt.kvs[:clear] && GR.clearws()
 
-    if scheme != 0
+    if scheme[] != 0
         for colorind in 1:8
-            color = colors[colorind, scheme]
+            color = colors[colorind, scheme[]]
             r, g, b = RGB(color)
             GR.setcolorrep(colorind - 1, r, g, b)
             if scheme != 1
                 GR.setcolorrep(distinct_cmap[colorind], r, g, b)
             end
         end
-        r, g, b = RGB(colors[1, scheme])
-        rdiff, gdiff, bdiff = RGB(colors[2, scheme]) - [r, g, b]
+        r, g, b = RGB(colors[1, scheme[]])
+        rdiff, gdiff, bdiff = RGB(colors[2, scheme[]]) - [r, g, b]
         for colorind in 1:12
             f = (colorind - 1) / 11.0
             GR.setcolorrep(92 - colorind, r + f*rdiff, g + f*gdiff, b + f*bdiff)
