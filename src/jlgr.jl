@@ -63,11 +63,6 @@ shade,
 setpanzoom,
 mainloop
 
-function search(s::AbstractString, c::Char)
-    result = findfirst(isequal(c), s)
-    result !== nothing ? result : 0
-end
-
 signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
 
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
@@ -106,8 +101,6 @@ const default_kvs = Dict{Symbol, Any}(
 function linspace(start, stop, length)
   range(start, stop=stop, length=length)
 end
-
-repmat(A::AbstractArray, m::Int, n::Int) = repeat(A::AbstractArray, m::Int, n::Int)
 
 function _min(a)
   minimum(filter(!isnan, a))
@@ -633,7 +626,7 @@ function draw_polar_axes()
 end
 
 function inqtext(x, y, s)
-    if (search(s, '\\') != 0 || search(s, '_') != 0 || search(s, '^') != 0) && match(r".*\$[^\$]+?\$.*", String(s)) === nothing
+    if (in('\\', s) || in('_', s) || ('^', s)) && match(r".*\$[^\$]+?\$.*", String(s)) === nothing
         GR.inqtextext(x, y, s)
     else
         GR.inqtext(x, y, s)
@@ -641,7 +634,7 @@ function inqtext(x, y, s)
 end
 
 function text(x, y, s)
-    if (search(s, '\\') != 0 || search(s, '_') != 0 || search(s, '^') != 0) && match(r".*\$[^\$]+?\$.*", String(s)) === nothing
+    if (in('\\', s) || in('_', s) || ('^', s)) && match(r".*\$[^\$]+?\$.*", String(s)) === nothing
         GR.textext(x, y, s)
     else
         GR.text(x, y, s)
