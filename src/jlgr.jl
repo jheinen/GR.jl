@@ -626,7 +626,7 @@ function draw_polar_axes()
 end
 
 function inqtext(x, y, s)
-    if (in('\\', s) || in('_', s) || ('^', s)) && match(r".*\$[^\$]+?\$.*", String(s)) === nothing
+    if (in('\\', s) || in('_', s) || in('^', s)) && match(r".*\$[^\$]+?\$.*", String(s)) === nothing
         GR.inqtextext(x, y, s)
     else
         GR.inqtext(x, y, s)
@@ -634,7 +634,7 @@ function inqtext(x, y, s)
 end
 
 function text(x, y, s)
-    if (in('\\', s) || in('_', s) || ('^', s)) && match(r".*\$[^\$]+?\$.*", String(s)) === nothing
+    if (in('\\', s) || in('_', s) || in('^', s)) && match(r".*\$[^\$]+?\$.*", String(s)) === nothing
         GR.textext(x, y, s)
     else
         GR.text(x, y, s)
