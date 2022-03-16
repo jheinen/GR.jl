@@ -248,13 +248,13 @@ end
 
 function Extrema64(a)
     amin =  typemax(Float64)
-    amax = -typemax(Float64)
+    amax =  typemin(Float64)
     for el in a
         if !isnan(el)
-            if isnan(amin) || el < amin
+            if el < amin
                 amin = el
             end
-            if isnan(amax) || el > amax
+            if el > amax
                 amax = el
             end
         end
