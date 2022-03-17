@@ -63,24 +63,11 @@ shade,
 setpanzoom,
 mainloop
 
-function search(s::AbstractString, c::Char)
-    result = findfirst(isequal(c), s)
-    result !== nothing ? result : 0
-end
-
 signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
-
-macro _tuple(t)
-    :( Tuple{$t} )
-end
 
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const gr3 = GR.gr3
-
-const plot_kind = [:line, :stairs, :scatter, :stem, :hist, :contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :wireframe, :surface, :plot3, :scatter3, :imshow, :isosurface, :polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap, :trisurf, :tricont, :shade, :volume]
-
-const arg_fmt = [:xys, :xyac, :xyzc]
 
 const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale]
 
@@ -102,13 +89,18 @@ const fonts = Dict(
     "CMUSerif-Math" => 232,
     "DejaVuSans" => 233)
 
-const distinct_cmap = [ 0, 1, 984, 987, 989, 983, 994, 988 ]
+const distinct_cmap = (0, 1, 984, 987, 989, 983, 994, 988)
+
+const default_kvs = Dict{Symbol, Any}(
+                    :ax      => false,
+                    :subplot => [0, 1, 0, 1],
+                    :clear   => true,
+                    :update  => true,
+                    :panzoom => nothing)
 
 function linspace(start, stop, length)
   range(start, stop=stop, length=length)
 end
-
-repmat(A::AbstractArray, m::Int, n::Int) = repeat(A::AbstractArray, m::Int, n::Int)
 
 function _min(a)
   minimum(filter(!isnan, a))
@@ -119,50 +111,46 @@ function _max(a)
 end
 
 mutable struct PlotObject
-  obj
-  args
-  kvs
+  obj::Dict{Symbol, Any}
+  args::Vector{NTuple{5, Any}}
+  kvs::Dict{Symbol, Any}
 end
 
 function Figure(width=600, height=450)
-    obj = Dict()
-    args = @_tuple(Any)
-    kvs = Dict()
+    obj = Dict{Symbol, Any}()
+    args = []
+    kvs = copy(default_kvs)
     kvs[:size] = (width, height)
-    kvs[:ax] = false
-    kvs[:subplot] = [0, 1, 0, 1]
-    kvs[:clear] = true
-    kvs[:update] = true
-    kvs[:panzoom] = nothing
     PlotObject(obj, args, kvs)
 end
 
-function gcf()
-    plt.kvs
-end
+const plt = Ref{PlotObject}(Figure())
+const ctx = Dict{Symbol, Any}()
+const scheme = Ref(0)
+const handle = Ref{Union{Nothing,Ptr{Nothing}}}(nothing)
 
-plt = Figure()
-ctx = Dict()
-scheme = 0
-background = 0xffffff
-handle = nothing
+function gcf()
+    plt[].kvs
+end
 
 isrowvec(x::AbstractArray) = ndims(x) == 2 && size(x, 1) == 1 && size(x, 2) > 1
 
 isvector(x::AbstractVector) = true
 isvector(x::AbstractMatrix) = size(x, 1) == 1
 
+
+
 function set_viewport(kind, subplot)
     mwidth, mheight, width, height = GR.inqdspsize()
-    if haskey(plt.kvs, :figsize)
-        w = 0.0254 *  width * plt.kvs[:figsize][1] / mwidth
-        h = 0.0254 * height * plt.kvs[:figsize][2] / mheight
+    if haskey(plt[].kvs, :figsize)
+        w = 0.0254 *  width * plt[].kvs[:figsize][1] / mwidth
+        h = 0.0254 * height * plt[].kvs[:figsize][2] / mheight
     else
         dpi = width / mwidth * 0.0254
         if dpi > 200
-            w, h = [x * dpi / 100 for x in plt.kvs[:size]]
+            w, h = plt[].kvs[:size] .* dpi / 100
         else
-            w, h = plt.kvs[:size]
+            w, h = plt[].kvs[:size]
         end
     end
     viewport = zeros(4)
@@ -191,21 +179,21 @@ function set_viewport(kind, subplot)
     else
         vp1, vp2, vp3, vp4 = vp
     end
-    left_margin = haskey(plt.kvs, :ylabel) ? 0.05 : 0
+    left_margin = haskey(plt[].kvs, :ylabel) ? 0.05 : 0
     if kind in (:contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :polarheatmap, :nonuniformpolarheatmap, :surface, :trisurf, :volume)
         right_margin = (vp2 - vp1) * 0.1
     else
         right_margin = 0
     end
-    bottom_margin = haskey(plt.kvs, :xlabel) ? 0.05 : 0
-    top_margin = haskey(plt.kvs, :title) ?  0.075 : 0
+    bottom_margin = haskey(plt[].kvs, :xlabel) ? 0.05 : 0
+    top_margin = haskey(plt[].kvs, :title) ?  0.075 : 0
     viewport[1] = vp1 + (0.075 + left_margin) * (vp2 - vp1)
     viewport[2] = vp1 + (0.95 - right_margin) * (vp2 - vp1)
     viewport[3] = vp3 + (0.075 + bottom_margin) * (vp4 - vp3)
     viewport[4] = vp3 + (0.975 - top_margin) * (vp4 - vp3)
 
-    if kind in (:line, :stairs, :scatter, :stem) && haskey(plt.kvs, :labels)
-        location = get(plt.kvs, :location, 1)
+    if kind in (:line, :stairs, :scatter, :stem) && haskey(plt[].kvs, :labels)
+        location = get(plt[].kvs, :location, 1)
         if location in (11, 12, 13)
             w, h = legend_size()
             viewport[2] -= w + 0.1
@@ -217,7 +205,7 @@ function set_viewport(kind, subplot)
         xcenter = 0.5 * (xmin + xmax)
         ycenter = 0.5 * (ymin + ymax)
         r = 0.45 * min(xmax - xmin, ymax - ymin)
-        if haskey(plt.kvs, :title)
+        if haskey(plt[].kvs, :title)
             r *= 0.975
             ycenter -= 0.025 * r
         end
@@ -229,15 +217,15 @@ function set_viewport(kind, subplot)
 
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
 
-    plt.kvs[:viewport] = viewport
-    plt.kvs[:vp] = vp
-    plt.kvs[:ratio] = ratio
+    plt[].kvs[:viewport] = viewport
+    plt[].kvs[:vp] = vp
+    plt[].kvs[:ratio] = ratio
 
-    if haskey(plt.kvs, :backgroundcolor)
+    if haskey(plt[].kvs, :backgroundcolor)
         GR.savestate()
         GR.selntran(0)
         GR.setfillintstyle(GR.INTSTYLE_SOLID)
-        GR.setfillcolorind(plt.kvs[:backgroundcolor])
+        GR.setfillcolorind(plt[].kvs[:backgroundcolor])
         if w > h
           GR.fillrect(subplot[1], subplot[2],
                       ratio * subplot[3], ratio * subplot[4])
@@ -258,19 +246,15 @@ function fix_minmax(a, b)
     a, b
 end
 
-function given(a)
-    a != Nothing && a != "Nothing"
-end
-
 function Extrema64(a)
     amin =  typemax(Float64)
-    amax = -typemax(Float64)
+    amax =  typemin(Float64)
     for el in a
         if !isnan(el)
-            if isnan(amin) || el < amin
+            if el < amin
                 amin = el
             end
-            if isnan(amax) || el > amax
+            if el > amax
                 amax = el
             end
         end
@@ -281,9 +265,9 @@ end
 function minmax(kind)
     xmin = ymin = zmin = cmin =  typemax(Float64)
     xmax = ymax = zmax = cmax = -typemax(Float64)
-    scale = plt.kvs[:scale]
-    for (x, y, z, c, spec) in plt.args
-        if given(x)
+    scale = plt[].kvs[:scale]
+    for (x, y, z, c, spec) in plt[].args
+        if x !== nothing
             if scale & GR.OPTION_X_LOG != 0
                 x = map(v -> v>0 ? v : NaN, x)
             end
@@ -295,7 +279,7 @@ function minmax(kind)
         else
             xmin, xmax = 0, 1
         end
-        if given(y)
+        if y !== nothing
             if scale & GR.OPTION_Y_LOG != 0
                 y = map(v -> v>0 ? v : NaN, y)
             end
@@ -307,7 +291,7 @@ function minmax(kind)
         else
             ymin, ymax = 0, 1
         end
-        if given(z)
+        if z !== nothing
             if scale & GR.OPTION_Z_LOG != 0
                 z = map(v -> v>0 ? v : NaN, z)
             end
@@ -319,11 +303,11 @@ function minmax(kind)
         else
             zmin, zmax = 0, 1
         end
-        if given(c)
+        if c !== nothing
             c0, c1 = Extrema64(c)
             cmin = min(c0, cmin)
             cmax = max(c1, cmax)
-        elseif given(z)
+        elseif z !== nothing
             c0, c1 = Extrema64(z)
             cmin = min(c0, cmin)
             cmax = max(c1, cmax)
@@ -332,37 +316,37 @@ function minmax(kind)
     xmin, xmax = fix_minmax(xmin, xmax)
     ymin, ymax = fix_minmax(ymin, ymax)
     zmin, zmax = fix_minmax(zmin, zmax)
-    if haskey(plt.kvs, :xlim)
-        x0, x1 = plt.kvs[:xlim]
-        if x0 === Nothing x0 = xmin end
-        if x1 === Nothing x1 = xmax end
-        plt.kvs[:xrange] = (x0, x1)
+    if haskey(plt[].kvs, :xlim)
+        x0, x1 = plt[].kvs[:xlim]
+        if x0 === nothing x0 = xmin end
+        if x1 === nothing x1 = xmax end
+        plt[].kvs[:xrange] = (x0, x1)
     else
-        plt.kvs[:xrange] = xmin, xmax
+        plt[].kvs[:xrange] = xmin, xmax
     end
-    if haskey(plt.kvs, :ylim)
-        y0, y1 = plt.kvs[:ylim]
-        if y0 === Nothing y0 = ymin end
-        if y1 === Nothing y1 = ymax end
-        plt.kvs[:yrange] = (y0, y1)
+    if haskey(plt[].kvs, :ylim)
+        y0, y1 = plt[].kvs[:ylim]
+        if y0 === nothing y0 = ymin end
+        if y1 === nothing y1 = ymax end
+        plt[].kvs[:yrange] = (y0, y1)
     else
-        plt.kvs[:yrange] = ymin, ymax
+        plt[].kvs[:yrange] = ymin, ymax
     end
-    if haskey(plt.kvs, :zlim)
-        z0, z1 = plt.kvs[:zlim]
-        if z0 === Nothing z0 = zmin end
-        if z1 === Nothing z1 = zmax end
-        plt.kvs[:zrange] = (z0, z1)
+    if haskey(plt[].kvs, :zlim)
+        z0, z1 = plt[].kvs[:zlim]
+        if z0 === nothing z0 = zmin end
+        if z1 === nothing z1 = zmax end
+        plt[].kvs[:zrange] = (z0, z1)
     else
-        plt.kvs[:zrange] = zmin, zmax
+        plt[].kvs[:zrange] = zmin, zmax
     end
-    if haskey(plt.kvs, :clim)
-        c0, c1 = plt.kvs[:clim]
-        if c0 === Nothing c0 = cmin end
-        if c1 === Nothing c1 = cmax end
-        plt.kvs[:crange] = (c0, c1)
+    if haskey(plt[].kvs, :clim)
+        c0, c1 = plt[].kvs[:clim]
+        if c0 === nothing c0 = cmin end
+        if c1 === nothing c1 = cmax end
+        plt[].kvs[:crange] = (c0, c1)
     else
-        plt.kvs[:crange] = cmin, cmax
+        plt[].kvs[:crange] = cmin, cmax
     end
 end
 
@@ -390,22 +374,22 @@ end
 
 function set_window(kind)
     if !(kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap))
-        scale = get(plt.kvs, :scale, 0)
-        get(plt.kvs, :xlog, false) && (scale |= GR.OPTION_X_LOG)
-        get(plt.kvs, :ylog, false) && (scale |= GR.OPTION_Y_LOG)
-        get(plt.kvs, :zlog, false) && (scale |= GR.OPTION_Z_LOG)
-        get(plt.kvs, :xflip, false) && (scale |= GR.OPTION_FLIP_X)
-        get(plt.kvs, :yflip, false) && (scale |= GR.OPTION_FLIP_Y)
-        get(plt.kvs, :zflip, false) && (scale |= GR.OPTION_FLIP_Z)
+        scale = get(plt[].kvs, :scale, 0)
+        get(plt[].kvs, :xlog, false) && (scale |= GR.OPTION_X_LOG)
+        get(plt[].kvs, :ylog, false) && (scale |= GR.OPTION_Y_LOG)
+        get(plt[].kvs, :zlog, false) && (scale |= GR.OPTION_Z_LOG)
+        get(plt[].kvs, :xflip, false) && (scale |= GR.OPTION_FLIP_X)
+        get(plt[].kvs, :yflip, false) && (scale |= GR.OPTION_FLIP_Y)
+        get(plt[].kvs, :zflip, false) && (scale |= GR.OPTION_FLIP_Z)
     else
         scale = 0
     end
-    plt.kvs[:scale] = scale
+    plt[].kvs[:scale] = scale
 
-    if plt.kvs[:panzoom] !== nothing
-        xmin, xmax, ymin, ymax = GR.panzoom(plt.kvs[:panzoom]...)
-        plt.kvs[:xrange] = (xmin, xmax)
-        plt.kvs[:yrange] = (ymin, ymax)
+    if plt[].kvs[:panzoom] !== nothing
+        xmin, xmax, ymin, ymax = GR.panzoom(plt[].kvs[:panzoom]...)
+        plt[].kvs[:xrange] = (xmin, xmax)
+        plt[].kvs[:yrange] = (ymin, ymax)
     else
         minmax(kind)
     end
@@ -416,17 +400,17 @@ function set_window(kind)
         major_count = 5
     end
 
-    xmin, xmax = plt.kvs[:xrange]
-    if kind in (:heatmap, :polarheatmap) && !haskey(plt.kvs, :xlim)
+    xmin, xmax = plt[].kvs[:xrange]
+    if kind in (:heatmap, :polarheatmap) && !haskey(plt[].kvs, :xlim)
         xmin -= 0.5
         xmax += 0.5
     end
     if scale & GR.OPTION_X_LOG == 0
-        if !haskey(plt.kvs, :xlim) && plt.kvs[:panzoom] === nothing && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
+        if !haskey(plt[].kvs, :xlim) && plt[].kvs[:panzoom] === nothing && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
             xmin, xmax = GR.adjustlimits(xmin, xmax)
         end
-        if haskey(plt.kvs, :xticks)
-            xtick, majorx = plt.kvs[:xticks]
+        if haskey(plt[].kvs, :xticks)
+            xtick, majorx = plt[].kvs[:xticks]
         else
             majorx = major_count
             xtick = auto_tick(xmin, xmax) / major_count
@@ -439,22 +423,22 @@ function set_window(kind)
     else
         xorg = (xmax, xmin)
     end
-    plt.kvs[:xaxis] = xtick, xorg, majorx
+    plt[].kvs[:xaxis] = xtick, xorg, majorx
 
-    ymin, ymax = plt.kvs[:yrange]
-    if kind in (:heatmap, :polarheatmap) && !haskey(plt.kvs, :ylim)
+    ymin, ymax = plt[].kvs[:yrange]
+    if kind in (:heatmap, :polarheatmap) && !haskey(plt[].kvs, :ylim)
         ymin -= 0.5
         ymax += 0.5
     end
-    if kind == :hist && !haskey(plt.kvs, :ylim)
+    if kind == :hist && !haskey(plt[].kvs, :ylim)
         ymin = scale & GR.OPTION_Y_LOG == 0 ? 0 : 1
     end
     if scale & GR.OPTION_Y_LOG == 0
-        if !haskey(plt.kvs, :ylim) && plt.kvs[:panzoom] === nothing && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
+        if !haskey(plt[].kvs, :ylim) && plt[].kvs[:panzoom] === nothing && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
             ymin, ymax = GR.adjustlimits(ymin, ymax)
         end
-        if haskey(plt.kvs, :yticks)
-            ytick, majory = plt.kvs[:yticks]
+        if haskey(plt[].kvs, :yticks)
+            ytick, majory = plt[].kvs[:yticks]
         else
             majory = major_count
             ytick = auto_tick(ymin, ymax) / major_count
@@ -467,16 +451,16 @@ function set_window(kind)
     else
         yorg = (ymax, ymin)
     end
-    plt.kvs[:yaxis] = ytick, yorg, majory
+    plt[].kvs[:yaxis] = ytick, yorg, majory
 
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
-        zmin, zmax = plt.kvs[:zrange]
+        zmin, zmax = plt[].kvs[:zrange]
         if scale & GR.OPTION_Z_LOG == 0
-            if !haskey(plt.kvs, :zlim)
+            if !haskey(plt[].kvs, :zlim)
                 zmin, zmax = GR.adjustlimits(zmin, zmax)
             end
-            if haskey(plt.kvs, :zticks)
-                ztick, majorz = plt.kvs[:zticks]
+            if haskey(plt[].kvs, :zticks)
+                ztick, majorz = plt[].kvs[:zticks]
             else
                 majorz = major_count
                 ztick = auto_tick(zmin, zmax) / major_count
@@ -489,23 +473,23 @@ function set_window(kind)
         else
             zorg = (zmax, zmin)
         end
-        plt.kvs[:zaxis] = ztick, zorg, majorz
+        plt[].kvs[:zaxis] = ztick, zorg, majorz
     end
 
-    plt.kvs[:window] = xmin, xmax, ymin, ymax
+    plt[].kvs[:window] = xmin, xmax, ymin, ymax
     if !(kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap))
         GR.setwindow(xmin, xmax, ymin, ymax)
     else
         GR.setwindow(-1, 1, -1, 1)
     end
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
-        rotation = get(plt.kvs, :rotation, 40)
-        tilt = get(plt.kvs, :tilt, 60)
+        rotation = get(plt[].kvs, :rotation, 40)
+        tilt = get(plt[].kvs, :tilt, 60)
         GR.setwindow3d(xmin, xmax, ymin, ymax, zmin, zmax)
         GR.setspace3d(-rotation, tilt, 30, 0)
     end
 
-    plt.kvs[:scale] = scale
+    plt[].kvs[:scale] = scale
     GR.setscale(scale)
 end
 
@@ -522,17 +506,16 @@ function ticklabel_fun(labels::AbstractVecOrMat{T}) where T <: AbstractString
 end
 
 function draw_axes(kind, pass=1)
-    viewport = plt.kvs[:viewport]
-    vp = plt.kvs[:vp]
-    ratio = plt.kvs[:ratio]
-    xtick, xorg, majorx = plt.kvs[:xaxis]
-    ytick, yorg, majory = plt.kvs[:yaxis]
-    drawgrid = get(plt.kvs, :grid, true)
+    viewport = plt[].kvs[:viewport]
+    vp = plt[].kvs[:vp]
+    xtick, xorg, majorx = plt[].kvs[:xaxis]
+    ytick, yorg, majory = plt[].kvs[:yaxis]
+    drawgrid = get(plt[].kvs, :grid, true)
     # enforce scientific notation for logarithmic axes labels
-    if plt.kvs[:scale] & GR.OPTION_X_LOG != 0
+    if plt[].kvs[:scale] & GR.OPTION_X_LOG != 0
         xtick = 10
     end
-    if plt.kvs[:scale] & GR.OPTION_Y_LOG != 0
+    if plt[].kvs[:scale] & GR.OPTION_Y_LOG != 0
         ytick = 10
     end
     GR.setlinecolorind(1)
@@ -542,7 +525,7 @@ function draw_axes(kind, pass=1)
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
         charheight = max(0.024 * diag, 0.012)
         GR.setcharheight(charheight)
-        ztick, zorg, majorz = plt.kvs[:zaxis]
+        ztick, zorg, majorz = plt[].kvs[:zaxis]
         if pass == 1 && drawgrid
             GR.grid3d(xtick, 0, ztick, xorg[1], yorg[2], zorg[1], 2, 0, 2)
             GR.grid3d(0, ytick, 0, xorg[1], yorg[2], zorg[1], 0, 2, 0)
@@ -558,9 +541,9 @@ function draw_axes(kind, pass=1)
         else
             drawgrid && GR.grid(xtick, ytick, 0, 0, majorx, majory)
         end
-        if haskey(plt.kvs, :xticklabels) || haskey(plt.kvs, :yticklabels)
-            fx = get(plt.kvs, :xticklabels, identity) |> ticklabel_fun
-            fy = get(plt.kvs, :yticklabels, identity) |> ticklabel_fun
+        if haskey(plt[].kvs, :xticklabels) || haskey(plt[].kvs, :yticklabels)
+            fx = get(plt[].kvs, :xticklabels, identity) |> ticklabel_fun
+            fy = get(plt[].kvs, :yticklabels, identity) |> ticklabel_fun
             GR.axeslbl(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize, fx, fy)
         else
             GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
@@ -568,41 +551,41 @@ function draw_axes(kind, pass=1)
         GR.axes(xtick, ytick, xorg[2], yorg[2], -majorx, -majory, -ticksize)
     end
 
-    if haskey(plt.kvs, :title)
+    if haskey(plt[].kvs, :title)
         GR.savestate()
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        text(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
+        text(0.5 * (viewport[1] + viewport[2]), vp[4], plt[].kvs[:title])
         GR.restorestate()
     end
     if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
-        xlabel = get(plt.kvs, :xlabel, "")
-        ylabel = get(plt.kvs, :ylabel, "")
-        zlabel = get(plt.kvs, :zlabel, "")
+        xlabel = get(plt[].kvs, :xlabel, "")
+        ylabel = get(plt[].kvs, :ylabel, "")
+        zlabel = get(plt[].kvs, :zlabel, "")
         GR.titles3d(xlabel, ylabel, zlabel)
     else
-        if haskey(plt.kvs, :xlabel)
+        if haskey(plt[].kvs, :xlabel)
             GR.savestate()
             GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_BOTTOM)
-            text(0.5 * (viewport[1] + viewport[2]), vp[3] + 0.5 * charheight, plt.kvs[:xlabel])
+            text(0.5 * (viewport[1] + viewport[2]), vp[3] + 0.5 * charheight, plt[].kvs[:xlabel])
             GR.restorestate()
         end
-        if haskey(plt.kvs, :ylabel)
+        if haskey(plt[].kvs, :ylabel)
             GR.savestate()
             GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
             GR.setcharup(-1, 0)
-            text(vp[1] + 0.5 * charheight, 0.5 * (viewport[3] + viewport[4]), plt.kvs[:ylabel])
+            text(vp[1] + 0.5 * charheight, 0.5 * (viewport[3] + viewport[4]), plt[].kvs[:ylabel])
             GR.restorestate()
         end
     end
 end
 
 function draw_polar_axes()
-    viewport = plt.kvs[:viewport]
-    vp = plt.kvs[:vp]
+    viewport = plt[].kvs[:viewport]
+    vp = plt[].kvs[:vp]
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     charheight = max(0.018 * diag, 0.012)
 
-    window = plt.kvs[:window]
+    window = plt[].kvs[:window]
     rmin, rmax = window[3], window[4]
 
     GR.savestate()
@@ -635,15 +618,15 @@ function draw_polar_axes()
         GR.textext(x, y, string(alpha, "^o"))
     end
 
-    if haskey(plt.kvs, :title)
+    if haskey(plt[].kvs, :title)
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        text(0.5 * (viewport[1] + viewport[2]), vp[4] - 0.02, plt.kvs[:title])
+        text(0.5 * (viewport[1] + viewport[2]), vp[4] - 0.02, plt[].kvs[:title])
     end
     GR.restorestate()
 end
 
 function inqtext(x, y, s)
-    if (search(s, '\\') != 0 || search(s, '_') != 0 || search(s, '^') != 0) && match(r".*\$[^\$]+?\$.*", String(s)) == nothing
+    if (in('\\', s) || in('_', s) || in('^', s)) && match(r".*\$[^\$]+?\$.*", String(s)) === nothing
         GR.inqtextext(x, y, s)
     else
         GR.inqtext(x, y, s)
@@ -651,7 +634,7 @@ function inqtext(x, y, s)
 end
 
 function text(x, y, s)
-    if (search(s, '\\') != 0 || search(s, '_') != 0 || search(s, '^') != 0) && match(r".*\$[^\$]+?\$.*", String(s)) == nothing
+    if (in('\\', s) || in('_', s) || in('^', s)) && match(r".*\$[^\$]+?\$.*", String(s)) === nothing
         GR.textext(x, y, s)
     else
         GR.text(x, y, s)
@@ -664,7 +647,7 @@ function legend_size()
     GR.setscale(0)
     w = 0
     h = 0
-    for label in plt.kvs[:labels]
+    for label in plt[].kvs[:labels]
         tbx, tby = inqtext(0, 0, label)
         w  = max(w, tbx[3] - tbx[1])
         h += max(tby[3] - tby[1], 0.03)
@@ -679,9 +662,9 @@ hasmarker(mask) = ( mask & 0x02 != 0)
 
 function draw_legend()
     w, h = legend_size()
-    viewport = plt.kvs[:viewport]
-    location = get(plt.kvs, :location, 1)
-    num_labels = length(plt.kvs[:labels])
+    viewport = plt[].kvs[:viewport]
+    location = get(plt[].kvs, :location, 1)
+    num_labels = length(plt[].kvs[:labels])
     GR.savestate()
     GR.selntran(0)
     GR.setscale(0)
@@ -714,9 +697,9 @@ function draw_legend()
     GR.drawrect(px - 0.08, px + w + 0.02, py + 0.03, py - h)
     i = 1
     GR.uselinespec(" ")
-    for (x, y, z, c, spec) in plt.args
+    for (x, y, z, c, spec) in plt[].args
         if i <= num_labels
-            label = plt.kvs[:labels][i]
+            label = plt[].kvs[:labels][i]
             tbx, tby = inqtext(0, 0, label)
             dy = max((tby[3] - tby[1]) - 0.03, 0)
             py -= 0.5 * dy
@@ -740,13 +723,13 @@ end
 
 function colorbar(off=0, colors=256)
     GR.savestate()
-    viewport = plt.kvs[:viewport]
-    zmin, zmax = plt.kvs[:zrange]
+    viewport = plt[].kvs[:viewport]
+    zmin, zmax = plt[].kvs[:zrange]
     mask = (GR.OPTION_Z_LOG | GR.OPTION_FLIP_Y | GR.OPTION_FLIP_Z)
-    if get(plt.kvs, :zflip, false)
+    if get(plt[].kvs, :zflip, false)
         options = (GR.inqscale() | GR.OPTION_FLIP_Y)
         GR.setscale(options & mask)
-    elseif get(plt.kvs, :yflip, false)
+    elseif get(plt[].kvs, :yflip, false)
         options = GR.inqscale() & ~GR.OPTION_FLIP_Y
         GR.setscale(options & mask)
     else
@@ -764,7 +747,7 @@ function colorbar(off=0, colors=256)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     charheight = max(0.016 * diag, 0.012)
     GR.setcharheight(charheight)
-    if plt.kvs[:scale] & GR.OPTION_Z_LOG == 0
+    if plt[].kvs[:scale] & GR.OPTION_Z_LOG == 0
         ztick = auto_tick(zmin, zmax)
         GR.axes(0, ztick, 1, zmin, 0, 1, 0.005)
     else
@@ -787,34 +770,36 @@ end
 
 function to_rgba(value, cmap)
     if !isnan(value)
-        r, g, b = cmap[round(Int, value * 255 + 1), :]
-        a = 1.0
+        i = round(Int, value * 255 + 1)
+        r = cmap[i, 1]
+        g = cmap[i, 2]
+        b = cmap[i, 3]
+        0xff000000 + round(UInt32, b * 255) << 16 +
+        round(UInt32, g * 255) << 8  + round(UInt32, r * 255)
     else
-        r, g, b, a = zeros(4)
+        zero(UInt32)
     end
-    round(UInt32, a * 255) << 24 + round(UInt32, b * 255) << 16 +
-    round(UInt32, g * 255) << 8  + round(UInt32, r * 255)
 end
 
-function create_context(kind::Symbol, dict=plt.kvs)
-    plt.kvs[:kind] = kind
+function create_context(kind::Symbol, dict=plt[].kvs)
+    plt[].kvs[:kind] = kind
     create_context(dict)
 end
 
 function create_context(dict::AbstractDict)
-    plt.obj = copy(plt.kvs)
-    for (k, v) in dict
+    plt[].obj = copy(plt[].kvs)
+    for k in keys(dict)
         if ! (k in kw_args)
             println("Invalid keyword: $k")
         end
     end
-    merge!(plt.kvs, dict)
+    merge!(plt[].kvs, dict)
 end
 
 function restore_context()
-    global ctx
-    ctx = copy(plt.kvs)
-    plt.kvs = copy(plt.obj)
+    empty!(ctx)
+    merge!(ctx, plt[].kvs)
+    plt[].kvs = copy(plt[].obj)
 end
 
 """
@@ -835,10 +820,9 @@ arguments.
     julia> figure(title="Example Figure")
 """
 function figure(; kv...)
-    global plt
-    plt = Figure()
-    merge!(plt.kvs, Dict(kv))
-    plt
+    plt[] = Figure()
+    merge!(plt[].kvs, Dict(kv))
+    plt[]
 end
 
 """
@@ -866,13 +850,12 @@ that the next plot will be drawn on top of the previous one.
     julia> hold(false)
 """
 function hold(flag)
-    global ctx
-    if plt.args != @_tuple(Any)
-        plt.kvs[:ax] = flag
-        plt.kvs[:clear] = !flag
+    if !isempty(plt[].args)
+        plt[].kvs[:ax] = flag
+        plt[].kvs[:clear] = !flag
         for k in (:window, :scale, :xaxis, :yaxis, :zaxis)
             if haskey(ctx, k)
-                plt.kvs[k] = ctx[k]
+                plt[].kvs[k] = ctx[k]
             end
         end
     else
@@ -882,9 +865,8 @@ function hold(flag)
 end
 
 function usecolorscheme(index)
-    global scheme
     if 1 <= index <= 4
-        scheme = index
+        scheme[] = index
     else
         println("Invalid color sheme")
     end
@@ -928,9 +910,9 @@ function subplot(nr, nc, p)
         ymin = min(ymin, (r-1)/nr)
         ymax = max(ymax, r/nr)
     end
-    plt.kvs[:subplot] = [xmin, xmax, ymin, ymax]
-    plt.kvs[:clear] = collect(p)[1] == 1
-    plt.kvs[:update] = collect(p)[end] == nr * nc
+    plt[].kvs[:subplot] = [xmin, xmax, ymin, ymax]
+    plt[].kvs[:clear] = collect(p)[1] == 1
+    plt[].kvs[:update] = collect(p)[end] == nr * nc
 end
 
 """
@@ -947,7 +929,7 @@ Set the flag to draw a grid in the plot axes.
     julia> # Restore the grid
     julia> grid(true)
 """
-drawgrid(flag) = (plt.kvs[:grid] = flag)
+drawgrid(flag) = (plt[].kvs[:grid] = flag)
 
 const doc_ticks = """
 Set the intervals of the ticks for the X, Y or Z axis.
@@ -967,9 +949,9 @@ Use the function `xticks`, `yticks` or `zticks` for the corresponding axis.
     julia> yticks(0.2, 5)
 """
 
-@doc doc_ticks xticks(minor, major::Int=1) = (plt.kvs[:xticks] = (minor, major))
-@doc doc_ticks yticks(minor, major::Int=1) = (plt.kvs[:yticks] = (minor, major))
-@doc doc_ticks zticks(minor, major::Int=1) = (plt.kvs[:zticks] = (minor, major))
+@doc doc_ticks xticks(minor, major::Int=1) = (plt[].kvs[:xticks] = (minor, major))
+@doc doc_ticks yticks(minor, major::Int=1) = (plt[].kvs[:yticks] = (minor, major))
+@doc doc_ticks zticks(minor, major::Int=1) = (plt[].kvs[:zticks] = (minor, major))
 
 const doc_ticklabels = """
 Customize the string of the X and Y axes tick labels.
@@ -990,8 +972,8 @@ sequentially at X = 1, 2, etc.
     julia> # Label the X-axis with a sequence of strings
     julia> xticklabels(["first", "second", "third"])
 """
-@doc doc_ticklabels xticklabels(s) = (plt.kvs[:xticklabels] = s)
-@doc doc_ticklabels yticklabels(s) = (plt.kvs[:yticklabels] = s)
+@doc doc_ticklabels xticklabels(s) = (plt[].kvs[:xticklabels] = s)
+@doc doc_ticklabels yticklabels(s) = (plt[].kvs[:yticklabels] = s)
 
 # Normalize a color c with the range [cmin, cmax]
 #   0 <= normalize_color(c, cmin, cmax) <= 1
@@ -1004,18 +986,18 @@ function normalize_color(c, cmin, cmax)
 end
 
 function plot_img(I)
-    viewport = plt.kvs[:vp][:]
-    if haskey(plt.kvs, :title)
+    viewport = plt[].kvs[:vp][:]
+    if haskey(plt[].kvs, :title)
         viewport[4] -= 0.05
     end
-    vp = plt.kvs[:vp]
+    vp = plt[].kvs[:vp]
 
     if isa(I, AbstractString)
         width, height, data = GR.readimage(I)
     else
         I = I'
         width, height = size(I)
-        cmin, cmax = plt.kvs[:crange]
+        cmin, cmax = plt[].kvs[:crange]
         data = map(x -> normalize_color(x, cmin, cmax), I)
         data = Int32[round(Int32, 1000 + _i * 255) for _i in data]
     end
@@ -1037,10 +1019,10 @@ function plot_img(I)
 
     GR.selntran(0)
     GR.setscale(0)
-    if get(plt.kvs, :xflip, false)
+    if get(plt[].kvs, :xflip, false)
         tmp = xmax; xmax = xmin; xmin = tmp;
     end
-    if get(plt.kvs, :yflip, false)
+    if get(plt[].kvs, :yflip, false)
         tmp = ymax; ymax = ymin; ymin = tmp;
     end
     if isa(I, AbstractString)
@@ -1049,17 +1031,17 @@ function plot_img(I)
         GR.cellarray(xmin, xmax, ymin, ymax, width, height, data)
     end
 
-    if haskey(plt.kvs, :title)
+    if haskey(plt[].kvs, :title)
         GR.savestate()
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        text(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
+        text(0.5 * (viewport[1] + viewport[2]), vp[4], plt[].kvs[:title])
         GR.restorestate()
     end
     GR.selntran(1)
 end
 
 function plot_iso(V)
-    viewport = plt.kvs[:viewport]
+    viewport = plt[].kvs[:viewport]
 
     if viewport[4] - viewport[3] < viewport[2] - viewport[1]
         width = viewport[4] - viewport[3]
@@ -1080,16 +1062,16 @@ function plot_iso(V)
     GR.selntran(0)
     values = round.(UInt16, (V .- _min(V)) ./ (_max(V) .- _min(V)) .* (2^16-1))
     nx, ny, nz = size(V)
-    isovalue = (get(plt.kvs, :isovalue, 0.5) - _min(V)) / (_max(V) - _min(V))
-    rotation = get(plt.kvs, :rotation, 40) * π / 180.0
-    tilt = get(plt.kvs, :tilt, 60) * π / 180.0
+    isovalue = (get(plt[].kvs, :isovalue, 0.5) - _min(V)) / (_max(V) - _min(V))
+    rotation = get(plt[].kvs, :rotation, 40) * π / 180.0
+    tilt = get(plt[].kvs, :tilt, 60) * π / 180.0
     r = 2.5
     gr3.clear()
     mesh = gr3.createisosurfacemesh(values, (2/(nx-1), 2/(ny-1), 2/(nz-1)),
                                     (-1., -1., -1.),
                                     round(Int64, isovalue * (2^16-1)))
-    if haskey(plt.kvs, :color)
-        color = plt.kvs[:color]
+    if haskey(plt[].kvs, :color)
+        color = plt[].kvs[:color]
     else
         color = (0.0, 0.5, 0.8)
     end
@@ -1103,7 +1085,7 @@ function plot_iso(V)
 end
 
 function plot_polar(θ, ρ)
-    window = plt.kvs[:window]
+    window = plt[].kvs[:window]
     rmin, rmax = window[3], window[4]
     ρ = ρ ./ rmax
     n = length(ρ)
@@ -1116,11 +1098,9 @@ function plot_polar(θ, ρ)
 end
 
 function RGB(color)
-    rgb = zeros(3)
-    rgb[1] = float((color >> 16) & 0xff) / 255.0
-    rgb[2] = float((color >> 8)  & 0xff) / 255.0
-    rgb[3] = float( color        & 0xff) / 255.0
-    rgb
+    float((color >> 16) & 0xff) / 255,
+    float((color >> 8)  & 0xff) / 255,
+    float( color        & 0xff) / 255
 end
 
 to_double(a) = Float64[float(el) for el in a]
@@ -1135,52 +1115,51 @@ function send_data(handle, name, data)
 end
 
 function send_meta(target)
-    global handle
-    if handle === nothing
+    if handle[] === nothing
         handle = GR.openmeta(target)
     end
-    if handle != C_NULL
-        for (k, v) in plt.kvs
-            if k in [:backgroundcolor, :color, :colormap, :location, :nbins,
-                     :rotation, :tilt, :xform]
-                GR.sendmetaref(handle, string(k), 'i', Int32(v))
-            elseif k in [:alpha, :isovalue]
-                GR.sendmetaref(handle, string(k), 'd', Float64(v))
-            elseif k in [:xlim, :ylim, :zlim, :clim, :size]
-                GR.sendmetaref(handle, string(k), 'D', to_double(v))
-            elseif k in [:title, :xlabel, :ylabel, :zlabel]
-                GR.sendmetaref(handle, string(k), 's', String(v))
-            elseif k in [:labels]
+    if handle[] != C_NULL
+        for (k, v) in plt[].kvs
+            if k in (:backgroundcolor, :color, :colormap, :location, :nbins,
+                     :rotation, :tilt, :xform)
+                GR.sendmetaref(handle[], string(k), 'i', Int32(v))
+            elseif k in (:alpha, :isovalue)
+                GR.sendmetaref(handle[], string(k), 'd', Float64(v))
+            elseif k in (:xlim, :ylim, :zlim, :clim, :size)
+                GR.sendmetaref(handle[], string(k), 'D', to_double(v))
+            elseif k in (:title, :xlabel, :ylabel, :zlabel)
+                GR.sendmetaref(handle[], string(k), 's', String(v))
+            elseif k == :labels
                 s = [String(el) for el in v]
-                GR.sendmetaref(handle, string(k), 'S', s, length(s))
-            elseif k in [:xflip, :yflip, :zflip, :xlog, :ylog, :zlog]
-                GR.sendmetaref(handle, string(k), 'i', v ? 1 : 0)
+                GR.sendmetaref(handle[], string(k), 'S', s, length(s))
+            elseif k in (:xflip, :yflip, :zflip, :xlog, :ylog, :zlog)
+                GR.sendmetaref(handle[], string(k), 'i', v ? 1 : 0)
             end
         end
-        num_series = length(plt.args)
-        GR.sendmetaref(handle, "series", 'O', "[", num_series)
-        for (i, (x, y, z, c, spec)) in enumerate(plt.args)
-            given(x) && send_data(handle, "x", to_double(x))
-            given(y) && send_data(handle, "y", to_double(y))
-            given(z) && send_data(handle, "z", to_double(z))
-            given(c) && send_data(handle, "c", to_double(c))
-            given(spec) && GR.sendmetaref(handle, "spec", 's', spec)
-            GR.sendmetaref(handle, "", 'O', i < num_series ? "," : "]", 1)
+        num_series = length(plt[].args)
+        GR.sendmetaref(handle[], "series", 'O', "[", num_series)
+        for (i, (x, y, z, c, spec)) in enumerate(plt[].args)
+            x !== nothing && send_data(handle[], "x", to_double(x))
+            y !== nothing && send_data(handle[], "y", to_double(y))
+            z !== nothing && send_data(handle[], "z", to_double(z))
+            c !== nothing && send_data(handle[], "c", to_double(c))
+            spec !== nothing && GR.sendmetaref(handle[], "spec", 's', spec)
+            GR.sendmetaref(handle[], "", 'O', i < num_series ? "," : "]", 1)
         end
-        if plt.kvs[:kind] == :hist
-            GR.sendmetaref(handle, "kind", 's', "barplot");
+        if plt[].kvs[:kind] == :hist
+            GR.sendmetaref(handle[], "kind", 's', "barplot");
         else
-            GR.sendmetaref(handle, "kind", 's', string(plt.kvs[:kind]));
+            GR.sendmetaref(handle[], "kind", 's', string(plt[].kvs[:kind]));
         end
-        GR.sendmetaref(handle, "", '\0', "", 0);
-        #GR.closemeta(handle)
+        GR.sendmetaref(handle[], "", '\0', "", 0);
+        #GR.closemeta(handle[])
     end
 end
 
 function send_serialized(target)
     handle = connect(target, 8001)
     io = IOBuffer()
-    serialize(io, Dict("kvs" => plt.kvs, "args" => plt.args))
+    serialize(io, Dict("kvs" => plt[].kvs, "args" => plt[].args))
     write(handle, io.data)
     close(handle)
 end
@@ -1195,9 +1174,8 @@ function contains_NaN(a)
 end
 
 function plot_data(flag=true)
-    global scheme, background
 
-    if plt.args == @_tuple(Any)
+    if isempty(plt[].args)
         return
     end
 
@@ -1216,32 +1194,29 @@ function plot_data(flag=true)
         return
     end
 
-    kind = get(plt.kvs, :kind, :line)
+    kind = get(plt[].kvs, :kind, :line)
 
-    plt.kvs[:clear] && GR.clearws()
+    plt[].kvs[:clear] && GR.clearws()
 
-    if scheme != 0
+    if scheme[] != 0
         for colorind in 1:8
-            color = colors[colorind, scheme]
-            if colorind == 1
-                background = color
-            end
+            color = colors[colorind, scheme[]]
             r, g, b = RGB(color)
             GR.setcolorrep(colorind - 1, r, g, b)
             if scheme != 1
                 GR.setcolorrep(distinct_cmap[colorind], r, g, b)
             end
         end
-        r, g, b = RGB(colors[1, scheme])
-        rdiff, gdiff, bdiff = RGB(colors[2, scheme]) - [r, g, b]
+        r, g, b = RGB(colors[1, scheme[]])
+        rdiff, gdiff, bdiff = RGB(colors[2, scheme[]]) - [r, g, b]
         for colorind in 1:12
             f = (colorind - 1) / 11.0
             GR.setcolorrep(92 - colorind, r + f*rdiff, g + f*gdiff, b + f*bdiff)
         end
     end
 
-    if haskey(plt.kvs, :font)
-        name = plt.kvs[:font]
+    if haskey(plt[].kvs, :font)
+        name = plt[].kvs[:font]
         if haskey(fonts, name)
             font = fonts[name]
             GR.settextfontprec(font, font > 200 ? 3 : 0)
@@ -1255,8 +1230,8 @@ function plot_data(flag=true)
         GR.settextfontprec(232, 3) # CM Serif Roman
     end
 
-    set_viewport(kind, plt.kvs[:subplot])
-    if !plt.kvs[:ax]
+    set_viewport(kind, plt[].kvs[:subplot])
+    if !plt[].kvs[:ax]
         set_window(kind)
         if kind in (:polar, :polarhist)
             draw_polar_axes()
@@ -1265,27 +1240,27 @@ function plot_data(flag=true)
         end
     end
 
-    if haskey(plt.kvs, :colormap)
-        GR.setcolormap(plt.kvs[:colormap])
+    if haskey(plt[].kvs, :colormap)
+        GR.setcolormap(plt[].kvs[:colormap])
     else
         GR.setcolormap(GR.COLORMAP_VIRIDIS)
     end
 
     GR.uselinespec(" ")
-    for (x, y, z, c, spec) in plt.args
+    for (x, y, z, c, spec) in plt[].args
         GR.savestate()
-        if haskey(plt.kvs, :alpha)
-            GR.settransparency(plt.kvs[:alpha])
+        if haskey(plt[].kvs, :alpha)
+            GR.settransparency(plt[].kvs[:alpha])
         end
         if kind == :line
             mask = GR.uselinespec(spec)
-            if given(c)
-                linewidth = get(plt.kvs, :linewidth, 1)
+            if c !== nothing
+                linewidth = get(plt[].kvs, :linewidth, 1)
                 z = ones(length(x)) * linewidth
                 GR.polyline(x, y, z, c)
             else
                 if hasline(mask)
-                    linewidth = get(plt.kvs, :linewidth, 1)
+                    linewidth = get(plt[].kvs, :linewidth, 1)
                     GR.setlinewidth(linewidth)
                     GR.polyline(x, y)
                 end
@@ -1294,7 +1269,7 @@ function plot_data(flag=true)
         elseif kind == :stairs
             mask = GR.uselinespec(spec)
             if hasline(mask)
-                where = get(plt.kvs, :where, "mid")
+                where = get(plt[].kvs, :where, "mid")
                 if where == "pre"
                     n = length(x)
                     xs = zeros(2 * n - 1)
@@ -1339,9 +1314,9 @@ function plot_data(flag=true)
             hasmarker(mask) && GR.polymarker(x, y)
         elseif kind == :scatter
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
-            if given(z) || given(c)
-                if given(c)
-                    cmin, cmax = plt.kvs[:crange]
+            if z !== nothing || c !== nothing
+                if c !== nothing
+                    cmin, cmax = plt[].kvs[:crange]
                     c = map(x -> normalize_color(x, cmin, cmax), c)
                 end
                 GR.polymarker(x, y, z .* 0.01, c)
@@ -1350,7 +1325,7 @@ function plot_data(flag=true)
             end
         elseif kind == :stem
             GR.setlinecolorind(1)
-            GR.polyline([plt.kvs[:window][1]; plt.kvs[:window][2]], [0; 0])
+            GR.polyline([plt[].kvs[:window][1]; plt[].kvs[:window][2]], [0; 0])
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             GR.uselinespec(spec)
             for i = 1:length(y)
@@ -1358,7 +1333,7 @@ function plot_data(flag=true)
                 GR.polymarker([x[i]], [y[i]])
             end
         elseif kind == :hist
-            ymin = plt.kvs[:window][3]
+            ymin = plt[].kvs[:window][3]
             for i = 1:length(y)
                 GR.setfillcolorind(989)
                 GR.setfillintstyle(GR.INTSTYLE_SOLID)
@@ -1368,7 +1343,7 @@ function plot_data(flag=true)
                 GR.fillrect(x[i], x[i+1], ymin, y[i])
             end
         elseif kind == :polarhist
-            ymax = plt.kvs[:window][4]
+            ymax = plt[].kvs[:window][4]
             ρ = y ./ ymax
             θ = x * 180/π
             for i = 2:length(ρ)
@@ -1382,36 +1357,36 @@ function plot_data(flag=true)
         elseif kind in (:polarheatmap, :nonuniformpolarheatmap)
             w, h = size(z)
             cmap = colormap()
-            cmin, cmax = plt.kvs[:zrange]
+            cmin, cmax = plt[].kvs[:zrange]
             data = map(x -> normalize_color(x, cmin, cmax), z)
-            if get(plt.kvs, :xflip, false)
+            if get(plt[].kvs, :xflip, false)
                 data = reverse(data, dims=1)
             end
-            if get(plt.kvs, :yflip, false)
+            if get(plt[].kvs, :yflip, false)
                 data = reverse(data, dims=2)
             end
             colors = Int[round(Int, 1000 + _i * 255) for _i in data]
             if kind == :polarheatmap
                 GR.polarcellarray(0, 0, 0, 360, 0, 1, w, h, colors)
             else
-                ymin, ymax = plt.kvs[:window][3:4]
+                ymin, ymax = plt[].kvs[:window][3:4]
                 ρ = ymin .+ y ./ (ymax - ymin)
                 θ = x * 180/π
                 GR.nonuniformpolarcellarray(θ, ρ, w, h, colors)
             end
             draw_polar_axes()
-            plt.kvs[:zrange] = cmin, cmax
+            plt[].kvs[:zrange] = cmin, cmax
             colorbar()
         elseif kind == :contour
-            zmin, zmax = plt.kvs[:zrange]
+            zmin, zmax = plt[].kvs[:zrange]
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
-                zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
+                zmin, zmax = get(plt[].kvs, :zlim, (_min(z), _max(z)))
             end
             GR.setprojectiontype(0)
             GR.setspace(zmin, zmax, 0, 90)
-            levels = get(plt.kvs, :levels, 0)
-            clabels = get(plt.kvs, :clabels, false)
+            levels = get(plt[].kvs, :levels, 0)
+            clabels = get(plt[].kvs, :clabels, false)
             if typeof(levels) <: Int
                 hmin, hmax = GR.adjustrange(zmin, zmax)
                 h = linspace(hmin, hmax, levels == 0 ? 21 : levels + 1)
@@ -1421,15 +1396,15 @@ function plot_data(flag=true)
             GR.contour(x, y, h, z, clabels ? 1 : 1000)
             colorbar(0, length(h))
         elseif kind == :contourf
-            zmin, zmax = plt.kvs[:zrange]
+            zmin, zmax = plt[].kvs[:zrange]
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
-                zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
+                zmin, zmax = get(plt[].kvs, :zlim, (_min(z), _max(z)))
             end
             GR.setprojectiontype(0)
             GR.setspace(zmin, zmax, 0, 90)
-            levels = get(plt.kvs, :levels, 0)
-            clabels = get(plt.kvs, :clabels, false)
+            levels = get(plt[].kvs, :levels, 0)
+            clabels = get(plt[].kvs, :clabels, false)
             if typeof(levels) <: Int
                 hmin, hmax = GR.adjustrange(zmin, zmax)
                 h = linspace(hmin, hmax, levels == 0 ? 21 : levels + 1)
@@ -1439,17 +1414,17 @@ function plot_data(flag=true)
             GR.contourf(x, y, h, z, clabels ? 1 : 0)
             colorbar(0, length(h))
         elseif kind == :hexbin
-            nbins = get(plt.kvs, :nbins, 40)
+            nbins = get(plt[].kvs, :nbins, 40)
             cntmax = GR.hexbin(x, y, nbins)
             if cntmax > 0
-                plt.kvs[:zrange] = 0, cntmax
+                plt[].kvs[:zrange] = 0, cntmax
                 colorbar()
             end
         elseif kind in (:heatmap, :nonuniformheatmap)
             w, h = size(z)
             cmap = colormap()
-            cmin, cmax = plt.kvs[:crange]
-            levels = get(plt.kvs, :levels, 256)
+            cmin, cmax = plt[].kvs[:crange]
+            levels = get(plt[].kvs, :levels, 256)
             data = map(x -> normalize_color(x, cmin, cmax), z)
             if kind == :heatmap
                 rgba = [to_rgba(value, cmap) for value = data]
@@ -1475,7 +1450,7 @@ function plot_data(flag=true)
                     x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
                 end
             end
-            if get(plt.kvs, :accelerate, true)
+            if get(plt[].kvs, :accelerate, true)
                 gr3.clear()
                 GR.gr3.surface(x, y, z, option)
             else
@@ -1484,19 +1459,19 @@ function plot_data(flag=true)
             draw_axes(kind, 2)
             colorbar(0.05)
         elseif kind == :volume
-            algorithm = get(plt.kvs, :algorithm, 0)
+            algorithm = get(plt[].kvs, :algorithm, 0)
             gr3.clear()
             dmin, dmax = GR.gr3.volume(c, algorithm)
             draw_axes(kind, 2)
-            plt.kvs[:zrange] = dmin, dmax
+            plt[].kvs[:zrange] = dmin, dmax
             colorbar(0.05)
         elseif kind == :plot3
             GR.polyline3d(x, y, z)
             draw_axes(kind, 2)
         elseif kind == :scatter3
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
-            if given(c)
-                cmin, cmax = plt.kvs[:crange]
+            if c !== nothing
+                cmin, cmax = plt[].kvs[:crange]
                 c = map(x -> normalize_color(x, cmin, cmax), c)
                 cind = Int[round(Int, 1000 + _i * 255) for _i in c]
                 for i in 1:length(x)
@@ -1519,11 +1494,11 @@ function plot_data(flag=true)
             draw_axes(kind, 2)
             colorbar(0.05)
         elseif kind == :tricont
-            zmin, zmax = plt.kvs[:zrange]
+            zmin, zmax = plt[].kvs[:zrange]
             levels = linspace(zmin, zmax, 20)
             GR.tricontour(x, y, z, levels)
         elseif kind == :shade
-            xform = get(plt.kvs, :xform, 5)
+            xform = get(plt[].kvs, :xform, 5)
             if contains_NaN(x)
                 GR.shadelines(x, y, xform=xform)
             else
@@ -1542,11 +1517,11 @@ function plot_data(flag=true)
         GR.restorestate()
     end
 
-    if kind in (:line, :stairs, :scatter, :stem) && haskey(plt.kvs, :labels)
+    if kind in (:line, :stairs, :scatter, :stem) && haskey(plt[].kvs, :labels)
         draw_legend()
     end
 
-    if plt.kvs[:update]
+    if plt[].kvs[:update]
         GR.updatews()
         if GR.isinline()
             restore_context()
@@ -1559,11 +1534,16 @@ function plot_data(flag=true)
     return
 end
 
-function plot_args(args; fmt=:xys)
+function plot_args(@nospecialize args; fmt=:xys)
+
     args = Any[args...]
-    parsed_args = Any[]
+
+    pltargs = NTuple{5, Any}[]
 
     while length(args) > 0
+
+        # parse arguments for plotting
+
         local x, y, z, c
         a = popfirst!(args)
         if isa(a, AbstractVecOrMat) || isa(a, Function)
@@ -1571,27 +1551,27 @@ function plot_args(args; fmt=:xys)
             if elt <: Complex
                 x = real(a)
                 y = imag(a)
-                z = Nothing
-                c = Nothing
+                z = nothing
+                c = nothing
             elseif elt <: Real || isa(a, Function)
                 if fmt == :xys
                     if length(args) >= 1 &&
                        (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || isa(args[1], Function))
                         x = a
                         y = popfirst!(args)
-                        z = Nothing
-                        c = Nothing
+                        z = nothing
+                        c = nothing
                     else
                         y = a
                         n = isrowvec(y) ? size(y, 2) : size(y, 1)
-                        if haskey(plt.kvs, :xlim)
-                            xmin, xmax = plt.kvs[:xlim]
+                        if haskey(plt[].kvs, :xlim)
+                            xmin, xmax = plt[].kvs[:xlim]
                             x = linspace(xmin, xmax, n)
                         else
                             x = linspace(1, n, n)
                         end
-                        z = Nothing
-                        c = Nothing
+                        z = nothing
+                        c = nothing
                     end
                 elseif fmt == :xyac || fmt == :xyzc
                     if length(args) >= 3 &&
@@ -1614,29 +1594,29 @@ function plot_args(args; fmt=:xys)
                         if !isa(z, Function)
                             z = z'
                         end
-                        c = Nothing
+                        c = nothing
                     elseif fmt == :xyac && length(args) >= 1 &&
                        (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || isa(args[1], Function))
                         x = a
                         y = popfirst!(args)
-                        z = Nothing
-                        c = Nothing
+                        z = nothing
+                        c = nothing
                     elseif fmt == :xyzc && length(args) == 0
                         z = a'
                         nx, ny = size(z)
-                        if haskey(plt.kvs, :xlim)
-                            xmin, xmax = plt.kvs[:xlim]
+                        if haskey(plt[].kvs, :xlim)
+                            xmin, xmax = plt[].kvs[:xlim]
                             x = linspace(xmin, xmax, nx)
                         else
                             x = linspace(1, nx, nx)
                         end
-                        if haskey(plt.kvs, :ylim)
-                            ymin, ymax = plt.kvs[:ylim]
+                        if haskey(plt[].kvs, :ylim)
+                            ymin, ymax = plt[].kvs[:ylim]
                             y = linspace(ymin, ymax, ny)
                         else
                             y = linspace(1, ny, ny)
                         end
-                        c = Nothing
+                        c = nothing
                     end
                 end
             else
@@ -1661,13 +1641,8 @@ function plot_args(args; fmt=:xys)
                 c = popfirst!(args)
             end
         end
-        push!(parsed_args, (x, y, z, c, spec))
-    end
 
-    pltargs = Any[]
-
-    for arg in parsed_args
-        x, y, z, c, spec = arg
+        # Setup arguments for plotting
 
         isa(x, UnitRange) && (x = collect(x))
         isa(y, UnitRange) && (y = collect(y))
@@ -1681,44 +1656,54 @@ function plot_args(args; fmt=:xys)
         else
             isvector(y) && (y = vec(y))
         end
-        if given(z)
+        if z !== nothing
             if fmt == :xyzc && isa(z, Function)
                 z = [z(a,b) for a in x, b in y]
             else
                 isvector(z) && (z = vec(z))
             end
         end
-        if given(c)
+        if c !== nothing
             isvector(c) && (c = vec(c))
         end
 
-        local xyzc
-        if !given(z)
+        if z === nothing
             if isa(x, AbstractVector) && isa(y, AbstractVector)
-                xyzc = [ (x, y, z, c) ]
+                push!(pltargs, (x, y, z, c, spec))
             elseif isa(x, AbstractVector)
-                xyzc = length(x) == size(y, 1) ?
-                       [ (x, view(y,:,j), z, c) for j = 1:size(y, 2) ] :
-                       [ (x, view(y,i,:), z, c) for i = 1:size(y, 1) ]
+                if length(x) == size(y, 1)
+                    for j = 1:size(y, 2)
+                        push!(pltargs, (x, view(y,:,j), z, c, spec))
+                    end
+                else
+                    for i = 1:size(y, 1)
+                        push!(pltargs, (x, view(y,i,:), z, c, spec))
+                    end
+                end
             elseif isa(y, AbstractVector)
-                xyzc = size(x, 1) == length(y) ?
-                       [ (view(x,:,j), y, z, c) for j = 1:size(x, 2) ] :
-                       [ (view(x,i,:), y, z, c) for i = 1:size(x, 1) ]
+                if size(x, 1) == length(y)
+                    for j = 1:size(x, 2)
+                        push!(pltargs, (view(x,:,j), y, z, c, spec))
+                    end
+                else
+                    for i = 1:size(x, 1)
+                       push!(pltargs, (view(x,i,:), y, z, c, spec))
+                    end
+                end
             else
                 @assert size(x) == size(y)
-                xyzc = [ (view(x,:,j), view(y,:,j), z, c) for j = 1:size(y, 2) ]
+                for j = 1:size(y, 2)
+                    push!(pltargs, (view(x,:,j), view(y,:,j), z, c, spec))
+                end
             end
         elseif (isa(x, AbstractVector) && isa(y, AbstractVector) &&
                 (isa(z, AbstractVector) || typeof(z) == Array{Float64,2} ||
                  typeof(z) == Array{Int32,2} || typeof(z) == Array{Any,2})) ||
                 (isa(x, AbstractMatrix) && isa(y, AbstractMatrix) &&
                 (isa(z, AbstractMatrix)))
-            xyzc = [ (x, y, z, c) ]
-        else
-            xyzc = [ (vec(float(x)), vec(float(y)), vec(float(z)), c) ]
-        end
-        for (x, y, z, c) in xyzc
             push!(pltargs, (x, y, z, c, spec))
+        else
+            push!(pltargs, (vec(float(x)), vec(float(y)), vec(float(z)), c, spec) )
         end
     end
 
@@ -1754,10 +1739,10 @@ This function can receive one or more of the following:
 function plot(args::PlotArg...; kv...)
     create_context(:line, Dict(kv))
 
-    if plt.kvs[:ax]
-        plt.args = append!(plt.args, plot_args(args))
+    if plt[].kvs[:ax]
+        plt[].args = append!(plt[].args, plot_args(args))
     else
-        plt.args = plot_args(args)
+        plt[].args = plot_args(args)
     end
 
     plot_data()
@@ -1789,7 +1774,7 @@ This function can receive one or more of the following:
 function oplot(args::PlotArg...; kv...)
     create_context(:line, Dict(kv))
 
-    plt.args = append!(plt.args, plot_args(args))
+    plt[].args = append!(plt[].args, plot_args(args))
 
     plot_data()
 end
@@ -1828,7 +1813,7 @@ This function can receive one or more of the following:
 function stairs(args...; kv...)
     create_context(:stairs, Dict(kv))
 
-    plt.args = plot_args(args, fmt=:xyac)
+    plt[].args = plot_args(args, fmt=:xyac)
 
     plot_data()
 end
@@ -1872,7 +1857,7 @@ current colormap.
 function scatter(args...; kv...)
     create_context(:scatter, Dict(kv))
 
-    plt.args = plot_args(args, fmt=:xyac)
+    plt[].args = plot_args(args, fmt=:xyac)
 
     plot_data()
 end
@@ -1905,7 +1890,7 @@ This function can receive one or more of the following:
 function stem(args...; kv...)
     create_context(:stem, Dict(kv))
 
-    plt.args = plot_args(args)
+    plt[].args = plot_args(args)
 
     plot_data()
 end
@@ -1958,11 +1943,11 @@ function barplot(labels, heights; kv...)
     horizontal = pop!(kv, :horizontal, false)
     create_context(:bar, kv)
     if horizontal
-        plt.args = [(hc, wc, Nothing, Nothing, "")]
+        plt[].args = [(hc, wc, nothing, nothing, "")]
         yticks(1,1)
         yticklabels(string.(labels))
     else
-        plt.args = [(wc, hc, Nothing, Nothing, "")]
+        plt[].args = [(wc, hc, nothing, nothing, "")]
         xticks(1,1)
         xticklabels(string.(labels))
     end
@@ -1990,7 +1975,7 @@ end
 """
 Draw a histogram.
 
-If **nbins** is **Nothing** or 0, this function computes the number of
+If **nbins** is **nothing** or 0, this function computes the number of
 bins as 3.3 * log10(n) + 1,  with n as the number of elements in x,
 otherwise the given number of bins is used for the histogram.
 
@@ -2011,9 +1996,9 @@ otherwise the given number of bins is used for the histogram.
 function histogram(x; kv...)
     create_context(:hist, Dict(kv))
 
-    nbins = get(plt.kvs, :nbins, 0)
+    nbins = get(plt[].kvs, :nbins, 0)
     x, y = hist(x, nbins)
-    plt.args = [(x, y, Nothing, Nothing, "")]
+    plt[].args = [(x, y, nothing, nothing, "")]
 
     plot_data()
 end
@@ -2021,7 +2006,7 @@ end
 """
 Draw a polar histogram.
 
-If **nbins** is **Nothing** or 0, this function computes the number of
+If **nbins** is **nothing** or 0, this function computes the number of
 bins as 3.3 * log10(n) + 1,  with n as the number of elements in x,
 otherwise the given number of bins is used for the histogram.
 
@@ -2042,9 +2027,9 @@ otherwise the given number of bins is used for the histogram.
 function polarhistogram(x; kv...)
     create_context(:polarhist, Dict(kv))
 
-    nbins = get(plt.kvs, :nbins, 0)
+    nbins = get(plt[].kvs, :nbins, 0)
     x, y = hist(x, nbins)
-    plt.args = [(x, y, Nothing, Nothing, "")]
+    plt[].args = [(x, y, nothing, nothing, "")]
 
     plot_data()
 end
@@ -2088,7 +2073,7 @@ provided points, a value of 0 will be used.
 function contour(args...; kv...)
     create_context(:contour, Dict(kv))
 
-    plt.args = plot_args(args, fmt=:xyzc)
+    plt[].args = plot_args(args, fmt=:xyzc)
 
     plot_data()
 end
@@ -2132,7 +2117,7 @@ provided points, a value of 0 will be used.
 function contourf(args...; kv...)
     create_context(:contourf, Dict(kv))
 
-    plt.args = plot_args(args, fmt=:xyzc)
+    plt[].args = plot_args(args, fmt=:xyzc)
 
     plot_data()
 end
@@ -2162,7 +2147,7 @@ display a series of points. It  can receive one or more of the following:
 function hexbin(args...; kv...)
     create_context(:hexbin, Dict(kv))
 
-    plt.args = plot_args(args)
+    plt[].args = plot_args(args)
 
     plot_data()
 end
@@ -2200,7 +2185,7 @@ function heatmap(D; kv...)
         z = D'
         width, height = size(z)
 
-        plt.args = [(1:width, 1:height, z, Nothing, "")]
+        plt[].args = [(1:width, 1:height, z, nothing, "")]
 
         plot_data()
     else
@@ -2212,7 +2197,7 @@ function heatmap(x, y, z; kv...)
     create_context(:nonuniformheatmap, Dict(kv))
 
     if ndims(z) == 2
-        plt.args = [(x, y, z', Nothing, "")]
+        plt[].args = [(x, y, z', nothing, "")]
 
         plot_data()
     else
@@ -2227,7 +2212,7 @@ function polarheatmap(D; kv...)
         z = D'
         width, height = size(z)
 
-        plt.args = [(1:width, 1:height, z, Nothing, "")]
+        plt[].args = [(1:width, 1:height, z, nothing, "")]
 
         plot_data()
     else
@@ -2239,7 +2224,7 @@ function polarheatmap(x, y, z; kv...)
     create_context(:nonuniformpolarheatmap, Dict(kv))
 
     if ndims(z) == 2
-        plt.args = [(x, y, z', Nothing, "")]
+        plt[].args = [(x, y, z', nothing, "")]
 
         plot_data()
     else
@@ -2286,7 +2271,7 @@ provided points, a value of 0 will be used.
 function wireframe(args...; kv...)
     create_context(:wireframe, Dict(kv))
 
-    plt.args = plot_args(args, fmt=:xyzc)
+    plt[].args = plot_args(args, fmt=:xyzc)
 
     plot_data()
 end
@@ -2330,7 +2315,7 @@ provided points, a value of 0 will be used.
 function surface(args...; kv...)
     create_context(:surface, Dict(kv))
 
-    plt.args = plot_args(args, fmt=:xyzc)
+    plt[].args = plot_args(args, fmt=:xyzc)
 
     plot_data()
 end
@@ -2338,7 +2323,7 @@ end
 function volume(V; kv...)
     create_context(:volume, Dict(kv))
 
-    plt.args = [(Nothing, Nothing, Nothing, V, "")]
+    plt[].args = [(nothing, nothing, nothing, V, "")]
 
     plot_data()
 end
@@ -2364,7 +2349,7 @@ Draw one or more three-dimensional line plots.
 function plot3(args...; kv...)
     create_context(:plot3, Dict(kv))
 
-    plt.args = plot_args(args, fmt=:xyzc)
+    plt[].args = plot_args(args, fmt=:xyzc)
 
     plot_data()
 end
@@ -2397,7 +2382,7 @@ color. Color values will be used in combination with the current colormap.
 function scatter3(args...; kv...)
     create_context(:scatter3, Dict(kv))
 
-    plt.args = plot_args(args, fmt=:xyzc)
+    plt[].args = plot_args(args, fmt=:xyzc)
 
     plot_data()
 end
@@ -2449,9 +2434,9 @@ documentation of GR.textext.
 """
 function title(s)
     if s != ""
-        plt.kvs[:title] = s
+        plt[].kvs[:title] = s
     else
-        delete!(plt.kvs, :title)
+        delete!(plt[].kvs, :title)
     end
     s
 end
@@ -2477,9 +2462,9 @@ documentation of GR.textext.
 """
 function xlabel(s)
     if s != ""
-        plt.kvs[:xlabel] = s
+        plt[].kvs[:xlabel] = s
     else
-        delete!(plt.kvs, :xlabel)
+        delete!(plt[].kvs, :xlabel)
     end
     s
 end
@@ -2496,9 +2481,9 @@ documentation of GR.textext.
 """
 function ylabel(s)
     if s != ""
-        plt.kvs[:ylabel] = s
+        plt[].kvs[:ylabel] = s
     else
-        delete!(plt.kvs, :ylabel)
+        delete!(plt[].kvs, :ylabel)
     end
     s
 end
@@ -2521,25 +2506,25 @@ documentation of GR.textext.
     julia> legend("a", "b")
 """
 function legend(args::AbstractString...; kv...)
-    plt.kvs[:labels] = args
+    plt[].kvs[:labels] = args
 end
 
 """
 Set the limits for the x-axis.
 
 The x-axis limits can either be passed as individual arguments or as a
-tuple of (**x_min**, **x_max**). Setting either limit to **Nothing** will
+tuple of (**x_min**, **x_max**). Setting either limit to **nothing** will
 cause it to be automatically determined based on the data, which is the
 default behavior.
 
 :param x_min:
 	- the x-axis lower limit, or
-	- **Nothing** to use an automatic lower limit, or
+	- **nothing** to use an automatic lower limit, or
 	- a tuple of both x-axis limits
 :param x_max:
 	- the x-axis upper limit, or
-	- **Nothing** to use an automatic upper limit, or
-	- **Nothing** if both x-axis limits were passed as first argument
+	- **nothing** to use an automatic upper limit, or
+	- **nothing** if both x-axis limits were passed as first argument
 :param adjust: whether or not the limits may be adjusted
 
 **Usage examples:**
@@ -2551,30 +2536,30 @@ default behavior.
     julia> # Reset the x-axis limits to be determined automatically
     julia> xlim()
     julia> # Reset the x-axis upper limit and set the lower limit to 0
-    julia> xlim((0, Nothing))
+    julia> xlim((0, nothing))
     julia> # Reset the x-axis lower limit and set the upper limit to 1
-    julia> xlim((Nothing, 1))
+    julia> xlim((nothing, 1))
 """
 function xlim(a)
-    plt.kvs[:xlim] = a
+    plt[].kvs[:xlim] = a
 end
 
 """
 Set the limits for the y-axis.
 
 The y-axis limits can either be passed as individual arguments or as a
-tuple of (**y_min**, **y_max**). Setting either limit to **Nothing** will
+tuple of (**y_min**, **y_max**). Setting either limit to **nothing** will
 cause it to be automatically determined based on the data, which is the
 default behavior.
 
 :param y_min:
 	- the y-axis lower limit, or
-	- **Nothing** to use an automatic lower limit, or
+	- **nothing** to use an automatic lower limit, or
 	- a tuple of both y-axis limits
 :param y_max:
 	- the y-axis upper limit, or
-	- **Nothing** to use an automatic upper limit, or
-	- **Nothing** if both y-axis limits were passed as first argument
+	- **nothing** to use an automatic upper limit, or
+	- **nothing** if both y-axis limits were passed as first argument
 :param adjust: whether or not the limits may be adjusted
 
 **Usage examples:**
@@ -2586,12 +2571,12 @@ default behavior.
     julia> # Reset the y-axis limits to be determined automatically
     julia> ylim()
     julia> # Reset the y-axis upper limit and set the lower limit to 0
-    julia> ylim((0, Nothing))
+    julia> ylim((0, nothing))
     julia> # Reset the y-axis lower limit and set the upper limit to 1
-    julia> ylim((Nothing, 1))
+    julia> ylim((nothing, 1))
 """
 function ylim(a)
-    plt.kvs[:ylim] = a
+    plt[].kvs[:ylim] = a
 end
 
 """
@@ -2615,8 +2600,7 @@ for .png, .jpg, .pdf, .ps, .gif and various other file formats.
     julia> savefig("example.png")
 """
 function savefig(filename; kv...)
-    global plt
-    merge!(plt.kvs, Dict(kv))
+    merge!(plt[].kvs, Dict(kv))
     GR.beginprint(filename)
     plot_data(false)
     GR.endprint()
@@ -2660,7 +2644,7 @@ two-dimensional array and the current colormap.
 function imshow(I; kv...)
     create_context(:imshow, Dict(kv))
 
-    plt.args = [(Nothing, Nothing, Nothing, I, "")]
+    plt[].args = [(nothing, nothing, nothing, I, "")]
 
     plot_data()
 end
@@ -2689,7 +2673,7 @@ the isovalue will be seen as inside the isosurface.
 function isosurface(V; kv...)
     create_context(:isosurface, Dict(kv))
 
-    plt.args = [(Nothing, Nothing, Nothing, V, "")]
+    plt[].args = [(nothing, nothing, nothing, V, "")]
 
     plot_data()
 end
@@ -2735,7 +2719,7 @@ This function can receive one or more of the following:
 function polar(args...; kv...)
     create_context(:polar, Dict(kv))
 
-    plt.args = plot_args(args)
+    plt[].args = plot_args(args)
 
     plot_data()
 end
@@ -2767,7 +2751,7 @@ plot, as the interpolation may occur in very acute triangles.
 function trisurf(args...; kv...)
     create_context(:trisurf, Dict(kv))
 
-    plt.args = plot_args(args, fmt=:xyzc)
+    plt[].args = plot_args(args, fmt=:xyzc)
 
     plot_data()
 end
@@ -2799,7 +2783,7 @@ plot, as the interpolation may occur in very acute triangles.
 function tricont(args...; kv...)
     create_context(:tricont, Dict(kv))
 
-    plt.args = plot_args(args, fmt=:xyzc)
+    plt[].args = plot_args(args, fmt=:xyzc)
 
     plot_data()
 end
@@ -2807,16 +2791,15 @@ end
 function shade(args...; kv...)
     create_context(:shade, Dict(kv))
 
-    plt.args = plot_args(args, fmt=:xys)
+    plt[].args = plot_args(args, fmt=:xys)
 
     plot_data()
 end
 
 function setpanzoom(x, y, zoom)
-    global ctx
-
-    plt.kvs = copy(ctx)
-    plt.kvs[:panzoom] = (x, y, zoom)
+    empty!(plt[].kvs)
+    merge!(plt[].kvs, ctx)
+    plt[].kvs[:panzoom] = (x, y, zoom)
 
     plot_data()
 end
@@ -2832,8 +2815,8 @@ function mainloop()
                 seekstart(io)
 
                 obj = deserialize(io)
-                merge!(plt.kvs, obj["kvs"])
-                plt.args = obj["args"]
+                merge!(plt[].kvs, obj["kvs"])
+                plt[].args = obj["args"]
 
                 plot_data(false)
             end

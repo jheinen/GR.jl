@@ -34,7 +34,7 @@ function get_grdir()
     if have_dir
         @info("Found existing GR run-time in $grdir")
     end
-    have_dir ? grdir : Nothing
+    have_dir ? grdir : nothing
 end
 
 function get_version()
@@ -109,7 +109,7 @@ grdir = get_grdir()
 
 if haskey(ENV, "JULIA_GR_PROVIDER")
     provider = ENV["JULIA_GR_PROVIDER"]
-elseif grdir == Nothing
+elseif grdir === nothing
     provider = "BinaryBuilder"
 else
     provider = "GR"
@@ -151,7 +151,7 @@ else
     os = Sys.KERNEL
 end
 
-if grdir == Nothing
+if grdir === nothing
     arch = Sys.ARCH
     if os == :Linux && arch == :x86_64
         if isfile("/etc/redhat-release")
@@ -247,7 +247,7 @@ end
 if os == :Linux || os == :FreeBSD
     global grdir
     try
-        if grdir == Nothing
+        if grdir === nothing
             grdir = joinpath(pwd(), "gr")
         end
         gksqt = joinpath(grdir, "bin", "gksqt")
