@@ -127,7 +127,7 @@ end
 const plt = Ref{PlotObject}(Figure())
 const ctx = Dict{Symbol, Any}()
 const scheme = Ref(0)
-handle = nothing
+const handle = Ref{Ptr{Nothing}}(C_NULL)
 
 function gcf()
     plt[].kvs
@@ -1115,45 +1115,44 @@ function send_data(handle, name, data)
 end
 
 function send_meta(target)
-    global handle
-    if handle === nothing
-        handle = GR.openmeta(target)
+    if handle[] === C_NULL
+        handle[] = GR.openmeta(target)
     end
-    if handle != C_NULL
+    if handle[] != C_NULL
         for (k, v) in plt[].kvs
             if k in (:backgroundcolor, :color, :colormap, :location, :nbins,
                      :rotation, :tilt, :xform)
-                GR.sendmetaref(handle, string(k), 'i', Int32(v))
+                GR.sendmetaref(handle[], string(k), 'i', Int32(v))
             elseif k in (:alpha, :isovalue)
-                GR.sendmetaref(handle, string(k), 'd', Float64(v))
+                GR.sendmetaref(handle[], string(k), 'd', Float64(v))
             elseif k in (:xlim, :ylim, :zlim, :clim, :size)
-                GR.sendmetaref(handle, string(k), 'D', to_double(v))
+                GR.sendmetaref(handle[], string(k), 'D', to_double(v))
             elseif k in (:title, :xlabel, :ylabel, :zlabel)
-                GR.sendmetaref(handle, string(k), 's', String(v))
+                GR.sendmetaref(handle[], string(k), 's', String(v))
             elseif k == :labels
                 s = [String(el) for el in v]
-                GR.sendmetaref(handle, string(k), 'S', s, length(s))
+                GR.sendmetaref(handle[], string(k), 'S', s, length(s))
             elseif k in (:xflip, :yflip, :zflip, :xlog, :ylog, :zlog)
-                GR.sendmetaref(handle, string(k), 'i', v ? 1 : 0)
+                GR.sendmetaref(handle[], string(k), 'i', v ? 1 : 0)
             end
         end
         num_series = length(plt[].args)
-        GR.sendmetaref(handle, "series", 'O', "[", num_series)
+        GR.sendmetaref(handle[], "series", 'O', "[", num_series)
         for (i, (x, y, z, c, spec)) in enumerate(plt[].args)
-            x !== nothing && send_data(handle, "x", to_double(x))
-            y !== nothing && send_data(handle, "y", to_double(y))
-            z !== nothing && send_data(handle, "z", to_double(z))
-            c !== nothing && send_data(handle, "c", to_double(c))
-            spec !== nothing && GR.sendmetaref(handle, "spec", 's', spec)
-            GR.sendmetaref(handle, "", 'O', i < num_series ? "," : "]", 1)
+            x !== nothing && send_data(handle[], "x", to_double(x))
+            y !== nothing && send_data(handle[], "y", to_double(y))
+            z !== nothing && send_data(handle[], "z", to_double(z))
+            c !== nothing && send_data(handle[], "c", to_double(c))
+            spec !== nothing && GR.sendmetaref(handle[], "spec", 's', spec)
+            GR.sendmetaref(handle[], "", 'O', i < num_series ? "," : "]", 1)
         end
         if plt[].kvs[:kind] == :hist
-            GR.sendmetaref(handle, "kind", 's', "barplot");
+            GR.sendmetaref(handle[], "kind", 's', "barplot");
         else
-            GR.sendmetaref(handle, "kind", 's', string(plt[].kvs[:kind]));
+            GR.sendmetaref(handle[], "kind", 's', string(plt[].kvs[:kind]));
         end
-        GR.sendmetaref(handle, "", '\0', "", 0);
-        #GR.closemeta(handle)
+        GR.sendmetaref(handle[], "", '\0', "", 0);
+        #GR.closemeta(handle[])
     end
 end
 
