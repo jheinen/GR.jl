@@ -17,10 +17,6 @@ function _precompile_()
     @warnpcfail precompile(ispluto,())
     @warnpcfail precompile(isvscode,())
     @warnpcfail precompile(isatom,())
-    @warnpcfail precompile(updatews,())
-
-    @warnpcfail precompile(polyline, (Vector{Float64}, Vector{Float64}))
-    @warnpcfail precompile(axes, (Float64, Float64, Int64, Int64, Int64, Int64, Float64))
 
     @warnpcfail precompile(get_func_ptr, (Base.RefValue{Ptr{Nothing}},LibGR_Ptrs, Symbol) )
     @warnpcfail precompile(get_func_ptr, (Base.RefValue{Ptr{Nothing}},LibGRM_Ptrs, Symbol) )
