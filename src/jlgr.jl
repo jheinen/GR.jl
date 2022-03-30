@@ -148,7 +148,7 @@ function set_viewport(kind, subplot)
     else
         dpi = width / mwidth * 0.0254
         if dpi > 200
-            w, h = plt[].kvs[:size] .* dpi / 100
+            w, h = plt[].kvs[:size] .* (dpi / 100)
         else
             w, h = plt[].kvs[:size]
         end
