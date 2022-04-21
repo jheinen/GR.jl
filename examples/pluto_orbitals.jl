@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.15.1
+# v0.19.0
 
 using Markdown
 using InteractiveUtils
@@ -7,8 +7,9 @@ using InteractiveUtils
 # This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
 macro bind(def, element)
     quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
         local el = $(esc(element))
-        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : missing
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
         el
     end
 end
@@ -54,17 +55,6 @@ function norm(n::Int, l::Int)
     sqrt((2/n)^3 * factorial(n-l-1)/(2n*factorial(n+l)))
 end
 
-# ╔═╡ 94158386-447f-40cd-a321-8b333053d558
-function CarttoSph(x::Array, y::Array, z::Array)
-    r = sqrt.(x.^2+y.^2+z.^2)
-    θ = acos.(z./r)
-    ϕ = atan.(y./x)
-    r, θ, ϕ
-end
-
-# ╔═╡ a4c51114-4bf9-4d40-b123-1629a3be54e1
-@bind Ψ Select(["2,0,0", "3,0,0", "2,1,0", "3,1,0", "3,1,1", "2,1,1", "3,2,0", "3,2,1", "3,2,2", "4,0,0", "4, 1,0", "4,2,0", "4,2,1", "4,2,2", "4,3,0", "4,3,1", "4,3,2", "4,3,3"], default="3,2,0")
-
 # ╔═╡ d3ff17f0-3dd6-4ffe-a045-5b573aec02a5
 # Generates an Orbital Funtion of (r, θ, ϕ) for a specificied n, l, m.
 function Orbital(n::Int, l::Int, m::Int)
@@ -74,6 +64,14 @@ function Orbital(n::Int, l::Int, m::Int)
     end
     Ψ(ρ, θ, ϕ) = norm(n, l) * R(n, l, ρ) * abs(Yml(m, l, θ, ϕ))
     Ψ
+end
+
+# ╔═╡ 94158386-447f-40cd-a321-8b333053d558
+function CarttoSph(x::Array, y::Array, z::Array)
+    r = sqrt.(x.^2+y.^2+z.^2)
+    θ = acos.(z./r)
+    ϕ = atan.(y./x)
+    r, θ, ϕ
 end
 
 # ╔═╡ ad5ffb61-b2cc-499a-87a4-ad71833de766
@@ -97,6 +95,9 @@ function calculate_electronic_density(n, l, m)
 
     (Ψv.-minimum(Ψv))./(maximum(Ψv).-minimum(Ψv))
 end
+
+# ╔═╡ a4c51114-4bf9-4d40-b123-1629a3be54e1
+@bind Ψ Select(["2,0,0", "3,0,0", "2,1,0", "3,1,0", "3,1,1", "2,1,1", "3,2,0", "3,2,1", "3,2,2", "4,0,0", "4, 1,0", "4,2,0", "4,2,1", "4,2,2", "4,3,0", "4,3,1", "4,3,2", "4,3,3"], default="3,2,0")
 
 # ╔═╡ 11cfffdf-91d6-4909-bb59-e8d12a95e5e8
 @bind ϕ Slider(0:360, default=30)
