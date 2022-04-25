@@ -22,7 +22,7 @@ ApplicationWindow {
   Text {
     id: xy
     font.pointSize: 12
-    font.family: "Courier"
+    font.family: "Courier New"
     x: 5
     y: 5
     text: ""
