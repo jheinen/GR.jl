@@ -211,6 +211,7 @@ export
   inqvpsize,
   inqtransformationparameters,
   polygonmesh3d,
+  setscientificformat,
   # Convenience functions
   jlgr,
   colormap,
@@ -4362,6 +4363,13 @@ function polygonmesh3d(px, py, pz, connections, colors)
         Nothing,
         (Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32, Ptr{Int32}, Ptr{Int32}),
         num_points, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz), num_connections, convert(Vector{Int32}, connections), convert(Vector{Int32}, colors))
+end
+
+function setscientificformat(format_option)
+    ccall( libGR_ptr(:gr_setscientificformat),
+        Nothing,
+        (Int32, ),
+        format_option)
 end
 
 # JS functions
