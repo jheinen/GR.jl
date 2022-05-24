@@ -631,6 +631,7 @@ function inqtext(x, y, s)
     else
         GR.inqtext(x, y, s)
     end
+    nothing
 end
 
 function text(x, y, s)
@@ -639,6 +640,7 @@ function text(x, y, s)
     else
         GR.text(x, y, s)
     end
+    nothing
 end
 
 function legend_size()
@@ -870,6 +872,7 @@ function usecolorscheme(index)
     else
         println("Invalid color sheme")
     end
+    nothing
 end
 
 """
@@ -1112,6 +1115,7 @@ function send_data(handle, name, data)
     if length(dims) > 1
         GR.sendmetaref(handle, string(name, "_dims"), 'I', to_int(dims))
     end
+    nothing
 end
 
 function send_meta(target)
@@ -1154,6 +1158,7 @@ function send_meta(target)
         GR.sendmetaref(handle[], "", '\0', "", 0);
         #GR.closemeta(handle[])
     end
+    nothing
 end
 
 function send_serialized(target)
@@ -2191,6 +2196,7 @@ function heatmap(D; kv...)
     else
         error("expected 2-D array")
     end
+    nothing
 end
 
 function heatmap(x, y, z; kv...)
@@ -2203,6 +2209,7 @@ function heatmap(x, y, z; kv...)
     else
         error("expected 2-D array")
     end
+    nothing
 end
 
 function polarheatmap(D; kv...)
@@ -2218,6 +2225,7 @@ function polarheatmap(D; kv...)
     else
         error("expected 2-D array")
     end
+    nothing
 end
 
 function polarheatmap(x, y, z; kv...)
@@ -2230,6 +2238,7 @@ function polarheatmap(x, y, z; kv...)
     else
         error("expected 2-D array")
     end
+    nothing
 end
 
 """

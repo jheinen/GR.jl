@@ -72,8 +72,8 @@ function load_libs(always::Bool = false)
     init(always)
 end
 
-function get_func_ptr(handle::Ref{Ptr{Nothing}}, ptrs::Union{LibGR_Ptrs, LibGRM_Ptrs, LibGR3_Ptrs}, func::Symbol)
-    if !libs_loaded[]
+function get_func_ptr(handle::Ref{Ptr{Nothing}}, ptrs::Union{LibGR_Ptrs, LibGRM_Ptrs, LibGR3_Ptrs}, func::Symbol, loaded=libs_loaded[])
+    if !loaded
         load_libs(true)
     end
     s = getfield(ptrs, func)
@@ -81,7 +81,7 @@ function get_func_ptr(handle::Ref{Ptr{Nothing}}, ptrs::Union{LibGR_Ptrs, LibGRM_
         s = Libdl.dlsym(handle[], func)
         setfield!(ptrs, func, s)
     end
-    return s
+    return getfield(ptrs,func)
 end
 
 libGR_ptr(func) = get_func_ptr(libGR_handle, libGR_ptrs, func)
