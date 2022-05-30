@@ -631,7 +631,6 @@ function inqtext(x, y, s)
     else
         GR.inqtext(x, y, s)
     end
-    nothing
 end
 
 function text(x, y, s)
