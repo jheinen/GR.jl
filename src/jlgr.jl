@@ -649,7 +649,9 @@ function legend_size()
     GR.setscale(0)
     w = 0
     h = 0
-    for label in plt[].kvs[:labels]
+    num_labels = length(plt[].kvs[:labels])
+    for i in 1:num_labels
+        label = plt[].kvs[:labels][i]
         tbx, tby = inqtext(0, 0, label)
         w  = max(w, tbx[3] - tbx[1])
         h += max(tby[3] - tby[1], 0.03)
