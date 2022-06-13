@@ -1399,7 +1399,7 @@ function plot_data(flag=true)
             else
                 h = float(levels)
             end
-            GR.contour(x, y, h, z, clabels ? 1001 : 0)
+            GR.contour(x, y, h, z, clabels ? 1001 : 1000)
             colorbar(0, length(h))
         elseif kind == :contourf
             zmin, zmax = plt[].kvs[:zrange]
