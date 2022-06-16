@@ -761,12 +761,13 @@ function colorbar(off=0, colors=256)
 end
 
 function colormap()
-    rgb = zeros(256, 3)
-    for colorind in 1:256
+    rgb = Vector{UInt32}(undef, 256)
+    @inbounds for colorind in 1:256
         color = GR.inqcolor(999 + colorind)
-        rgb[colorind, 1] = float( color        & 0xff) / 255.0
-        rgb[colorind, 2] = float((color >> 8)  & 0xff) / 255.0
-        rgb[colorind, 3] = float((color >> 16) & 0xff) / 255.0
+        r =  color        & 0xff
+        g = (color >> 8)  & 0xff
+        b = (color >> 16) & 0xff
+        rgb[colorind] = 0xff000000 + b << 16 + g << 8  +  r
     end
     rgb
 end
@@ -774,11 +775,7 @@ end
 function to_rgba(value, cmap)
     if !isnan(value)
         i = round(Int, value * 255 + 1)
-        r = cmap[i, 1]
-        g = cmap[i, 2]
-        b = cmap[i, 3]
-        0xff000000 + round(UInt32, b * 255) << 16 +
-        round(UInt32, g * 255) << 8  + round(UInt32, r * 255)
+        cmap[i]
     else
         zero(UInt32)
     end
