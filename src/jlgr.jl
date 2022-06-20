@@ -1322,7 +1322,7 @@ function plot_data(flag=true)
                     cmin, cmax = plt[].kvs[:crange]
                     c = map(x -> normalize_color(x, cmin, cmax), c)
                 end
-                GR.polymarker(x, y, z .* 0.01, c)
+                GR.polymarker(x, y, z, c)
             else
                 GR.polymarker(x, y)
             end

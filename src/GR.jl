@@ -1211,7 +1211,7 @@ function polyline(x, y, linewidth, line_z)
     if length(linewidth) == 1
         linewidth = ones(length(x)) .* linewidth
     end
-    linewidth = round.(Int, 100 .* linewidth)
+    linewidth = round.(Int, 1000 .* linewidth)
     @assert length(x) == length(y) == length(linewidth) == length(line_z)
     color = to_rgb_color(line_z)
     attributes = vec(hcat(linewidth, color)')
@@ -1222,7 +1222,7 @@ function polymarker(x, y, markersize, marker_z)
     if length(markersize) == 1
         markersize = ones(length(x)) .* markersize
     end
-    markersize = round.(Int, 100 .* markersize)
+    markersize = round.(Int, 1000 .* markersize)
     @assert length(x) == length(y) == length(markersize) == length(marker_z)
     color = to_rgb_color(marker_z)
     attributes = vec(hcat(markersize, color)')
