@@ -25,7 +25,7 @@ Example("Scatter plot", [:(begin
     end)]),
 
 Example("Colored scatter plot", [:(begin
-        sz = LinRange(50, 300, length(x))
+        sz = LinRange(0.5, 3, length(x))
         c = LinRange(0, 255, length(x))
         scatter(x, y, sz, c)
     end)]),
