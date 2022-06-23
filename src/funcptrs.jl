@@ -39,7 +39,7 @@ function load_libs(always::Bool = false)
             libGRM_handle[] = GR_jll.libGRM_handle
             grdir[] = joinpath(dirname(GR_jll.libGR_path), "..")
         catch err
-            @error "Error importing GR_jll:" err
+            @error "Error importing GR_jll:" exception=(err, catch_backtrace())
             ENV["GRDIR"] = ""
             depsfile_succeeded[] = false
             __init__()
