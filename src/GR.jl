@@ -212,6 +212,7 @@ export
   inqtransformationparameters,
   polygonmesh3d,
   setscientificformat,
+  setresizebehaviour,
   # Convenience functions
   jlgr,
   colormap,
@@ -4370,6 +4371,13 @@ function setscientificformat(format_option)
         Nothing,
         (Int32, ),
         format_option)
+end
+
+function setresizebehaviour(flag)
+    ccall( libGR_ptr(:gr_setresizebehaviour),
+        Nothing,
+        (Int32, ),
+        flag)
 end
 
 # JS functions

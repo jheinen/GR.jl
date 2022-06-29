@@ -150,4 +150,5 @@ const libGR_syms = [
 :gr_inqtransformationparameters
 :gr_polygonmesh3d
 :gr_setscientificformat
+:gr_setresizebehaviour
 ]
