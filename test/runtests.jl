@@ -227,4 +227,4 @@ function basic_tests()
     end
 end
 
-@time basic_tests()
+@timev basic_tests()
