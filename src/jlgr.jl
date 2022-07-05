@@ -1160,11 +1160,9 @@ function send_meta(target, plt=plt[])
 end
 
 function send_serialized(target, plt=plt[])
-    handle = connect(target, 8001)
-    io = IOBuffer()
-    serialize(io, Dict("kvs" => plt.kvs, "args" => plt.args))
-    write(handle, io.data)
-    close(handle)
+    sock = connect(target, 8001)
+    serialize(sock, Dict("kvs" => plt.kvs, "args" => plt.args))
+    close(sock)
 end
 
 function contains_NaN(a)
