@@ -170,7 +170,7 @@ function set_viewport(kind, subplot)
         vp[1] *= ratio
         vp[2] *= ratio
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
+    if kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :trisurf || kind === :volume
         extent = min(vp[2] - vp[1], vp[4] - vp[3])
         vp1 = 0.5 * (vp[1] + vp[2] - extent)
         vp2 = 0.5 * (vp[1] + vp[2] + extent)
@@ -180,7 +180,7 @@ function set_viewport(kind, subplot)
         vp1, vp2, vp3, vp4 = vp
     end
     left_margin = haskey(plt[].kvs, :ylabel) ? 0.05 : 0
-    if kind in (:contour, :contourf, :hexbin, :heatmap, :nonuniformheatmap, :polarheatmap, :nonuniformpolarheatmap, :surface, :trisurf, :volume)
+    if kind === :contour || kind === :contourf || kind === :hexbin || kind === :heatmap || kind === :nonuniformheatmap || kind === :polarheatmap || kind === :nonuniformpolarheatmap || kind === :surface || kind === :trisurf || kind === :volume
         right_margin = (vp2 - vp1) * 0.1
     else
         right_margin = 0
@@ -192,15 +192,15 @@ function set_viewport(kind, subplot)
     viewport[3] = vp3 + (0.075 + bottom_margin) * (vp4 - vp3)
     viewport[4] = vp3 + (0.975 - top_margin) * (vp4 - vp3)
 
-    if kind in (:line, :stairs, :scatter, :stem) && haskey(plt[].kvs, :labels)
+    if (kind === :line || kind === :stairs || kind === :scatter || kind === :stem) && haskey(plt[].kvs, :labels)
         location = get(plt[].kvs, :location, 1)
-        if location in (11, 12, 13)
+        if location == 11 || location == 12 || location == 13
             w, h = legend_size()
             viewport[2] -= w + 0.1
         end
     end
 
-    if kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap)
+    if kind === :polar || kind === :polarhist || kind === :polarheatmap || kind === :nonuniformpolarheatmap
         xmin, xmax, ymin, ymax = viewport
         xcenter = 0.5 * (xmin + xmax)
         ycenter = 0.5 * (ymin + ymax)
@@ -274,7 +274,7 @@ function minmax(kind)
             x0, x1 = Extrema64(x)
             xmin = min(x0, xmin)
             xmax = max(x1, xmax)
-        elseif kind == :volume
+        elseif kind === :volume
             xmin, xmax = -1, 1
         else
             xmin, xmax = 0, 1
@@ -286,7 +286,7 @@ function minmax(kind)
             y0, y1 = Extrema64(y)
             ymin = min(y0, ymin)
             ymax = max(y1, ymax)
-        elseif kind == :volume
+        elseif kind === :volume
             ymin, ymax = -1, 1
         else
             ymin, ymax = 0, 1
@@ -298,7 +298,7 @@ function minmax(kind)
             z0, z1 = Extrema64(z)
             zmin = min(z0, zmin)
             zmax = max(z1, zmax)
-        elseif kind == :volume
+        elseif kind === :volume
             zmin, zmax = -1, 1
         else
             zmin, zmax = 0, 1
@@ -373,7 +373,7 @@ function auto_tick(amin, amax)
 end
 
 function set_window(kind)
-    if !(kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap))
+    if !(kind === :polar || kind === :polarhist || kind === :polarheatmap || kind === :nonuniformpolarheatmap)
         scale = get(plt[].kvs, :scale, 0)
         get(plt[].kvs, :xlog, false) && (scale |= GR.OPTION_X_LOG)
         get(plt[].kvs, :ylog, false) && (scale |= GR.OPTION_Y_LOG)
@@ -394,19 +394,19 @@ function set_window(kind)
         minmax(kind)
     end
 
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap, :trisurf, :volume)
+    if kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :polar || kind === :polarhist || kind === :polarheatmap || kind === :nonuniformpolarheatmap || kind === :trisurf || kind === :volume
         major_count = 2
     else
         major_count = 5
     end
 
     xmin, xmax = plt[].kvs[:xrange]
-    if kind in (:heatmap, :polarheatmap) && !haskey(plt[].kvs, :xlim)
+    if kind === :heatmap || kind === :polarheatmap && !haskey(plt[].kvs, :xlim)
         xmin -= 0.5
         xmax += 0.5
     end
     if scale & GR.OPTION_X_LOG == 0
-        if !haskey(plt[].kvs, :xlim) && plt[].kvs[:panzoom] === nothing && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
+        if !haskey(plt[].kvs, :xlim) && plt[].kvs[:panzoom] === nothing && !(kind === :heatmap || kind === :polarheatmap || kind === :nonuniformpolarheatmap)
             xmin, xmax = GR.adjustlimits(xmin, xmax)
         end
         if haskey(plt[].kvs, :xticks)
@@ -426,15 +426,15 @@ function set_window(kind)
     plt[].kvs[:xaxis] = xtick, xorg, majorx
 
     ymin, ymax = plt[].kvs[:yrange]
-    if kind in (:heatmap, :polarheatmap) && !haskey(plt[].kvs, :ylim)
+    if kind === :heatmap || kind === :polarheatmap && !haskey(plt[].kvs, :ylim)
         ymin -= 0.5
         ymax += 0.5
     end
-    if kind == :hist && !haskey(plt[].kvs, :ylim)
+    if kind === :hist && !haskey(plt[].kvs, :ylim)
         ymin = scale & GR.OPTION_Y_LOG == 0 ? 0 : 1
     end
     if scale & GR.OPTION_Y_LOG == 0
-        if !haskey(plt[].kvs, :ylim) && plt[].kvs[:panzoom] === nothing && !(kind in (:heatmap, :polarheatmap, :nonuniformpolarheatmap))
+        if !haskey(plt[].kvs, :ylim) && plt[].kvs[:panzoom] === nothing && !(kind === :heatmap || kind === :polarheatmap || kind === :nonuniformpolarheatmap)
             ymin, ymax = GR.adjustlimits(ymin, ymax)
         end
         if haskey(plt[].kvs, :yticks)
@@ -453,7 +453,7 @@ function set_window(kind)
     end
     plt[].kvs[:yaxis] = ytick, yorg, majory
 
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
+    if kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :trisurf || kind === :volume
         zmin, zmax = plt[].kvs[:zrange]
         if scale & GR.OPTION_Z_LOG == 0
             if !haskey(plt[].kvs, :zlim)
@@ -477,12 +477,12 @@ function set_window(kind)
     end
 
     plt[].kvs[:window] = xmin, xmax, ymin, ymax
-    if !(kind in (:polar, :polarhist, :polarheatmap, :nonuniformpolarheatmap))
+    if !(kind === :polar || kind === :polarhist || kind === :polarheatmap || kind === :nonuniformpolarheatmap)
         GR.setwindow(xmin, xmax, ymin, ymax)
     else
         GR.setwindow(-1, 1, -1, 1)
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
+    if kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :trisurf || kind === :volume
         rotation = get(plt[].kvs, :rotation, 40)
         tilt = get(plt[].kvs, :tilt, 60)
         GR.setwindow3d(xmin, xmax, ymin, ymax, zmin, zmax)
@@ -522,7 +522,7 @@ function draw_axes(kind, pass=1)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
     GR.setlinewidth(1)
     ticksize = 0.0075 * diag
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
+    if kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :trisurf || kind === :volume
         charheight = max(0.024 * diag, 0.012)
         GR.setcharheight(charheight)
         ztick, zorg, majorz = plt[].kvs[:zaxis]
@@ -536,7 +536,7 @@ function draw_axes(kind, pass=1)
     else
         charheight = max(0.018 * diag, 0.012)
         GR.setcharheight(charheight)
-        if kind in (:heatmap, :nonuniformheatmap, :shade)
+        if kind === :heatmap || kind === :nonuniformheatmap || kind === :shade
             ticksize = -ticksize
         else
             drawgrid && GR.grid(xtick, ytick, 0, 0, majorx, majory)
@@ -557,7 +557,7 @@ function draw_axes(kind, pass=1)
         text(0.5 * (viewport[1] + viewport[2]), vp[4], plt[].kvs[:title])
         GR.restorestate()
     end
-    if kind in (:wireframe, :surface, :plot3, :scatter3, :trisurf, :volume)
+    if kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :trisurf || kind === :volume
         xlabel = get(plt[].kvs, :xlabel, "")
         ylabel = get(plt[].kvs, :ylabel, "")
         zlabel = get(plt[].kvs, :zlabel, "")
@@ -671,20 +671,20 @@ function draw_legend()
     GR.savestate()
     GR.selntran(0)
     GR.setscale(0)
-    if location in (11, 12, 13)
+    if location == 11 || location == 12 || location == 13
         px = viewport[2] + 0.11
-    elseif location in (8, 9, 10)
+    elseif location == 8 || location == 9 || location == 10
         px = 0.5 * (viewport[1] + viewport[2] - w + 0.05)
-    elseif location in (2, 3, 6)
+    elseif location == 2 || location == 3 || location == 6
         px = viewport[1] + 0.11
     else
         px = viewport[2] - 0.05 - w
     end
-    if location in (5, 6, 7, 10, 12)
+    if location == 5 || location == 6 || location == 7 || location == 10 || location == 12
         py = 0.5 * (viewport[3] + viewport[4] + h - 0.03)
     elseif location == 13
         py = viewport[3] + h
-    elseif location in (3, 4, 8)
+    elseif location == 3 || location == 4 || location == 8
         py = viewport[3] + h + 0.03
     elseif location == 11
         py = viewport[4] - 0.03
@@ -1122,19 +1122,19 @@ function send_meta(target)
     end
     if handle[] != C_NULL
         for (k, v) in plt[].kvs
-            if k in (:backgroundcolor, :color, :colormap, :location, :nbins,
-                     :rotation, :tilt, :xform)
+            if k === :backgroundcolor || k === :color || k === :colormap || k === :location || k === :nbins ||
+                k === :rotation || k === :tilt || k === :xform
                 GR.sendmetaref(handle[], string(k), 'i', Int32(v))
-            elseif k in (:alpha, :isovalue)
+            elseif k === :alpha || k === :isovalue
                 GR.sendmetaref(handle[], string(k), 'd', Float64(v))
-            elseif k in (:xlim, :ylim, :zlim, :clim, :size)
+            elseif k === :xlim || k === :ylim || k === :zlim || k === :clim || k === :size
                 GR.sendmetaref(handle[], string(k), 'D', to_double(v))
-            elseif k in (:title, :xlabel, :ylabel, :zlabel)
+            elseif k === :title || k === :xlabel || k === :ylabel || k === :zlabel
                 GR.sendmetaref(handle[], string(k), 's', String(v))
-            elseif k == :labels
+            elseif k === :labels
                 s = [String(el) for el in v]
                 GR.sendmetaref(handle[], string(k), 'S', s, length(s))
-            elseif k in (:xflip, :yflip, :zflip, :xlog, :ylog, :zlog)
+            elseif k === :xflip || k === :yflip || k === :zflip || k === :xlog || k === :ylog || k === :zlog
                 GR.sendmetaref(handle[], string(k), 'i', v ? 1 : 0)
             end
         end
@@ -1148,7 +1148,7 @@ function send_meta(target)
             spec !== nothing && GR.sendmetaref(handle[], "spec", 's', spec)
             GR.sendmetaref(handle[], "", 'O', i < num_series ? "," : "]", 1)
         end
-        if plt[].kvs[:kind] == :hist
+        if plt[].kvs[:kind] === :hist
             GR.sendmetaref(handle[], "kind", 's', "barplot");
         else
             GR.sendmetaref(handle[], "kind", 's', string(plt[].kvs[:kind]));
@@ -1236,9 +1236,9 @@ function plot_data(flag=true)
     set_viewport(kind, plt[].kvs[:subplot])
     if !plt[].kvs[:ax]
         set_window(kind)
-        if kind in (:polar, :polarhist)
+        if kind === :polar || kind === :polarhist
             draw_polar_axes()
-        elseif !(kind in (:imshow, :isosurface, :polarheatmap, :nonuniformpolarheatmap))
+        elseif !(kind === :imshow || kind === :isosurface || kind === :polarheatmap || kind === :nonuniformpolarheatmap)
             draw_axes(kind)
         end
     end
@@ -1255,7 +1255,7 @@ function plot_data(flag=true)
         if haskey(plt[].kvs, :alpha)
             GR.settransparency(plt[].kvs[:alpha])
         end
-        if kind == :line
+        if kind === :line
             mask = GR.uselinespec(spec)
             if c !== nothing
                 linewidth = get(plt[].kvs, :linewidth, 1)
@@ -1269,7 +1269,7 @@ function plot_data(flag=true)
                 end
                 hasmarker(mask) && GR.polymarker(x, y)
             end
-        elseif kind == :stairs
+        elseif kind === :stairs
             mask = GR.uselinespec(spec)
             if hasline(mask)
                 where = get(plt[].kvs, :where, "mid")
@@ -1315,7 +1315,7 @@ function plot_data(flag=true)
                 GR.polyline(xs, ys)
             end
             hasmarker(mask) && GR.polymarker(x, y)
-        elseif kind == :scatter
+        elseif kind === :scatter
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             if z !== nothing || c !== nothing
                 if c !== nothing
@@ -1326,7 +1326,7 @@ function plot_data(flag=true)
             else
                 GR.polymarker(x, y)
             end
-        elseif kind == :stem
+        elseif kind === :stem
             GR.setlinecolorind(1)
             GR.polyline([plt[].kvs[:window][1]; plt[].kvs[:window][2]], [0; 0])
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
@@ -1335,7 +1335,7 @@ function plot_data(flag=true)
                 GR.polyline([x[i]; x[i]], [0; y[i]])
                 GR.polymarker([x[i]], [y[i]])
             end
-        elseif kind == :hist
+        elseif kind === :hist
             ymin = plt[].kvs[:window][3]
             for i = 1:length(y)
                 GR.setfillcolorind(989)
@@ -1345,7 +1345,7 @@ function plot_data(flag=true)
                 GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
                 GR.fillrect(x[i], x[i+1], ymin, y[i])
             end
-        elseif kind == :polarhist
+        elseif kind === :polarhist
             ymax = plt[].kvs[:window][4]
             ρ = y ./ ymax
             θ = x * 180/π
@@ -1357,7 +1357,7 @@ function plot_data(flag=true)
                 GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
                 GR.fillarc(-ρ[i], ρ[i], -ρ[i], ρ[i], θ[i-1], θ[i])
             end
-        elseif kind in (:polarheatmap, :nonuniformpolarheatmap)
+        elseif kind === :polarheatmap || kind === :nonuniformpolarheatmap
             w, h = size(z)
             cmap = colormap()
             cmin, cmax = plt[].kvs[:zrange]
@@ -1369,7 +1369,7 @@ function plot_data(flag=true)
                 data = reverse(data, dims=2)
             end
             colors = Int[round(Int, 1000 + _i * 255) for _i in data]
-            if kind == :polarheatmap
+            if kind === :polarheatmap
                 GR.polarcellarray(0, 0, 0, 360, 0, 1, w, h, colors)
             else
                 ymin, ymax = plt[].kvs[:window][3:4]
@@ -1380,7 +1380,7 @@ function plot_data(flag=true)
             draw_polar_axes()
             plt[].kvs[:zrange] = cmin, cmax
             colorbar()
-        elseif kind == :contour
+        elseif kind === :contour
             zmin, zmax = plt[].kvs[:zrange]
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
@@ -1398,7 +1398,7 @@ function plot_data(flag=true)
             end
             GR.contour(x, y, h, z, clabels ? 1001 : 1000)
             colorbar(0, length(h))
-        elseif kind == :contourf
+        elseif kind === :contourf
             zmin, zmax = plt[].kvs[:zrange]
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
@@ -1416,20 +1416,20 @@ function plot_data(flag=true)
             end
             GR.contourf(x, y, h, z, clabels ? 1 : 0)
             colorbar(0, length(h))
-        elseif kind == :hexbin
+        elseif kind === :hexbin
             nbins = get(plt[].kvs, :nbins, 40)
             cntmax = GR.hexbin(x, y, nbins)
             if cntmax > 0
                 plt[].kvs[:zrange] = 0, cntmax
                 colorbar()
             end
-        elseif kind in (:heatmap, :nonuniformheatmap)
+        elseif kind === :heatmap || kind === :nonuniformheatmap
             w, h = size(z)
             cmap = colormap()
             cmin, cmax = plt[].kvs[:crange]
             levels = get(plt[].kvs, :levels, 256)
             data = map(x -> normalize_color(x, cmin, cmax), z)
-            if kind == :heatmap
+            if kind === :heatmap
                 rgba = [to_rgba(value, cmap) for value = data]
                 GR.drawimage(0.5, w + 0.5, h + 0.5, 0.5, w, h, rgba)
             else
@@ -1437,14 +1437,14 @@ function plot_data(flag=true)
                 GR.nonuniformcellarray(x, y, w, h, colors)
             end
             colorbar(0, levels)
-        elseif kind == :wireframe
+        elseif kind === :wireframe
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 50, 50)
             end
             GR.setfillcolorind(0)
             GR.surface(x, y, z, GR.OPTION_FILLED_MESH)
             draw_axes(kind, 2)
-        elseif kind == :surface
+        elseif kind === :surface
             if isa(x, AbstractMatrix) && isa(y, AbstractMatrix) && isa(z, AbstractMatrix)
                 option = GR.OPTION_3D_MESH
             else
@@ -1461,17 +1461,17 @@ function plot_data(flag=true)
             end
             draw_axes(kind, 2)
             colorbar(0.05)
-        elseif kind == :volume
+        elseif kind === :volume
             algorithm = get(plt[].kvs, :algorithm, 0)
             gr3.clear()
             dmin, dmax = GR.gr3.volume(c, algorithm)
             draw_axes(kind, 2)
             plt[].kvs[:zrange] = dmin, dmax
             colorbar(0.05)
-        elseif kind == :plot3
+        elseif kind === :plot3
             GR.polyline3d(x, y, z)
             draw_axes(kind, 2)
-        elseif kind == :scatter3
+        elseif kind === :scatter3
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             if c !== nothing
                 cmin, cmax = plt[].kvs[:crange]
@@ -1485,29 +1485,29 @@ function plot_data(flag=true)
                 GR.polymarker3d(x, y, z)
             end
             draw_axes(kind, 2)
-        elseif kind == :imshow
+        elseif kind === :imshow
             plot_img(c)
-        elseif kind == :isosurface
+        elseif kind === :isosurface
             plot_iso(c)
-        elseif kind == :polar
+        elseif kind === :polar
             GR.uselinespec(spec)
             plot_polar(x, y)
-        elseif kind == :trisurf
+        elseif kind === :trisurf
             GR.trisurface(x, y, z)
             draw_axes(kind, 2)
             colorbar(0.05)
-        elseif kind == :tricont
+        elseif kind === :tricont
             zmin, zmax = plt[].kvs[:zrange]
             levels = linspace(zmin, zmax, 20)
             GR.tricontour(x, y, z, levels)
-        elseif kind == :shade
+        elseif kind === :shade
             xform = get(plt[].kvs, :xform, 5)
             if contains_NaN(x)
                 GR.shadelines(x, y, xform=xform)
             else
                 GR.shadepoints(x, y, xform=xform)
             end
-        elseif kind == :bar
+        elseif kind === :bar
             for i = 1:2:length(x)
                 GR.setfillcolorind(989)
                 GR.setfillintstyle(GR.INTSTYLE_SOLID)
@@ -1520,7 +1520,7 @@ function plot_data(flag=true)
         GR.restorestate()
     end
 
-    if kind in (:line, :stairs, :scatter, :stem) && haskey(plt[].kvs, :labels)
+    if (kind === :line || kind === :stairs || kind === :scatter || kind === :stem) && haskey(plt[].kvs, :labels)
         draw_legend()
     end
 
@@ -1557,7 +1557,7 @@ function plot_args(@nospecialize args; fmt=:xys)
                 z = nothing
                 c = nothing
             elseif elt <: Real || isa(a, Function)
-                if fmt == :xys
+                if fmt === :xys
                     if length(args) >= 1 &&
                        (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || isa(args[1], Function))
                         x = a
@@ -1576,7 +1576,7 @@ function plot_args(@nospecialize args; fmt=:xys)
                         z = nothing
                         c = nothing
                     end
-                elseif fmt == :xyac || fmt == :xyzc
+                elseif fmt === :xyac || fmt === :xyzc
                     if length(args) >= 3 &&
                         isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real &&
                        (isa(args[2], AbstractVecOrMat) && eltype(args[2]) <: Real || isa(args[2], Function)) &&
@@ -1598,13 +1598,13 @@ function plot_args(@nospecialize args; fmt=:xys)
                             z = z'
                         end
                         c = nothing
-                    elseif fmt == :xyac && length(args) >= 1 &&
+                    elseif fmt === :xyac && length(args) >= 1 &&
                        (isa(args[1], AbstractVecOrMat) && eltype(args[1]) <: Real || isa(args[1], Function))
                         x = a
                         y = popfirst!(args)
                         z = nothing
                         c = nothing
-                    elseif fmt == :xyzc && length(args) == 0
+                    elseif fmt === :xyzc && length(args) == 0
                         z = a'
                         nx, ny = size(z)
                         if haskey(plt[].kvs, :xlim)
@@ -1637,7 +1637,7 @@ function plot_args(@nospecialize args; fmt=:xys)
             z = Float64[f(a,b) for a in x, b in y]
         end
         spec = ""
-        if fmt == :xys && length(args) > 0
+        if fmt === :xys && length(args) > 0
             if isa(args[1], AbstractString)
                 spec = popfirst!(args)
             elseif length(args) == 1
@@ -1660,7 +1660,7 @@ function plot_args(@nospecialize args; fmt=:xys)
             isvector(y) && (y = vec(y))
         end
         if z !== nothing
-            if fmt == :xyzc && isa(z, Function)
+            if fmt === :xyzc && isa(z, Function)
                 z = [z(a,b) for a in x, b in y]
             else
                 isvector(z) && (z = vec(z))
