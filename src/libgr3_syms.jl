@@ -1,4 +1,4 @@
-const libGR3_syms = [
+[
 :gr3_geterror
 :gr3_init
 :gr3_free

@@ -1,4 +1,4 @@
-const libGR_syms = [
+[
 :gr_setcallback
 :gr_initgr
 :gr_opengks
