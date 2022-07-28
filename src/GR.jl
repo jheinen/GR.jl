@@ -32,26 +32,10 @@ else
   const os = Sys.KERNEL
 end
 
-
-if os == :Windows
-    const libGR = "libGR.dll"
-    const libGR3 = "libGR3.dll"
-    const libGRM = "libGRM.dll"
-elseif os == :Darwin
-    const libGR = "libGR.dylib"
-    const libGR3 = "libGR3.dylib"
-    const libGRM = "libGRM.dylib"
-else
-    const libGR = "libGR.so"
-    const libGR3 = "libGR3.so"
-    const libGRM = "libGRM.so"
-end
-
 const attempt_to_rebuild = Ref(true)
 const libGR_handle = Ref{Ptr{Nothing}}()
 const libGR3_handle = Ref{Ptr{Nothing}}()
 const libGRM_handle = Ref{Ptr{Nothing}}()
-const gr_provider = Ref("Unknown")
 
 import Base64
 import Libdl
@@ -286,27 +270,6 @@ isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (
 # Load function pointer caching mechanism
 include("funcptrs.jl")
 
-function __init__()
-
-    # Determine grdir
-    # The environmental variable GRDIR can override the binary provider
-    # If GRDIR is "", then it will force a rebuild.
-    if "GRDIR" in keys(ENV)
-        grdir[] = ENV["GRDIR"]
-    elseif gr_provider[] == "BinaryBuilder"
-        # Defer until load_libs() when we import GR_jll
-        #grdir = joinpath(dirname(GR_jll.libGR_path), "..")
-        grdir[] = "deferred"
-    else
-        grdir[] = ""
-        for d in ("/opt", "/usr/local", "/usr")
-            if isdir(joinpath(d, "gr", "fonts"))
-                grdir[] = joinpath(d, "gr")
-                break
-            end
-        end
-    end
-end
 
 """
 function set_callback()
@@ -353,8 +316,8 @@ function init(always::Bool = false)
         return
     end
     if check_env[] || always
-        ENV["GRDIR"] = grdir[]
-        ENV["GKS_FONTPATH"] = grdir[]
+        ENV["GRDIR"] = GR_jll.find_artifact_dir()
+        ENV["GKS_FONTPATH"] = GR_jll.find_artifact_dir()
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name[] = ENV["GRDISPLAY"]
@@ -374,11 +337,11 @@ function init(always::Bool = false)
             ENV["GKSwstype"] = "svg"
             ENV["GKS_FILEPATH"] = file_path[]
             @debug "Found an embedded environment" mime_type[] file_path[] ENV["GKSwstype"] ENV["GKS_FILEPATH"]
-        elseif gr_provider[] == "BinaryBuilder"
+        else
             if !haskey(ENV, "GKSwstype")
                 ENV["GKSwstype"] = "gksqt"
             end
-            if os == :Windows
+            @static if Sys.iswindows()
                 if !haskey(ENV, "GKS_QT")
                     ENV["GKS_QT"] = string("set PATH=", GR_jll.LIBPATH[], " & \"", GR_jll.gksqt_path, "\"")
                 elseif ENV["GKS_QT"] == ""
