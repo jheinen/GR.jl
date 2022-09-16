@@ -24,5 +24,4 @@ function _precompile_()
     @warnpcfail precompile(libGR_ptr, (Symbol,))
     @warnpcfail precompile(libGRM_ptr, (Symbol,))
     @warnpcfail precompile(libGR3_ptr, (Symbol,))
-    @warnpcfail precompile(load_libs, (Bool,))
 end

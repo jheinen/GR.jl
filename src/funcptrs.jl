@@ -27,41 +27,10 @@ const libs_loaded = Ref(false)
     always is a boolean flag that is passed through to 
 """
 function load_libs(always::Bool = false)
-    if gr_provider[] == "BinaryBuilder"
-        try
-            @eval GR import GR_jll
-            libGR_handle[] = GR_jll.libGR_handle
-            libGR3_handle[] = GR_jll.libGR3_handle
-            libGRM_handle[] = GR_jll.libGRM_handle
-            grdir[] = joinpath(dirname(GR_jll.libGR_path), "..")
-        catch err
-            @error "Error importing GR_jll:" exception=(err, catch_backtrace())
-            ENV["GRDIR"] = ""
-            depsfile_succeeded[] = false
-            __init__()
-            load_libs()
-            return
-        end
-    else
-        # Global grdir should be set in __init__
+    libGR_handle[] = Libdl.dlopen(GR_jll.libGR)
+    libGR3_handle[] = Libdl.dlopen(GR_jll.libGR3)
+    libGRM_handle[] = Libdl.dlopen(GR_jll.libGRM)
 
-        flag = occursin("site-packages", grdir[])
-        loadpath = grdir[]
-        if flag
-            ENV["GKS_FONTPATH"] = grdir[]
-        elseif os != :Windows
-            loadpath = joinpath(loadpath, "lib")
-        else
-            loadpath = joinpath(loadpath, "bin")
-        end
-        push!(Base.DL_LOAD_PATH, loadpath)
-
-        libGR_handle[] = Libdl.dlopen(libGR)
-        libGR3_handle[] = Libdl.dlopen(libGR3)
-        libGRM_handle[] = Libdl.dlopen(libGRM)
-    end
-    @debug "Library handles" libGR_handle[] libGR3_handle[] libGRM_handle[]
-    
     libs_loaded[] = true
 
     check_env[] = true

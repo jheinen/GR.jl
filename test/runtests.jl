@@ -4,8 +4,6 @@ using Random
 rng = MersenneTwister(1234)
 
 using GR
-GR.__init__()
-
 mutable struct Example
   title::AbstractString
   code::Vector{Expr}

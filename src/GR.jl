@@ -1,4 +1,3 @@
-__precompile__()
 """
     GR is a universal framework for cross-platform visualization applications.
     It offers developers a compact, portable and consistent graphics library
@@ -20,7 +19,7 @@ __precompile__()
 """
 module GR
 
-using RelocatableFolders
+import GR_jll
 
 @static if isdefined(Base, :Experimental) &&
            isdefined(Base.Experimental, Symbol("@optlevel"))
@@ -33,30 +32,10 @@ else
   const os = Sys.KERNEL
 end
 
-const depsfile = @path joinpath(dirname(@__DIR__), "deps", "deps.jl")
-const depsfile_succeeded = Ref(true)
-# Include Builder module in case we need to rebuild
-const buildfile = @path joinpath(dirname(@__DIR__), "deps", "build.jl")
-
-if os == :Windows
-    const libGR = "libGR.dll"
-    const libGR3 = "libGR3.dll"
-    const libGRM = "libGRM.dll"
-elseif os == :Darwin
-    const libGR = "libGR.dylib"
-    const libGR3 = "libGR3.dylib"
-    const libGRM = "libGRM.dylib"
-else
-    const libGR = "libGR.so"
-    const libGR3 = "libGR3.so"
-    const libGRM = "libGRM.so"
-end
-
 const attempt_to_rebuild = Ref(true)
 const libGR_handle = Ref{Ptr{Nothing}}()
 const libGR3_handle = Ref{Ptr{Nothing}}()
 const libGRM_handle = Ref{Ptr{Nothing}}()
-const gr_provider = Ref("Unknown")
 
 import Base64
 import Libdl
@@ -291,109 +270,6 @@ isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (
 # Load function pointer caching mechanism
 include("funcptrs.jl")
 
-function __init__()
-    #= __init__ Objectives:
-       1. Set gr_provider[] to either "BinaryBuilder" or "GR" based on depsfile
-       2. Set grdir[] global variable, defer to load_libs if gr_provider[] == "BinaryBuilder"
-       3. If grdir[] cannot be set, try to rebuild.
-    =#
-
-    # depsfile (deps/deps.jl) should contain some parseable Julia code
-    contents = nothing
-    # Initially depsfile_succeeded[] is true
-    if depsfile_succeeded[]
-        try
-            contents = isfile(depsfile) ? strip( read(depsfile, String) ) : ""
-        catch err
-            depsfile_succeeded[] = false
-            @debug "Parsing depsfile failed" depsfile contents err
-        end
-    end
-
-    # If the first line is either "import GR_jll" or "using GR_jll" then
-    # we are using the BinaryBuilder method
-    if contents == "import GR_jll" || contents == "using GR_jll"
-        gr_provider[] = "BinaryBuilder"
-    else
-        gr_provider[] = "GR"
-    end
-    @debug "GR Binaries:" GR.gr_provider[] GR.libGR GR.libGR3 GR.libGRM
-
-    # Determine grdir
-    # The environmental variable GRDIR can override the binary provider
-    # If GRDIR is "", then it will force a rebuild.
-    if "GRDIR" in keys(ENV)
-        grdir[] = ENV["GRDIR"]
-    elseif gr_provider[] == "BinaryBuilder"
-        # Defer until load_libs() when we import GR_jll
-        #grdir = joinpath(dirname(GR_jll.libGR_path), "..")
-        grdir[] = "deferred"
-    else
-        grdir[] = ""
-        for d in ("/opt", "/usr/local", "/usr")
-            if isdir(joinpath(d, "gr", "fonts"))
-                grdir[] = joinpath(d, "gr")
-                break
-            end
-        end
-    end
-
-    if grdir[] == "" || !depsfile_succeeded[]
-        grdir[] = grdir_default
-        if isdir(grdir[]) && gr_provider[] == "GR"
-            # No need to rebuild, just use grdir_default as grdir
-        else
-            # In case "LoadError: InitError: Evaluation into the closed module `GR` breaks incremental compilation" occurs,
-            # allow the user to disable the rebuild attempt by setting the environmental variable JULIA_GR_REBUILD to false.
-            # An error will still occur recommending the user build GR manually via `Pkg.build("GR")``
-            # https://github.com/jheinen/GR.jl/issues/413
-            if attempt_to_rebuild[]
-                attempt_to_rebuild[] = parse(Bool, get(ENV,"JULIA_GR_REBUILD", "true"))
-            end
-            # Rebuild if no file at grdir_default or gr_provider[] == "BinaryBuilder"
-            if attempt_to_rebuild[]
-                attempt_to_rebuild[] = false # Avoid infinite loop
-                println("Your GR installation is incomplete. Rerunning build step for GR package.")
-                delete!(ENV, "GRDIR")
-                if !depsfile_succeeded[]
-                    # If depsfile failed, then GR_jll failed.
-                    # Switch to GR on next build.
-                    ENV["JULIA_GR_PROVIDER"] = "GR"
-                    @info "Switching provider to GR due to error in depsfile" depsfile
-                end
-                try
-                    @eval GR begin
-                        include(buildfile)
-                        Builder.build()
-                    end
-                    # Try to read depsfile again
-                    depsfile_succeeded[] = true
-                    GR.__init__()
-                    @info "GR was successfully rebuilt"
-                    return
-                catch err
-                    @warn "GR attempted to rebuild but failed due to $err. Setting ENV[\"JULIA_GR_REBUILD\"] = false."
-                    # Prevent future automatic rebuild attempts.
-                    ENV["JULIA_GR_REBUILD"] = "false"
-                end
-            end
-            error("""
-            GR was not built correctly and could not be automatically rebuilt.
-            get(ENV, "JULIA_GR_REBUILD", "true") == $(get(ENV, "JULIA_GR_REBUILD", "true"))
-            $(grdir[]) is not a directory.
-            GR_jll could not be loaded.
-
-            Run the following commands:
-
-            ENV["GRDIR"] = ""
-            using Pkg; Pkg.build("GR")
-            """)
-        end
-    end
-
-    # init(true) is deferred until load_libs
-
-end
 
 """
 function set_callback()
@@ -440,8 +316,8 @@ function init(always::Bool = false)
         return
     end
     if check_env[] || always
-        ENV["GRDIR"] = grdir[]
-        ENV["GKS_FONTPATH"] = grdir[]
+        ENV["GRDIR"] = GR_jll.find_artifact_dir()
+        ENV["GKS_FONTPATH"] = GR_jll.find_artifact_dir()
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name[] = ENV["GRDISPLAY"]
@@ -461,11 +337,11 @@ function init(always::Bool = false)
             ENV["GKSwstype"] = "svg"
             ENV["GKS_FILEPATH"] = file_path[]
             @debug "Found an embedded environment" mime_type[] file_path[] ENV["GKSwstype"] ENV["GKS_FILEPATH"]
-        elseif gr_provider[] == "BinaryBuilder"
+        else
             if !haskey(ENV, "GKSwstype")
                 ENV["GKSwstype"] = "gksqt"
             end
-            if os == :Windows
+            @static if Sys.iswindows()
                 if !haskey(ENV, "GKS_QT")
                     ENV["GKS_QT"] = string("set PATH=", GR_jll.LIBPATH[], " & \"", GR_jll.gksqt_path, "\"")
                 elseif ENV["GKS_QT"] == ""
