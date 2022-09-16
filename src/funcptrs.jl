@@ -27,9 +27,35 @@ const libs_loaded = Ref(false)
     always is a boolean flag that is passed through to 
 """
 function load_libs(always::Bool = false)
-    libGR_handle[] = Libdl.dlopen(GR_jll.libGR)
-    libGR3_handle[] = Libdl.dlopen(GR_jll.libGR3)
-    libGRM_handle[] = Libdl.dlopen(GR_jll.libGRM)
+    if haskey(ENV, "GRDIR")
+        grdir = ENV["GRDIR"]
+        if !haskey(ENV, "GKS_FONTPATH")
+            ENV["GKS_FONTPATH"] = grdir
+        end
+        if os == :Windows
+            loadpath = joinpath(grdir, "bin")
+            libGR = "libGR.dll"
+            libGR3 = "libGR3.dll"
+            libGRM = "libGRM.dll"
+        elseif os == :Darwin
+            loadpath = joinpath(grdir, "lib")
+            libGR = "libGR.dylib"
+            libGR3 = "libGR3.dylib"
+            libGRM = "libGRM.dylib"
+        else
+            loadpath = joinpath(grdir, "lib")
+            libGR = "libGR.so"
+            libGR3 = "libGR3.so"
+            libGRM = "libGRM.so"
+        end
+        libGR_handle[] = Libdl.dlopen(joinpath(loadpath, libGR))
+        libGR3_handle[] = Libdl.dlopen(joinpath(loadpath, libGR3))
+        libGRM_handle[] = Libdl.dlopen(joinpath(loadpath, libGRM))
+    else
+        libGR_handle[] = Libdl.dlopen(GR_jll.libGR)
+        libGR3_handle[] = Libdl.dlopen(GR_jll.libGR3)
+        libGRM_handle[] = Libdl.dlopen(GR_jll.libGRM)
+    end
 
     libs_loaded[] = true
 

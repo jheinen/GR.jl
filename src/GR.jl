@@ -316,8 +316,10 @@ function init(always::Bool = false)
         return
     end
     if check_env[] || always
-        ENV["GRDIR"] = GR_jll.find_artifact_dir()
-        ENV["GKS_FONTPATH"] = GR_jll.find_artifact_dir()
+        if !haskey(ENV, "GRDIR")
+            ENV["GRDIR"] = GR_jll.find_artifact_dir()
+            ENV["GKS_FONTPATH"] = GR_jll.find_artifact_dir()
+        end
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name[] = ENV["GRDISPLAY"]
