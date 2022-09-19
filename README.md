@@ -73,23 +73,20 @@ Due to conflicts with already installed GR installations or problems with the do
 
    Check the generated build.log for errors.
 
-2. The second step is try binaries from GR tarballs which are provided directly by the GR developers as self-contained distributions for selected platforms - independent of the programming language
-
-   ```julia
-   ENV["JULIA_DEBUG"] = "GR" # Turn on debug statements for the GR package
-   ENV["GRDIR"] = ""
-   ENV["JULIA_GR_PROVIDER"] = "GR"
-   # ENV["JULIA_GR_PROVIDER"] = "BinaryBuilder" # Alternatively, uncomment this
-   import Pkg; Pkg.build("GR")
-   using GR
-   ```
-
-3. There might be an issue with GR_jll. Check if it can be loaded.
+2. There might be an issue with GR_jll. Check if it can be loaded.
 
    ```julia
    import Pkg; Pkg.add("GR_jll")
    using GR_jll
    ccall( (:gr_initgr, "libGR",), Nothing, () )
+   ```
+
+3. Another alternative is the use of binaries from GR tarballs, which are provided directly by the GR developers as stand-alone distributions for selected platforms - regardless of the programming language. In this case, only one GR runtime environment is required for different language environments (Julia, Python, C/C++), whose installation path can be specified by the environment variable `GRDIR`.
+
+   ```julia
+   ENV["JULIA_DEBUG"] = "GR" # Turn on debug statements for the GR package
+   ENV["GRDIR"] = "<path of you GR installation>" # e.g. "/usr/local/gr"
+   using GR
    ```
 
    If none of these steps lead to success, please contact the developers.
