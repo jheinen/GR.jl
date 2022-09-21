@@ -2,7 +2,6 @@ using Random
 rng = MersenneTwister(1234)
 
 using GR
-GR.__init__()
 
 x = 0:π/100:2π
 y = sin.(x)
