@@ -77,3 +77,9 @@ However, if you want to permanently use your own GR run-time, you have to set th
 
 - macOS or Linux: ```export GRDIR=/usr/local/gr```
 - Windows: ```set GRDIR=C:\gr```
+
+On Linux systems, you might also force pre-loading of the GR libraries:
+
+```
+  export LD_PRELOAD="${GRDIR}/lib/libGR.so ${GRDIR}/lib/libGR3.so ${GRDIR}/lib/libGRM.so"
+```
