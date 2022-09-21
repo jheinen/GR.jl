@@ -341,7 +341,7 @@ function init(always::Bool = false)
             @debug "Found an embedded environment" mime_type[] file_path[] ENV["GKSwstype"] ENV["GKS_FILEPATH"]
         else
             if haskey(ENV, "GRDIR")
-                if !contains(ENV["GRDIR"], "artifacts")
+                if !occursin("artifacts", ENV["GRDIR"])
                     @debug "Use local GR run-time libraries" ENV["GRDIR"]
                     return
                 end
