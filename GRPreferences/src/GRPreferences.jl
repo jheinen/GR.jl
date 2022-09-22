@@ -7,14 +7,6 @@ module GRPreferences
         Sys.KERNEL
     end
 
-    extension() = if os ≡ :Windows
-        ".dll"
-    elseif os ≡ :Darwin
-        ".dylib"
-    else
-        ".so"
-    end
-
     loadpath(grdir) = if os ≡ :Windows
         joinpath(grdir, "bin")
     elseif os ≡ :Darwin
@@ -24,18 +16,18 @@ module GRPreferences
     end
 
     const binary = @load_preference("binary", "GR_jll")
-    const libGR = @load_preference("libGR", "libGR" * extension())
-    const libGR3 = @load_preference("libGR3", "libGR3" * extension())
-    const libGRM = @load_preference("libGRM", "libGRM" * extension())
+    const libGR = @load_preference("libGR", "libGR")
+    const libGR3 = @load_preference("libGR3", "libGR3")
+    const libGRM = @load_preference("libGRM", "libGRM")
 
     function use_system_binary(grdir; export_prefs = false, force = false)
         grdir = loadpath(grdir)
         set_preferences!(GRPreferences,
             "binary" => "system",
             "grdir" => grdir,
-            "libGR" => joinpath(grdir, "libGR" * extension()),
-            "libGR3" => joinpath(grdir, "libGR3" * extension()),
-            "libGRM" => joinpath(grdir, "libGRM" * extension()),
+            "libGR" => joinpath(grdir, "libGR"),
+            "libGR3" => joinpath(grdir, "libGR3"),
+            "libGRM" => joinpath(grdir, "libGRM"),
             export_prefs = export_prefs,
             force = force
         )

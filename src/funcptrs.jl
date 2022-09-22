@@ -18,10 +18,27 @@ const libGR_ptrs = LibGR_Ptrs()
 const libGRM_ptrs = LibGRM_Ptrs()
 const libGR3_ptrs = LibGR3_Ptrs()
 
-function get_func_ptr(handle::Ptr{Nothing}, ptrs::Union{LibGR_Ptrs, LibGRM_Ptrs, LibGR3_Ptrs}, func::Symbol)
+const libs_loaded = Ref(false)
+
+"""
+    load_libs(always = false)
+    Load shared GR libraries from either GR_jll or from GR tarball.
+    always is a boolean flag that is passed through to 
+"""
+function load_libs(always::Bool = false)
+    libGR_handle[]  = Libdl.dlopen(LIBGR)
+    libGR3_handle[] = Libdl.dlopen(LIBGR3)
+    libGRM_handle[] = Libdl.dlopen(LIBGRM)
+    libs_loaded[] = true
+    check_env[] = true
+    init(always)
+end
+
+function get_func_ptr(handle::Ref{Ptr{Nothing}}, ptrs::Union{LibGR_Ptrs, LibGRM_Ptrs, LibGR3_Ptrs}, func::Symbol, loaded=libs_loaded[])
+    loaded || load_libs(true)
     s = getfield(ptrs, func)
     if s == C_NULL
-        s = Libdl.dlsym(handle, func)
+        s = Libdl.dlsym(handle[], func)
         setfield!(ptrs, func, s)
     end
     return getfield(ptrs,func)

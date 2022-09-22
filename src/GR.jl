@@ -28,20 +28,18 @@ import GRPreferences
 import Base64
 import Libdl
 
-if GRPreferences.binary == "GR_jll"
+GRDIR, LIBGR, LIBGR3, LIBGRM = if GRPreferences.binary == "GR_jll"
     import GR_jll
-    const libGR_handle = Libdl.dlopen(GR_jll.libGR)
-    const libGR3_handle = Libdl.dlopen(GR_jll.libGR3)
-    const libGRM_handle = Libdl.dlopen(GR_jll.libGRM)
-    const GRDIR = GR_jll.find_artifact_dir()
+    GR_jll.find_artifact_dir(), GR_jll.libGR, GR_jll.libGR3, GR_jll.libGRM
 elseif GRPreferences.binary == "system"
-    const libGR_handle = Libdl.dlopen(GRPreferences.libGR)
-    const libGR3_handle = Libdl.dlopen(GRPreferences.libGR3)
-    const libGRM_handle = Libdl.dlopen(GRPreferences.libGRM)
-    const GRDIR = GRPreferences.grdir
+    GRPreferences.grdir, GRPreferences.libGR, GRPreferences.libGR3, RPreferences.libGRM
 else
     error("Unknown GR binary: $(GRPreferences.binary)")
 end
+
+const libGR_handle = Ref{Ptr{Nothing}}()
+const libGR3_handle = Ref{Ptr{Nothing}}()
+const libGRM_handle = Ref{Ptr{Nothing}}()
 
 if Sys.KERNEL == :NT
   const os = :Windows
@@ -317,6 +315,10 @@ end
     GKS_ENCODING - Sets the text encoding (e.g. Latin1 or UTF-8)
 """
 function init(always::Bool = false)
+    if !libs_loaded[]
+        load_libs(always)
+        return
+    end
     if check_env[] || always
         get!(ENV, "GKS_FONTPATH", GRDIR)
         ENV["GKS_USE_CAIRO_PNG"] = "true"
@@ -360,10 +362,10 @@ function init(always::Bool = false)
             text_encoding[] = ENCODING_UTF8
             @debug "Found GKS_IGNORE_ENCODING in ENV" text_encoding[]
         elseif "GKS_ENCODING" in keys(ENV)
-            if ENV["GKS_ENCODING"] == "latin1" || ENV["GKS_ENCODING"] == "latin-1"
-                text_encoding[] = ENCODING_LATIN1
+            text_encoding[] = if ENV["GKS_ENCODING"] == "latin1" || ENV["GKS_ENCODING"] == "latin-1"
+                ENCODING_LATIN1
             else
-                text_encoding[] = ENCODING_UTF8
+                ENCODING_UTF8
             end
             @debug "Found GKS_ENCODING in ENV" text_encoding[]
         else
@@ -374,9 +376,7 @@ function init(always::Bool = false)
     end
 end
 
-function __init__()
-    init(true)
-end
+__init__() = init(false)
 
 function initgr()
   ccall( libGR_ptr(:gr_initgr),
