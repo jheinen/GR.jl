@@ -18,55 +18,7 @@ const libGR_ptrs = LibGR_Ptrs()
 const libGRM_ptrs = LibGRM_Ptrs()
 const libGR3_ptrs = LibGR3_Ptrs()
 
-const libs_loaded = Ref(false)
-
-"""
-    load_libs(always = false)
-
-    Load shared GR libraries from either GR_jll or from GR tarball.
-    always is a boolean flag that is passed through to 
-"""
-function load_libs(always::Bool = false)
-    if haskey(ENV, "GRDIR")
-        grdir = ENV["GRDIR"]
-        if !haskey(ENV, "GKS_FONTPATH")
-            ENV["GKS_FONTPATH"] = grdir
-        end
-        if os == :Windows
-            loadpath = joinpath(grdir, "bin")
-            libGR = "libGR.dll"
-            libGR3 = "libGR3.dll"
-            libGRM = "libGRM.dll"
-        elseif os == :Darwin
-            loadpath = joinpath(grdir, "lib")
-            libGR = "libGR.dylib"
-            libGR3 = "libGR3.dylib"
-            libGRM = "libGRM.dylib"
-        else
-            loadpath = joinpath(grdir, "lib")
-            libGR = "libGR.so"
-            libGR3 = "libGR3.so"
-            libGRM = "libGRM.so"
-        end
-        libGR_handle[] = Libdl.dlopen(joinpath(loadpath, libGR))
-        libGR3_handle[] = Libdl.dlopen(joinpath(loadpath, libGR3))
-        libGRM_handle[] = Libdl.dlopen(joinpath(loadpath, libGRM))
-    else
-        libGR_handle[] = Libdl.dlopen(GR_jll.libGR)
-        libGR3_handle[] = Libdl.dlopen(GR_jll.libGR3)
-        libGRM_handle[] = Libdl.dlopen(GR_jll.libGRM)
-    end
-
-    libs_loaded[] = true
-
-    check_env[] = true
-    init(always)
-end
-
-function get_func_ptr(handle::Ref{Ptr{Nothing}}, ptrs::Union{LibGR_Ptrs, LibGRM_Ptrs, LibGR3_Ptrs}, func::Symbol, loaded=libs_loaded[])
-    if !loaded
-        load_libs(true)
-    end
+function get_func_ptr(handle::Ref{Ptr{Nothing}}, ptrs::Union{LibGR_Ptrs, LibGRM_Ptrs, LibGR3_Ptrs}, func::Symbol)
     s = getfield(ptrs, func)
     if s == C_NULL
         s = Libdl.dlsym(handle[], func)

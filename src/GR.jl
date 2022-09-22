@@ -30,13 +30,24 @@ else
   const os = Sys.KERNEL
 end
 
-const attempt_to_rebuild = Ref(true)
-const libGR_handle = Ref{Ptr{Nothing}}()
-const libGR3_handle = Ref{Ptr{Nothing}}()
-const libGRM_handle = Ref{Ptr{Nothing}}()
-
+import GRPreferences
 import Base64
 import Libdl
+
+if GRPreferences.binary == "GR_jll"
+    import GR_jll
+    const libGR_handle = Libdl.dlopen(GR_jll.libGR)
+    const libGR3_handle = Libdl.dlopen(GR_jll.libGR3)
+    const libGRM_handle = Libdl.dlopen(GR_jll.libGRM)
+    const GRDIR = GR_jll.find_artifact_dir()
+elseif GRPreferences.binary == "system"
+    const libGR_handle = Libdl.dlopen(GRPreferences.libgr)
+    const libGR3_handle = Libdl.dlopen(GRPreferences.libgr3)
+    const libGRM_handle = Libdl.dlopen(GRPreferences.libgrm)
+    const GRDIR = GRPreferences.grdir
+else
+    error("Unknown GR binary: $(GRPreferences.binary)")
+end
 
 export
   init,
@@ -249,8 +260,6 @@ export
 const ENCODING_LATIN1 = 300
 const ENCODING_UTF8 = 301
 
-const grdir = Ref("")
-const grdir_default = joinpath(dirname(@__FILE__), "..", "deps", "gr")
 const display_name = Ref("")
 const mime_type = Ref("")
 const file_path = Ref("")
@@ -264,12 +273,6 @@ isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Mai
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected() && (isdefined(Main.Atom, :PlotPaneEnabled) ? Main.Atom.PlotPaneEnabled[] : true)
 ispluto() = isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module
 isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (isdefined(Main.VSCodeServer, :PLOT_PANE_ENABLED) ? Main.VSCodeServer.PLOT_PANE_ENABLED[] : true)
-
-function __init__()
-    if !haskey(ENV, "GRDIR")
-        @eval import GR_jll
-    end
-end
 
 # Load function pointer caching mechanism
 include("funcptrs.jl")
@@ -307,7 +310,6 @@ end
     GKS_IGNORE_ENCODING - Force use of UTF-8 for font encoding, ignore GKS_ENCODING
 
     Environmental variables set by `init`:
-    GRDIR - directory of GR shared library files
     GKS_FONTPATH - path to GR fonts, often the same as GRDIR
     GKS_USE_CAIRO_PNG
     GKSwstype - Graphics workstation type, see help for `openws`
@@ -315,15 +317,8 @@ end
     GKS_ENCODING - Sets the text encoding (e.g. Latin1 or UTF-8)
 """
 function init(always::Bool = false)
-    if !libs_loaded[]
-        load_libs(always)
-        return
-    end
     if check_env[] || always
-        if !haskey(ENV, "GRDIR")
-            ENV["GRDIR"] = GR_jll.find_artifact_dir()
-            ENV["GKS_FONTPATH"] = GR_jll.find_artifact_dir()
-        end
+        get(!ENV, "GKS_FONTPATH", GRDIR)
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name[] = ENV["GRDISPLAY"]
@@ -344,12 +339,6 @@ function init(always::Bool = false)
             ENV["GKS_FILEPATH"] = file_path[]
             @debug "Found an embedded environment" mime_type[] file_path[] ENV["GKSwstype"] ENV["GKS_FILEPATH"]
         else
-            if haskey(ENV, "GRDIR")
-                if !occursin("artifacts", ENV["GRDIR"])
-                    @debug "Use local GR run-time libraries" ENV["GRDIR"]
-                    return
-                end
-            end
             if !haskey(ENV, "GKSwstype")
                 ENV["GKSwstype"] = "gksqt"
             end
