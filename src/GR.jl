@@ -318,7 +318,7 @@ end
 """
 function init(always::Bool = false)
     if check_env[] || always
-        get(!ENV, "GKS_FONTPATH", GRDIR)
+        get!(ENV, "GKS_FONTPATH", GRDIR)
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name[] = ENV["GRDISPLAY"]
@@ -372,6 +372,10 @@ function init(always::Bool = false)
         end
         check_env[] = always
     end
+end
+
+function __init__()
+    init(true)
 end
 
 function initgr()
