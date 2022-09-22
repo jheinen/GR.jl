@@ -297,9 +297,6 @@ end
     current and subsequent calls. It is `false` by default so that
     initialization only is done once.
 
-    This is distinct from the GR module's `__init__` which only locates the
-    shared binary libraries to be used.
-
     # Extended Help
 
     Environmental variables which influence `init`:
@@ -375,8 +372,6 @@ function init(always::Bool = false)
         check_env[] = always
     end
 end
-
-__init__() = init(false)
 
 function initgr()
   ccall( libGR_ptr(:gr_initgr),
