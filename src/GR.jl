@@ -343,7 +343,7 @@ function init(always::Bool = false)
             end
             @static if Sys.iswindows()
                 if !haskey(ENV, "GKS_QT")
-                    ENV["GKS_QT"] = string("set PATH=", LIBPATH, " & \"", GKSQT[], "\"")
+                    ENV["GKS_QT"] = string("set PATH=", LIBPATH[], " & \"", GKSQT[], "\"")
                 elseif ENV["GKS_QT"] == ""
                     ENV["PATH"] = LIBPATH[]
                     gkqst = run(`$(GKSQT[])`; wait = false)
