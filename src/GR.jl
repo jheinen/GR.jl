@@ -19,8 +19,6 @@
 """
 module GR
 
-import GR_jll
-
 @static if isdefined(Base, :Experimental) &&
            isdefined(Base.Experimental, Symbol("@optlevel"))
     Base.Experimental.@optlevel 1
@@ -266,6 +264,12 @@ isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Mai
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected() && (isdefined(Main.Atom, :PlotPaneEnabled) ? Main.Atom.PlotPaneEnabled[] : true)
 ispluto() = isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module
 isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (isdefined(Main.VSCodeServer, :PLOT_PANE_ENABLED) ? Main.VSCodeServer.PLOT_PANE_ENABLED[] : true)
+
+function __init__()
+    if !haskey(ENV, "GRDIR")
+        @eval import GR_jll
+    end
+end
 
 # Load function pointer caching mechanism
 include("funcptrs.jl")
