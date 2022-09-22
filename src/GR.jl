@@ -24,12 +24,6 @@ module GR
     Base.Experimental.@optlevel 1
 end
 
-if Sys.KERNEL == :NT
-  const os = :Windows
-else
-  const os = Sys.KERNEL
-end
-
 import GRPreferences
 import Base64
 import Libdl
@@ -47,6 +41,12 @@ elseif GRPreferences.binary == "system"
     const GRDIR = GRPreferences.grdir
 else
     error("Unknown GR binary: $(GRPreferences.binary)")
+end
+
+if Sys.KERNEL == :NT
+  const os = :Windows
+else
+  const os = Sys.KERNEL
 end
 
 export
