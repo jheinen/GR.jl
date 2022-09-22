@@ -37,6 +37,8 @@ else
     error("Unknown GR binary: $(GRPreferences.binary)")
 end
 
+@info GRDIR
+
 const libGR_handle = Ref{Ptr{Nothing}}()
 const libGR3_handle = Ref{Ptr{Nothing}}()
 const libGRM_handle = Ref{Ptr{Nothing}}()
