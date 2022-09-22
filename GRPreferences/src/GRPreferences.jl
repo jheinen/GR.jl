@@ -24,18 +24,18 @@ module GRPreferences
   end
 
   const binary = @load_preference("binary", "GR_jll")
-  const libgr = @load_preference("libgr", "libGR" * extension())
-  const libgr3 = @load_preference("libgr3", "libGR3" * extension())
-  const libgrm = @load_preference("libgrm", "libGRM" * extension())
+  const libGR = @load_preference("libGR", "libGR" * extension())
+  const libGR3 = @load_preference("libGR3", "libGR3" * extension())
+  const libGRM = @load_preference("libGRM", "libGRM" * extension())
 
   function use_system_binary(grdir; export_prefs = false, force = false)
     grdir = loadpath(grdir)
     set_preferences!(GRPreferences,
         "binary" => "system",
         "grdir" => grdir,
-        "libgr" => joinpath(grdir, "libGR" * extension()),
-        "libgr3" => joinpath(grdir, "libGR3" * extension()),
-        "libgrm" => joinpath(grdir, "libGRM" * extension()),
+        "libGR" => joinpath(grdir, "libGR" * extension()),
+        "libGR3" => joinpath(grdir, "libGR3" * extension()),
+        "libGRM" => joinpath(grdir, "libGRM" * extension()),
         export_prefs = export_prefs,
         force = force
     )
@@ -46,9 +46,9 @@ module GRPreferences
     set_preferences!(GRPreferences,
         "binary" => "GR_jll",
         "grdir" => nothing,
-        "libgr" => nothing,
-        "libgr3" => nothing,
-        "libgrm" => nothing,
+        "libGR" => nothing,
+        "libGR3" => nothing,
+        "libGRM" => nothing,
         export_prefs = export_prefs,
         force = force
     )

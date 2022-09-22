@@ -41,9 +41,9 @@ if GRPreferences.binary == "GR_jll"
     const libGRM_handle = Libdl.dlopen(GR_jll.libGRM)
     const GRDIR = GR_jll.find_artifact_dir()
 elseif GRPreferences.binary == "system"
-    const libGR_handle = Libdl.dlopen(GRPreferences.libgr)
-    const libGR3_handle = Libdl.dlopen(GRPreferences.libgr3)
-    const libGRM_handle = Libdl.dlopen(GRPreferences.libgrm)
+    const libGR_handle = Libdl.dlopen(GRPreferences.libGR)
+    const libGR3_handle = Libdl.dlopen(GRPreferences.libGR3)
+    const libGRM_handle = Libdl.dlopen(GRPreferences.libGRM)
     const GRDIR = GRPreferences.grdir
 else
     error("Unknown GR binary: $(GRPreferences.binary)")
