@@ -37,16 +37,14 @@ else
     error("Unknown GR binary: $(GRPreferences.binary)")
 end
 
-@info GRDIR[]
-
 const libGR_handle = Ref{Ptr{Nothing}}()
 const libGR3_handle = Ref{Ptr{Nothing}}()
 const libGRM_handle = Ref{Ptr{Nothing}}()
 
-if Sys.KERNEL == :NT
-  const os = :Windows
+const os = if Sys.KERNEL === :NT
+    :Windows
 else
-  const os = Sys.KERNEL
+    Sys.KERNEL
 end
 
 export

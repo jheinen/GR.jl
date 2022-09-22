@@ -1,7 +1,7 @@
 module GRPreferences
     using Preferences
 
-    const os = if Sys.KERNEL == :NT
+    const os = if Sys.KERNEL === :NT
         :Windows
     else
         Sys.KERNEL
@@ -16,9 +16,9 @@ module GRPreferences
     const libpath = @load_preference("libpath", nothing)
 
     function use_system_binary(grdir; export_prefs = false, force = false)
-        loadpath = if os ≡ :Windows
+        loadpath = if os === :Windows
             joinpath(grdir, "bin")
-        elseif os ≡ :Darwin
+        elseif os === :Darwin
             joinpath(grdir, "lib")
         else
             joinpath(grdir, "lib")
@@ -27,7 +27,7 @@ module GRPreferences
         set_preferences!(GRPreferences,
             "binary" => "system",
             "grdir" => grdir,
-            "gksqt" => joinpath(grdir, "bin", "gksqt" * (os ≡ :Windows ? ".exe" : "")),
+            "gksqt" => joinpath(grdir, "bin", "gksqt" * (os === :Windows ? ".exe" : "")),
             "libGR" => joinpath(loadpath, "libGR"),
             "libGR3" => joinpath(loadpath, "libGR3"),
             "libGRM" => joinpath(loadpath, "libGRM"),
