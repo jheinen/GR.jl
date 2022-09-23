@@ -24,7 +24,6 @@ module GR
     Base.Experimental.@optlevel 1
 end
 
-import GRPreferences
 import Base64
 import Libdl
 
@@ -258,6 +257,8 @@ isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Mai
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected() && (isdefined(Main.Atom, :PlotPaneEnabled) ? Main.Atom.PlotPaneEnabled[] : true)
 ispluto() = isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module
 isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (isdefined(Main.VSCodeServer, :PLOT_PANE_ENABLED) ? Main.VSCodeServer.PLOT_PANE_ENABLED[] : true)
+
+include("preferences.jl")
 
 # Load function pointer caching mechanism
 include("funcptrs.jl")
