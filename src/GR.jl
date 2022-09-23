@@ -305,7 +305,7 @@ function init(always::Bool = false)
         return
     end
     if check_env[] || always
-        get!(ENV, "GKS_FONTPATH", GRPreferences.grdir[])
+        haskey(ENV, "GKS_FONTPATH") || get!(ENV, "GKS_FONTPATH", GRPreferences.grdir[])
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name[] = ENV["GRDISPLAY"]
@@ -326,9 +326,7 @@ function init(always::Bool = false)
             ENV["GKS_FILEPATH"] = file_path[]
             @debug "Found an embedded environment" mime_type[] file_path[] ENV["GKSwstype"] ENV["GKS_FILEPATH"]
         else
-            if !haskey(ENV, "GKSwstype")
-                ENV["GKSwstype"] = "gksqt"
-            end
+            haskey(ENV, "GKSwstype") || get!(ENV, "GKSwstype", "gksqt")
             @static if Sys.iswindows()
                 if !haskey(ENV, "GKS_QT")
                     ENV["GKS_QT"] = string("set PATH=", GRPreferences.libpath[], " & \"", GRPreferences.gksqt[], "\"")
@@ -347,7 +345,7 @@ function init(always::Bool = false)
             text_encoding[] = ENCODING_UTF8
             @debug "Found GKS_IGNORE_ENCODING in ENV" text_encoding[]
         elseif "GKS_ENCODING" in keys(ENV)
-            text_encoding[] = if ENV["GKS_ENCODING"] == "latin1" || ENV["GKS_ENCODING"] == "latin-1"
+            text_encoding[] = if (enc = ENV["GKS_ENCODING"]) == "latin1" || enc == "latin-1"
                 ENCODING_LATIN1
             else
                 ENCODING_UTF8
