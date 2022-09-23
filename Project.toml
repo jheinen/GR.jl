@@ -6,7 +6,6 @@ version = "0.68.0"
 [deps]
 Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
-GR_jll = "d2c73de3-f751-5644-a686-071e5b155ba9"
 GRPreferences = "4263741e-4124-4656-8b93-99c97da2f5ef"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"

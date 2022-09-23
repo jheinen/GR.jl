@@ -26,9 +26,9 @@ const libs_loaded = Ref(false)
     always is a boolean flag that is passed through to init.
 """
 function load_libs(always::Bool = false)
-    libGR_handle[]  = Libdl.dlopen(LIBGR[])
-    libGR3_handle[] = Libdl.dlopen(LIBGR3[])
-    libGRM_handle[] = Libdl.dlopen(LIBGRM[])
+    libGR_handle[]  = Libdl.dlopen(GRPreferences.libGR[])
+    libGR3_handle[] = Libdl.dlopen(GRPreferences.libGR3[])
+    libGRM_handle[] = Libdl.dlopen(GRPreferences.libGRM[])
     libs_loaded[] = true
     check_env[] = true
     init(always)

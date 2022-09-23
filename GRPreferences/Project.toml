@@ -4,6 +4,7 @@ author = []
 version = "0.1.0"
 
 [deps]
+GR_jll = "d2c73de3-f751-5644-a686-071e5b155ba9"
 Preferences = "21216c6a-2e73-6563-6e65-726566657250"
 
 [compat]

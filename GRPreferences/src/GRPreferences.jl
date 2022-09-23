@@ -1,22 +1,17 @@
 module GRPreferences
     using Preferences
 
-    const os = if Sys.KERNEL === :NT
-        :Windows
-    else
-        Sys.KERNEL
-    end
+    const os = Sys.KERNEL === :NT ? :Windows : Sys.KERNEL
 
-    binary  = Ref{Union{Nothing,String}}()
-    grdir   = Ref{Union{Nothing,String}}()
-    gksqt   = Ref{Union{Nothing,String}}()
-    libGR   = Ref{Union{Nothing,String}}()
-    libGR3  = Ref{Union{Nothing,String}}()
-    libGRM  = Ref{Union{Nothing,String}}()
-    libpath = Ref{Union{Nothing,String}}()
+    const grdir   = Ref{Union{Nothing,String}}()
+    const gksqt   = Ref{Union{Nothing,String}}()
+    const libGR   = Ref{Union{Nothing,String}}()
+    const libGR3  = Ref{Union{Nothing,String}}()
+    const libGRM  = Ref{Union{Nothing,String}}()
+    const libpath = Ref{Union{Nothing,String}}()
+    const GR_jll  = Ref{Union{Nothing,Module}}()
 
-    lib_path(grdir::Nothing, lib) = lib
-    lib_path(grdir::AbstractString, lib) =
+    lib_path(grdir, lib) =
         if os === :Windows
             joinpath(grdir, "bin", lib)
         elseif os === :Darwin
@@ -26,43 +21,42 @@ module GRPreferences
         end
 
     function __init__()
-        dn = get(ENV, "GRDIR", nothing)
-        binary[]  = @load_preference("binary", isnothing(dn) ? "GR_jll" : "system")
-        grdir[]   = @load_preference("grdir", dn)
-        gksqt[]   = @load_preference("gksqt")
-        libGR[]   = @load_preference("libGR", lib_path(dn, "libGR"))
-        libGR3[]  = @load_preference("libGR3", lib_path(dn, "libGR3"))
-        libGRM[]  = @load_preference("libGRM", lib_path(dn, "libGRM"))
-        libpath[] = @load_preference("libpath")
+        binary = @load_preference("binary", haskey(ENV, "GRDIR") ? "system" : "GR_jll")
+        if binary == "GR_jll"
+            @eval Main import GR_jll
+            GR_jll[]  = Main.GR_jll
+            grdir[]   = Base.invokelatest(Main.GR_jll.find_artifact_dir)
+            libGR[]   = Main.GR_jll.libGR
+            libGR3[]  = Main.GR_jll.libGR3
+            libGRM[]  = Main.GR_jll.libGRM
+            gksqt[]   = Main.GR_jll.gksqt_path
+            libpath[] = Main.GR_jll.LIBPATH[]
+        elseif binary == "system"
+            GR_jll[]  = nothing
+            grdir[]   = haskey(ENV, "GRDIR") ? ENV["GRDIR"] : @load_preference("grdir")
+            libGR[]   = lib_path(grdir[], "libGR")
+            libGR3[]  = lib_path(grdir[], "libGR3")
+            libGRM[]  = lib_path(grdir[], "libGRM")
+            gksqt[]   = joinpath(grdir[], "bin", "gksqt" * (os === :Windows ? ".exe" : ""))
+            libpath[] = joinpath(grdir[], "lib")
+        else
+            error("Unknown GR binary: $binary")
+        end
     end
 
-    function use_system_binary(grdir; export_prefs = false, force = false)
+    use_system_binary(grdir; export_prefs = false, force = false) =
         set_preferences!(GRPreferences,
             "binary" => "system",
             "grdir" => grdir,
-            "gksqt" => joinpath(grdir, "bin", "gksqt" * (os === :Windows ? ".exe" : "")),
-            "libGR" => lib_path(grdir, "libGR"),
-            "libGR3" => lib_path(grdir, "libGR3"),
-            "libGRM" => lib_path(grdir, "libGRM"),
-            "libpath" => joinpath(grdir, "lib"),
             export_prefs = export_prefs,
             force = force
         )
-        return nothing
-    end
 
-    function use_jll_binary(; export_prefs = false, force = false)
+    use_jll_binary(; export_prefs = false, force = false) =
         set_preferences!(GRPreferences,
             "binary" => "GR_jll",
             "grdir" => nothing,
-            "gksqt" => nothing,
-            "libGR" => nothing,
-            "libGR3" => nothing,
-            "libGRM" => nothing,
-            "libpath" => nothing,
             export_prefs = export_prefs,
             force = force
         )
-        return nothing
-    end
 end

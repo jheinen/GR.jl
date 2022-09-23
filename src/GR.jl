@@ -28,24 +28,11 @@ import GRPreferences
 import Base64
 import Libdl
 
-GRDIR, LIBGR, LIBGR3, LIBGRM, GKSQT, LIBPATH = if GRPreferences.binary[] == "GR_jll"
-    import GR_jll
-    Ref(GR_jll.find_artifact_dir()), Ref(GR_jll.libGR), Ref(GR_jll.libGR3), Ref(GR_jll.libGRM), Ref(GR_jll.gksqt_path), GR_jll.LIBPATH
-elseif GRPreferences.binary[] == "system"
-    map(s -> getfield(GRPreferences, s), (:grdir, :libGR, :libGR3, :libGRM, :gksqt, :libpath))
-else
-    error("Unknown GR binary: $(GRPreferences.binary[])")
-end
-
-const libGR_handle = Ref{Ptr{Nothing}}()
+const libGR_handle  = Ref{Ptr{Nothing}}()
 const libGR3_handle = Ref{Ptr{Nothing}}()
 const libGRM_handle = Ref{Ptr{Nothing}}()
 
-const os = if Sys.KERNEL === :NT
-    :Windows
-else
-    Sys.KERNEL
-end
+const os = Sys.KERNEL === :NT ? :Windows : Sys.KERNEL
 
 export
   init,
@@ -317,7 +304,7 @@ function init(always::Bool = false)
         return
     end
     if check_env[] || always
-        get!(ENV, "GKS_FONTPATH", GRDIR[])
+        get!(ENV, "GKS_FONTPATH", GRPreferences.grdir[])
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name[] = ENV["GRDISPLAY"]
@@ -343,17 +330,17 @@ function init(always::Bool = false)
             end
             @static if Sys.iswindows()
                 if !haskey(ENV, "GKS_QT")
-                    ENV["GKS_QT"] = string("set PATH=", LIBPATH[], " & \"", GKSQT[], "\"")
+                    ENV["GKS_QT"] = string("set PATH=", GRPreferences.libpath[], " & \"", GRPreferences.gksqt[], "\"")
                 elseif ENV["GKS_QT"] == ""
-                    ENV["PATH"] = LIBPATH[]
-                    gkqst = run(`$(GKSQT[])`; wait = false)
+                    ENV["PATH"] = GRPreferences.libpath[]
+                    gkqst = run(`$(GRPreferences.gksqt[])`; wait = false)
                     # gksqt(gkscmd -> run(`gksqt`; wait=false))
                 end
             else
                 env = (os == :Darwin) ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
-                ENV["GKS_QT"] = string("env $env=", LIBPATH[], " ", GKSQT[])
+                ENV["GKS_QT"] = string("env $env=", GRPreferences.libpath[], " ", GRPreferences.gksqt[])
             end
-            @debug "BinaryBuilder Setup" ENV["GKSwstype"] os ENV["GKS_QT"] ENV["PATH"] LIBPATH[] GKSQT[]
+            @debug "BinaryBuilder Setup" ENV["GKSwstype"] os ENV["GKS_QT"] ENV["PATH"] GRPreferences.libpath[] GRPreferences.gksqt[]
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
             text_encoding[] = ENCODING_UTF8
