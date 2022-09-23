@@ -14,7 +14,11 @@ end
 @create_func_ptr_struct LibGRM_Ptrs include("libgrm_syms.jl")
 @create_func_ptr_struct LibGR3_Ptrs include("libgr3_syms.jl")
 
-const libGR_ptrs = LibGR_Ptrs()
+const libGR_handle  = Ref{Ptr{Nothing}}()
+const libGR3_handle = Ref{Ptr{Nothing}}()
+const libGRM_handle = Ref{Ptr{Nothing}}()
+
+const libGR_ptrs  = LibGR_Ptrs()
 const libGRM_ptrs = LibGRM_Ptrs()
 const libGR3_ptrs = LibGR3_Ptrs()
 

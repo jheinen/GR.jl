@@ -27,10 +27,6 @@ end
 import Base64
 import Libdl
 
-const libGR_handle  = Ref{Ptr{Nothing}}()
-const libGR3_handle = Ref{Ptr{Nothing}}()
-const libGRM_handle = Ref{Ptr{Nothing}}()
-
 const os = Sys.KERNEL === :NT ? :Windows : Sys.KERNEL
 
 export
