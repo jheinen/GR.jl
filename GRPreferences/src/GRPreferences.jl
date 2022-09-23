@@ -1,5 +1,9 @@
 module GRPreferences
     using Preferences
+    try
+        import GR_jll
+    catch
+    end
 
     const os = Sys.KERNEL === :NT ? :Windows : Sys.KERNEL
 
@@ -9,7 +13,6 @@ module GRPreferences
     const libGR3  = Ref{Union{Nothing,String}}()
     const libGRM  = Ref{Union{Nothing,String}}()
     const libpath = Ref{Union{Nothing,String}}()
-    const GR_jll  = Ref{Union{Nothing,Module}}()
 
     lib_path(grdir, lib) =
         if os === :Windows
@@ -23,16 +26,13 @@ module GRPreferences
     function __init__()
         binary = @load_preference("binary", haskey(ENV, "GRDIR") ? "system" : "GR_jll")
         if binary == "GR_jll"
-            @eval Main import GR_jll
-            GR_jll[]  = Main.GR_jll
-            grdir[]   = Base.invokelatest(Main.GR_jll.find_artifact_dir)
-            libGR[]   = Main.GR_jll.libGR
-            libGR3[]  = Main.GR_jll.libGR3
-            libGRM[]  = Main.GR_jll.libGRM
-            gksqt[]   = Main.GR_jll.gksqt_path
-            libpath[] = Main.GR_jll.LIBPATH[]
+            grdir[]   = GR_jll.find_artifact_dir()
+            libGR[]   = GR_jll.libGR
+            libGR3[]  = GR_jll.libGR3
+            libGRM[]  = GR_jll.libGRM
+            gksqt[]   = GR_jll.gksqt_path
+            libpath[] = GR_jll.LIBPATH[]
         elseif binary == "system"
-            GR_jll[]  = nothing
             grdir[]   = haskey(ENV, "GRDIR") ? ENV["GRDIR"] : @load_preference("grdir")
             libGR[]   = lib_path(grdir[], "libGR")
             libGR3[]  = lib_path(grdir[], "libGR3")
