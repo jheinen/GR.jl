@@ -7,30 +7,43 @@ module GRPreferences
         Sys.KERNEL
     end
 
-    const binary = @load_preference("binary", "GR_jll")
-    const grdir = @load_preference("grdir", nothing)
-    const gksqt = @load_preference("gksqt", nothing)
-    const libGR = @load_preference("libGR", "libGR")
-    const libGR3 = @load_preference("libGR3", "libGR3")
-    const libGRM = @load_preference("libGRM", "libGRM")
-    const libpath = @load_preference("libpath", nothing)
+    binary  = Ref{Union{Nothing,String}}()
+    grdir   = Ref{Union{Nothing,String}}()
+    gksqt   = Ref{Union{Nothing,String}}()
+    libGR   = Ref{Union{Nothing,String}}()
+    libGR3  = Ref{Union{Nothing,String}}()
+    libGRM  = Ref{Union{Nothing,String}}()
+    libpath = Ref{Union{Nothing,String}}()
+
+    lib_path(grdir::Nothing, lib) = lib
+    lib_path(grdir::AbstractString, lib) =
+        if os === :Windows
+            joinpath(grdir, "bin", lib)
+        elseif os === :Darwin
+            joinpath(grdir, "lib", lib)
+        else
+            joinpath(grdir, "lib", lib)
+        end
+
+    function __init__()
+        dn = get(ENV, "GRDIR", nothing)
+        binary[]  = @load_preference("binary", isnothing(dn) ? "GR_jll" : "system")
+        grdir[]   = @load_preference("grdir", dn)
+        gksqt[]   = @load_preference("gksqt")
+        libGR[]   = @load_preference("libGR", lib_path(dn, "libGR"))
+        libGR3[]  = @load_preference("libGR3", lib_path(dn, "libGR3"))
+        libGRM[]  = @load_preference("libGRM", lib_path(dn, "libGRM"))
+        libpath[] = @load_preference("libpath")
+    end
 
     function use_system_binary(grdir; export_prefs = false, force = false)
-        loadpath = if os === :Windows
-            joinpath(grdir, "bin")
-        elseif os === :Darwin
-            joinpath(grdir, "lib")
-        else
-            joinpath(grdir, "lib")
-        end
-        @assert isdir(loadpath)
         set_preferences!(GRPreferences,
             "binary" => "system",
             "grdir" => grdir,
             "gksqt" => joinpath(grdir, "bin", "gksqt" * (os === :Windows ? ".exe" : "")),
-            "libGR" => joinpath(loadpath, "libGR"),
-            "libGR3" => joinpath(loadpath, "libGR3"),
-            "libGRM" => joinpath(loadpath, "libGRM"),
+            "libGR" => lib_path(grdir, "libGR"),
+            "libGR3" => lib_path(grdir, "libGR3"),
+            "libGRM" => lib_path(grdir, "libGRM"),
             "libpath" => joinpath(grdir, "lib"),
             export_prefs = export_prefs,
             force = force

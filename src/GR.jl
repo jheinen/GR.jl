@@ -28,13 +28,13 @@ import GRPreferences
 import Base64
 import Libdl
 
-GRDIR, LIBGR, LIBGR3, LIBGRM, GKSQT, LIBPATH = if GRPreferences.binary == "GR_jll"
+GRDIR, LIBGR, LIBGR3, LIBGRM, GKSQT, LIBPATH = if GRPreferences.binary[] == "GR_jll"
     import GR_jll
     Ref(GR_jll.find_artifact_dir()), Ref(GR_jll.libGR), Ref(GR_jll.libGR3), Ref(GR_jll.libGRM), Ref(GR_jll.gksqt_path), GR_jll.LIBPATH
-elseif GRPreferences.binary == "system"
-    map(s -> Ref(getfield(GRPreferences, s)), (:grdir, :libGR, :libGR3, :libGRM, :gksqt, :libpath))
+elseif GRPreferences.binary[] == "system"
+    map(s -> getfield(GRPreferences, s), (:grdir, :libGR, :libGR3, :libGRM, :gksqt, :libpath))
 else
-    error("Unknown GR binary: $(GRPreferences.binary)")
+    error("Unknown GR binary: $(GRPreferences.binary[])")
 end
 
 const libGR_handle = Ref{Ptr{Nothing}}()
