@@ -1,4 +1,4 @@
-ENV["GKS_ENCODING"] = "latin1"
+ENV["GKS_ENCODING"] = "utf8"
 
 import GR
 
@@ -16,12 +16,12 @@ function main()
         GR.text(0.05, 0.65-y, "`abcdefghijklmno")
         GR.text(0.05, 0.60-y, "pqrstuvwxyz{|}~ ")
 
-        GR.text(0.5, 0.85-y, collect(0xa0:0x1:0xaf))
-        GR.text(0.5, 0.80-y, collect(0xb0:0x1:0xbf))
-        GR.text(0.5, 0.75-y, collect(0xc0:0x1:0xcf))
-        GR.text(0.5, 0.70-y, collect(0xd0:0x1:0xdf))
-        GR.text(0.5, 0.65-y, collect(0xe0:0x1:0xef))
-        GR.text(0.5, 0.60-y, collect(0xf0:0x1:0xff))
+        GR.text(0.5, 0.85-y, " ¡¢£¤¥¦§¨©ª«¬­®¯")
+        GR.text(0.5, 0.80-y, "°±²³´µ¶·¸¹º»¼½¾¿")
+        GR.text(0.5, 0.75-y, "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ")
+        GR.text(0.5, 0.70-y, "ÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß")
+        GR.text(0.5, 0.65-y, "àáâãäåæçèéêëìíîï")
+        GR.text(0.5, 0.60-y, "ðñòóôõö÷øùúûüýþÿ")
 
         GR.settextfontprec(233, 3)
         y = 0.4
