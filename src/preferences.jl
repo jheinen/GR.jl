@@ -27,11 +27,11 @@ module GRPreferences
 
     gksqt_path(grdir) = 
         if os === :Windows
-            joinpath(grdir[], "bin", "gksqt.exe")
+            joinpath(grdir, "bin", "gksqt.exe")
         elseif os === :Darwin
-            joinpath(grdir[], "Applications", "gksqt.app", "Contents", "MacOS", "gksqt")
+            joinpath(grdir, "Applications", "gksqt.app", "Contents", "MacOS", "gksqt")
         else
-            joinpath(grdir[], "bin", "gksqt")
+            joinpath(grdir, "bin", "gksqt")
         end
 
     function __init__()
