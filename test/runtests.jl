@@ -83,10 +83,9 @@ Example("Contour plot", [:(begin
     end)]),
 
 Example("Contour plot of matrix", [:(begin
-        X = LinRange(-2, 2, 40)
-        Y = LinRange(0, pi, 20)
-        x, y = meshgrid(X, Y)
-        z = sin.(x) .+ cos.(y)
+        x = LinRange(-2, 2, 40)
+        y = LinRange(0, pi, 20)
+        z = sin.(x') .+ cos.(y)
         contour(x, y, z)
     end)]),
 
@@ -98,10 +97,9 @@ Example("Filled contour plot", [:(begin
     end)]),
 
 Example("Filled contour plot of matrix", [:(begin
-        X = LinRange(-2, 2, 40)
-        Y = LinRange(0, pi, 20)
-        x, y = meshgrid(X, Y)
-        z = sin.(x) .+ cos.(y)
+        x = LinRange(-2, 2, 40)
+        y = LinRange(0, pi, 20)
+        z = sin.(x') .+ cos.(y)
         contourf(x, y, z)
     end)]),
 
@@ -120,10 +118,9 @@ Example("Surface plot", [:(begin
     end)]),
 
 Example("Surface plot of matrix", [:(begin
-        X = LinRange(-2, 2, 40)
-        Y = LinRange(0, pi, 20)
-        x, y = meshgrid(X, Y)
-        z = sin.(x) .+ cos.(y)
+        x = LinRange(-2, 2, 40)
+        y = LinRange(0, pi, 20)
+        z = sin.(x') .+ cos.(y)
         surface(x, y, z)
     end)]),
 
@@ -142,18 +139,16 @@ Example("Wireframe plot", [:(begin
     end)]),
 
 Example("Wireframe plot of matrix", [:(begin
-        X = LinRange(-2, 2, 40)
-        Y = LinRange(0, pi, 20)
-        x, y = meshgrid(X, Y)
-        z = sin.(x) .+ cos.(y)
+        x = LinRange(-2, 2, 40)
+        y = LinRange(0, pi, 20)
+        z = sin.(x') .+ cos.(y)
         wireframe(x, y, z)
     end)]),
 
 Example("Heatmap plot", [:(begin
-        X = LinRange(-2, 2, 40)
-        Y = LinRange(0, pi, 20)
-        x, y = meshgrid(X, Y)
-        z = sin.(x) .+ cos.(y)
+        x = LinRange(-2, 2, 40)
+        y = LinRange(0, pi, 20)
+        z = sin.(x') .+ cos.(y)
         heatmap(z)
     end)]),
 
