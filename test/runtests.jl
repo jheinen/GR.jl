@@ -1,12 +1,13 @@
 using Test
 
+using GR
+
 using Random
 rng = MersenneTwister(1234)
 
-using GR
 mutable struct Example
-  title::AbstractString
-  code::Vector{Expr}
+    title::AbstractString
+    code::Vector{Expr}
 end
 
 const _examples = Example[
@@ -175,11 +176,13 @@ Example("Shade points", [:(begin
     end)]),
 
 Example("Discrete plot", [:(begin
-        clearws()
         xd = -2 .+ 4 * rand(rng, 100)
         yd = -2 .+ 4 * rand(rng, 100)
         zd = [xd[i] * exp(-xd[i]^2 - yd[i]^2) for i = 1:100]
 
+        setprojectiontype(0)
+        setwsviewport(0, 0.1, 0, 0.1)
+        setwswindow(0, 1, 0, 1)
         setviewport(0.1, 0.95, 0.1, 0.95)
         setwindow(-2, 2, -2, 2)
         setspace(-0.5, 0.5, 0, 90)
@@ -198,25 +201,38 @@ Example("Discrete plot", [:(begin
         contour(x, y, h, z, 0)
         polymarker(xd, yd)
         GR.axes(0.25, 0.25, -2, -2, 2, 2, 0.01)
-
-        updatews()
-        emergencyclosegks()
     end)])
 ]
 
 function basic_tests()
-    @test GR.tick(1.2,3.14) == 0.5
-    
+    file_path = tempname() * ".pdf"
+    ENV["GKS_WSTYPE"] = "pdf"
+    ENV["GKS_FILEPATH"] = file_path
+
+    ok = failed = 0
     for ex in _examples
-        @info("Testing plot: $(ex.title)")
-    
-        GR.inline("pdf")
-        file_path = ENV["GKS_FILEPATH"]
-    
-        map(eval, ex.code)
-    
-        @test isfile(file_path)
-        rm(file_path)
+        global res
+        try
+            clearws()
+            map(eval, ex.code)
+            updatews()
+            res = "ok"
+            ok += 1
+        catch e
+            res = "failed"
+            failed += 1
+        end
+        @info("Testing plot: $(ex.title) => $(res)")
+    end
+    @info("$(ok) tests passed. $(failed) tests failed.")
+
+    @test isfile(file_path)
+
+    emergencyclosegks()
+    try
+        rm(file_path, force=true)
+    catch
+        true
     end
 end
 
