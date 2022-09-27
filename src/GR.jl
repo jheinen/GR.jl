@@ -324,12 +324,11 @@ function init(always::Bool = false)
         else
             haskey(ENV, "GKSwstype") || get!(ENV, "GKSwstype", "gksqt")
             @static if Sys.iswindows()
+                ENV["PATH"] = join((GRPreferences.libpath[], get(ENV, "PATH", "")), ";")
                 if !haskey(ENV, "GKS_QT")
-                    ENV["GKS_QT"] = string("set PATH=", GRPreferences.libpath[], " & \"", GRPreferences.gksqt[], "\"")
+                    ENV["GKS_QT"] = string(GRPreferences.gksqt[])
                 elseif ENV["GKS_QT"] == ""
-                    ENV["PATH"] = GRPreferences.libpath[]
                     gkqst = run(`$(GRPreferences.gksqt[])`; wait = false)
-                    # gksqt(gkscmd -> run(`gksqt`; wait=false))
                 end
             else
                 env = (os == :Darwin) ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
