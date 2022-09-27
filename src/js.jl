@@ -391,7 +391,7 @@ function ws_cb(webs)
 end
 
 const plutoisinit = Ref(false)
-const jssource = Ref("https://gr-framework.org/downloads/gr-0.69.0.js")
+const jssource = Ref("https://gr-framework.org/downloads/gr-0.69.1.js")
 
 function init_pluto(source=jssource[]::String)
   plutoisinit[] = true
