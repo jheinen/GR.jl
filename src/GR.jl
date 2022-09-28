@@ -320,6 +320,9 @@ function init(always::Bool = false)
             file_path[] = tempname() * ".svg"
             ENV["GKSwstype"] = "svg"
             ENV["GKS_FILEPATH"] = file_path[]
+            @static if Sys.iswindows()
+                ENV["PATH"] = join((GRPreferences.libpath[], get(ENV, "PATH", "")), ";")
+            end
             @debug "Found an embedded environment" mime_type[] file_path[] ENV["GKSwstype"] ENV["GKS_FILEPATH"]
         else
             haskey(ENV, "GKSwstype") || get!(ENV, "GKSwstype", "gksqt")
