@@ -298,6 +298,14 @@ end
 function init(always::Bool = false)
     if !libs_loaded[]
         load_libs(always)
+        @static if Sys.iswindows()
+            ENV["PATH"] = join((GRPreferences.libpath[], get(ENV, "PATH", "")), ";")
+            @debug "Set PATH" ENV["PATH"]
+        else
+            env = (os == :Darwin) ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
+            ENV[env] = join((GRPreferences.libpath[], get(ENV, env, "")), ":")
+            @debug "Set library path in $env" ENV[env]
+        end
         return
     end
     if check_env[] || always
@@ -320,24 +328,13 @@ function init(always::Bool = false)
             file_path[] = tempname() * ".svg"
             ENV["GKSwstype"] = "svg"
             ENV["GKS_FILEPATH"] = file_path[]
-            @static if Sys.iswindows()
-                ENV["PATH"] = join((GRPreferences.libpath[], get(ENV, "PATH", "")), ";")
-            end
             @debug "Found an embedded environment" mime_type[] file_path[] ENV["GKSwstype"] ENV["GKS_FILEPATH"]
         else
             haskey(ENV, "GKSwstype") || get!(ENV, "GKSwstype", "gksqt")
-            @static if Sys.iswindows()
-                ENV["PATH"] = join((GRPreferences.libpath[], get(ENV, "PATH", "")), ";")
-                if !haskey(ENV, "GKS_QT")
-                    ENV["GKS_QT"] = string(GRPreferences.gksqt[])
-                elseif ENV["GKS_QT"] == ""
-                    gkqst = run(`$(GRPreferences.gksqt[])`; wait = false)
-                end
-            else
-                env = (os == :Darwin) ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
-                ENV["GKS_QT"] = string("env $env=", GRPreferences.libpath[], " ", GRPreferences.gksqt[])
+            if !haskey(ENV, "GKS_QT")
+                ENV["GKS_QT"] = string(GRPreferences.gksqt[])
             end
-            @debug "BinaryBuilder Setup" ENV["GKSwstype"] os ENV["GKS_QT"] ENV["PATH"] GRPreferences.libpath[] GRPreferences.gksqt[]
+            @debug "BinaryBuilder Setup" ENV["GKSwstype"] ENV["GKS_QT"]
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
             text_encoding[] = ENCODING_UTF8
