@@ -7,224 +7,229 @@ rng = MersenneTwister(1234)
 
 mutable struct Example
     title::AbstractString
-    code::Vector{Expr}
+    code::Expr
 end
 
 const _examples = Example[
 
-Example("Simple line plot", [:(begin
-        x = 0:π/100:2π
-        y = sin.(x)
-        plot(x, y)
-    end)]),
-Example("Scatter plot", [:(begin
-        x = LinRange(0, 1, 51)
-        y = x .- x.^2
-        scatter(x, y)
-    end)]),
+Example("Simple line plot", quote
+    x = 0:π/100:2π
+    y = sin.(x)
+    plot(x, y)
+end),
+Example("Scatter plot", quote
+    x = LinRange(0, 1, 51)
+    y = x .- x.^2
+    scatter(x, y)
+end),
 
-Example("Colored scatter plot", [:(begin
-        sz = LinRange(0.5, 3, length(x))
-        c = LinRange(0, 255, length(x))
-        scatter(x, y, sz, c)
-    end)]),
+Example("Colored scatter plot", quote
+    sz = LinRange(0.5, 3, length(x))
+    c = LinRange(0, 255, length(x))
+    scatter(x, y, sz, c)
+end),
 
-Example("Stem plot", [:(begin
-        stem(x, y)
-    end)]),
+Example("Stem plot", quote
+    stem(x, y)
+end),
 
-Example("Histogram plot", [:(begin
-        histogram(randn(rng, 10000))
-    end)]),
+Example("Histogram plot", quote
+    histogram(randn(rng, 10000))
+end),
 
-Example("Multi-line plot", [:(begin
-        plot(randn(rng, 50))
-    end)]),
+Example("Multi-line plot", quote
+    plot(randn(rng, 50))
+end),
 
-Example("Overlay plot", [:(begin
-        oplot(randn(rng, 50, 3))
-    end)]),
+Example("Overlay plot", quote
+    oplot(randn(rng, 50, 3))
+end),
 
-Example("3-d line plot", [:(begin
-        x = LinRange(0, 30, 1000)
-        y = cos.(x) .* x
-        z = sin.(x) .* x
-        plot3(x, y, z)
-    end)]),
+Example("3-d line plot", quote
+    x = LinRange(0, 30, 1000)
+    y = cos.(x) .* x
+    z = sin.(x) .* x
+    plot3(x, y, z)
+end),
 
-Example("Polar plot", [:(begin
-        angles = LinRange(0, 2pi, 40)
-        radii = LinRange(0, 2, 40)
-        polar(angles, radii)
-    end)]),
+Example("Polar plot", quote
+    angles = LinRange(0, 2pi, 40)
+    radii = LinRange(0, 2, 40)
+    polar(angles, radii)
+end),
 
-Example("3-d point plot", [:(begin
-        x = 2 .* rand(rng, 100) .- 1
-        y = 2 .* rand(rng, 100) .- 1
-        z = 2 .* rand(rng, 100) .- 1
-        scatter3(x, y, z)
-    end)]),
+Example("3-d point plot", quote
+    x = 2 .* rand(rng, 100) .- 1
+    y = 2 .* rand(rng, 100) .- 1
+    z = 2 .* rand(rng, 100) .- 1
+    scatter3(x, y, z)
+end),
 
-Example("Colored 3-d point plot", [:(begin
-        c = 999 .* rand(rng, 100) .+ 1
-        scatter3(x, y, z, c)
-    end)]),
+Example("Colored 3-d point plot", quote
+    c = 999 .* rand(rng, 100) .+ 1
+    scatter3(x, y, z, c)
+end),
 
-Example("Hexbin plot", [:(begin
-        x = randn(rng, 100000)
-        y = randn(rng, 100000)
-        hexbin(x, y)
-    end)]),
+Example("Hexbin plot", quote
+    x = randn(rng, 100000)
+    y = randn(rng, 100000)
+    hexbin(x, y)
+end),
 
-Example("Contour plot", [:(begin
-        x = 8 .* rand(rng, 100) .- 4
-        y = 8 .* rand(rng, 100) .- 4
-        z = sin.(x) .+ cos.(y)
-        contour(x, y, z)
-    end)]),
+Example("Contour plot", quote
+    x = 8 .* rand(rng, 100) .- 4
+    y = 8 .* rand(rng, 100) .- 4
+    z = sin.(x) .+ cos.(y)
+    contour(x, y, z)
+end),
 
-Example("Contour plot of matrix", [:(begin
-        x = LinRange(-2, 2, 40)
-        y = LinRange(0, pi, 20)
-        z = sin.(x') .+ cos.(y)
-        contour(x, y, z)
-    end)]),
+Example("Contour plot of matrix", quote
+    x = LinRange(-2, 2, 40)
+    y = LinRange(0, pi, 20)
+    z = sin.(x') .+ cos.(y)
+    contour(x, y, z)
+end),
 
-Example("Filled contour plot", [:(begin
-        x = 8 .* rand(rng, 100) .- 4
-        y = 8 .* rand(rng, 100) .- 4
-        z = sin.(x) .+ cos.(y)
-        contourf(x, y, z)
-    end)]),
+Example("Filled contour plot", quote
+    x = 8 .* rand(rng, 100) .- 4
+    y = 8 .* rand(rng, 100) .- 4
+    z = sin.(x) .+ cos.(y)
+    contourf(x, y, z)
+end),
 
-Example("Filled contour plot of matrix", [:(begin
-        x = LinRange(-2, 2, 40)
-        y = LinRange(0, pi, 20)
-        z = sin.(x') .+ cos.(y)
-        contourf(x, y, z)
-    end)]),
+Example("Filled contour plot of matrix", quote
+    x = LinRange(-2, 2, 40)
+    y = LinRange(0, pi, 20)
+    z = sin.(x') .+ cos.(y)
+    contourf(x, y, z)
+end),
 
-Example("Filled contour plot on a triangular mesh", [:(begin
-        x = 8 .* rand(rng, 100) .- 4
-        y = 8 .* rand(rng, 100) .- 4
-        z = sin.(x) + cos.(y)
-        tricont(x, y, z)
-    end)]),
+Example("Filled contour plot on a triangular mesh", quote
+    x = 8 .* rand(rng, 100) .- 4
+    y = 8 .* rand(rng, 100) .- 4
+    z = sin.(x) + cos.(y)
+    tricont(x, y, z)
+end),
 
-Example("Surface plot", [:(begin
-        x = 8 .* rand(rng, 100) .- 4
-        y = 8 .* rand(rng, 100) .- 4
-        z = sin.(x) .+ cos.(y)
-        surface(x, y, z)
-    end)]),
+Example("Surface plot", quote
+    x = 8 .* rand(rng, 100) .- 4
+    y = 8 .* rand(rng, 100) .- 4
+    z = sin.(x) .+ cos.(y)
+    surface(x, y, z)
+end),
 
-Example("Surface plot of matrix", [:(begin
-        x = LinRange(-2, 2, 40)
-        y = LinRange(0, pi, 20)
-        z = sin.(x') .+ cos.(y)
-        surface(x, y, z)
-    end)]),
+Example("Surface plot of matrix", quote
+    x = LinRange(-2, 2, 40)
+    y = LinRange(0, pi, 20)
+    z = sin.(x') .+ cos.(y)
+    surface(x, y, z)
+end),
 
-Example("Surface plot on a triangular mesh", [:(begin
-        x = 8 .* rand(rng, 100) .- 4
-        y = 8 .* rand(rng, 100) .- 4
-        z = sin.(x) .+ cos.(y)
-        trisurf(x, y, z)
-    end)]),
+Example("Surface plot on a triangular mesh", quote
+    x = 8 .* rand(rng, 100) .- 4
+    y = 8 .* rand(rng, 100) .- 4
+    z = sin.(x) .+ cos.(y)
+    trisurf(x, y, z)
+end),
 
-Example("Wireframe plot", [:(begin
-        x = 8 .* rand(rng, 100) .- 4
-        y = 8 .* rand(rng, 100) .- 4
-        z = sin.(x) .+ cos.(y)
-        wireframe(x, y, z)
-    end)]),
+Example("Wireframe plot", quote
+    x = 8 .* rand(rng, 100) .- 4
+    y = 8 .* rand(rng, 100) .- 4
+    z = sin.(x) .+ cos.(y)
+    wireframe(x, y, z)
+end),
 
-Example("Wireframe plot of matrix", [:(begin
-        x = LinRange(-2, 2, 40)
-        y = LinRange(0, pi, 20)
-        z = sin.(x') .+ cos.(y)
-        wireframe(x, y, z)
-    end)]),
+Example("Wireframe plot of matrix", quote
+    x = LinRange(-2, 2, 40)
+    y = LinRange(0, pi, 20)
+    z = sin.(x') .+ cos.(y)
+    wireframe(x, y, z)
+end),
 
-Example("Heatmap plot", [:(begin
-        x = LinRange(-2, 2, 40)
-        y = LinRange(0, pi, 20)
-        z = sin.(x') .+ cos.(y)
-        heatmap(z)
-    end)]),
+Example("Heatmap plot", quote
+    x = LinRange(-2, 2, 40)
+    y = LinRange(0, pi, 20)
+    z = sin.(x') .+ cos.(y)
+    heatmap(z)
+end),
 
-Example("Image plot", [:(begin
-        imshow(z)
-    end)]),
+Example("Image plot", quote
+    imshow(z)
+end),
 
-Example("Isosurface plot", [:(begin
-        s = LinRange(-1, 1, 40)
-        x, y, z = meshgrid(s, s, s)
-        v = 1 .- (x .^ 2 .+ y .^ 2 .+ z .^ 2) .^ 0.5
-        isosurface(v, isovalue=0.2)
-    end)]),
+Example("Isosurface plot", quote
+    s = LinRange(-1, 1, 40)
+    x, y, z = meshgrid(s, s, s)
+    v = 1 .- (x .^ 2 .+ y .^ 2 .+ z .^ 2) .^ 0.5
+    isosurface(v, isovalue=0.2)
+end),
 
-Example("Shade points", [:(begin
-        GR.GR3.terminate()
+Example("Shade points", quote
+    GR.GR3.terminate()
 
-        volume(randn(rng, 50, 50, 50))
+    volume(randn(rng, 50, 50, 50))
 
-        N = 1_000_000
-        x = randn(rng, N)
-        y = randn(rng, N)
-        shade(x, y)
-    end)]),
+    N = 1_000_000
+    x = randn(rng, N)
+    y = randn(rng, N)
+    shade(x, y)
+end),
 
-Example("Discrete plot", [:(begin
-        xd = -2 .+ 4 * rand(rng, 100)
-        yd = -2 .+ 4 * rand(rng, 100)
-        zd = [xd[i] * exp(-xd[i]^2 - yd[i]^2) for i = 1:100]
+Example("Discrete plot", quote
+    xd = -2 .+ 4 * rand(rng, 100)
+    yd = -2 .+ 4 * rand(rng, 100)
+    zd = [xd[i] * exp(-xd[i]^2 - yd[i]^2) for i = 1:100]
 
-        setprojectiontype(0)
-        setwsviewport(0, 0.1, 0, 0.1)
-        setwswindow(0, 1, 0, 1)
-        setviewport(0.1, 0.95, 0.1, 0.95)
-        setwindow(-2, 2, -2, 2)
-        setspace(-0.5, 0.5, 0, 90)
-        setcolormap(0)
-        setlinecolorind(1)
-        setmarkersize(1)
-        setmarkertype(-1)
-        setmarkercolorind(1)
-        setcharheight(0.024)
-        settextalign(2, 0)
-        settextfontprec(3, 0)
+    setprojectiontype(0)
+    setwsviewport(0, 0.1, 0, 0.1)
+    setwswindow(0, 1, 0, 1)
+    setviewport(0.1, 0.95, 0.1, 0.95)
+    setwindow(-2, 2, -2, 2)
+    setspace(-0.5, 0.5, 0, 90)
+    setcolormap(0)
+    setlinecolorind(1)
+    setmarkersize(1)
+    setmarkertype(-1)
+    setmarkercolorind(1)
+    setcharheight(0.024)
+    settextalign(2, 0)
+    settextfontprec(3, 0)
 
-        x, y, z = gridit(xd, yd, zd, 200, 200)
-        h = -0.5:0.05:0.5
-        surface(x, y, z, 5)
-        contour(x, y, h, z, 0)
-        polymarker(xd, yd)
-        GR.axes(0.25, 0.25, -2, -2, 2, 2, 0.01)
-    end)])
+    x, y, z = gridit(xd, yd, zd, 200, 200)
+    h = -0.5:0.05:0.5
+    surface(x, y, z, 5)
+    contour(x, y, h, z, 0)
+    polymarker(xd, yd)
+    GR.axes(0.25, 0.25, -2, -2, 2, 2, 0.01)
+end)
 ]
 
-function basic_tests()
-    file_path = tempname() * ".pdf"
-    ENV["GKS_WSTYPE"] = "pdf"
+function basic_tests(wstype)
+    GR.reset()
+    file_path = tempname() * '.' * wstype
+    ENV["GKS_WSTYPE"] = wstype
     ENV["GKS_FILEPATH"] = file_path
 
+    res = nothing
     ok = failed = 0
     for ex in _examples
-        global res
+        fn = tempname() * '.' * wstype
         try
             clearws()
-            map(eval, ex.code)
+            eval(ex.code)
             updatews()
+            savefig(fn)
             res = "ok"
             ok += 1
         catch e
             res = "failed"
             failed += 1
         end
-        @info("Testing plot: $(ex.title) => $(res)")
+        @test isfile(fn)
+        @test filesize(fn) > 0
+        @info("Testing plot: $(ex.title) => $res")
     end
-    @info("$(ok) tests passed. $(failed) tests failed.")
+    @info("$ok tests passed. $failed tests failed.")
 
     @test isfile(file_path)
 
@@ -232,8 +237,9 @@ function basic_tests()
     try
         rm(file_path, force=true)
     catch
-        true
     end
 end
 
-@timev basic_tests()
+@timev basic_tests("pdf")
+@timev basic_tests("svg")
+@timev basic_tests("png")
