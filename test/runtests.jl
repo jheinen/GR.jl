@@ -205,7 +205,6 @@ end)
 ]
 
 function basic_tests(wstype)
-    GR.reset()
     file_path = tempname() * '.' * wstype
     ENV["GKS_WSTYPE"] = wstype
     ENV["GKS_FILEPATH"] = file_path
