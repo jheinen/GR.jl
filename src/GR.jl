@@ -297,7 +297,6 @@ end
 """
 function init(always::Bool = false)
     if !libs_loaded[]
-        load_libs(always)
         @static if Sys.iswindows()
             ENV["PATH"] = join((GRPreferences.libpath[], get(ENV, "PATH", "")), ";")
             @debug "Set PATH" ENV["PATH"]
@@ -306,6 +305,7 @@ function init(always::Bool = false)
             ENV[env] = join((GRPreferences.libpath[], get(ENV, env, "")), ":")
             @debug "Set library path in $env" ENV[env]
         end
+        load_libs(always)
         return
     end
     if check_env[] || always
