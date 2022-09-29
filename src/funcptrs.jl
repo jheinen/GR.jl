@@ -33,6 +33,14 @@ function load_libs(always::Bool = false)
     libGR_handle[]  = Libdl.dlopen(GRPreferences.libGR[])
     libGR3_handle[] = Libdl.dlopen(GRPreferences.libGR3[])
     libGRM_handle[] = Libdl.dlopen(GRPreferences.libGRM[])
+    @static if Sys.iswindows()
+        ENV["PATH"] = join((GRPreferences.libpath[], get(ENV, "PATH", "")), ";")
+        @debug "Set PATH" ENV["PATH"]
+    else
+        env = (os == :Darwin) ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
+        ENV[env] = join((GRPreferences.libpath[], get(ENV, env, "")), ":")
+        @debug "Set library path in $env" ENV[env]
+    end
     libs_loaded[] = true
     check_env[] = true
     init(always)

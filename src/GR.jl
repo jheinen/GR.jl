@@ -297,14 +297,6 @@ end
 """
 function init(always::Bool = false)
     if !libs_loaded[]
-        @static if Sys.iswindows()
-            ENV["PATH"] = join((GRPreferences.libpath[], get(ENV, "PATH", "")), ";")
-            @debug "Set PATH" ENV["PATH"]
-        else
-            env = (os == :Darwin) ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
-            ENV[env] = join((GRPreferences.libpath[], get(ENV, env, "")), ":")
-            @debug "Set library path in $env" ENV[env]
-        end
         load_libs(always)
         return
     end
