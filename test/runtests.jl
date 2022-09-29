@@ -204,41 +204,52 @@ Example("Discrete plot", quote
 end)
 ]
 
-function basic_tests(wstype)
-    file_path = tempname() * '.' * wstype
-    ENV["GKS_WSTYPE"] = wstype
-    ENV["GKS_FILEPATH"] = file_path
+function basic_tests(title; wstype="nul", fig="")
+    if wstype != "nul"
+        file_path = tempname() * '.' * wstype
+        ENV["GKS_WSTYPE"] = wstype
+        ENV["GKS_FILEPATH"] = file_path
+    end
+    ENV["GR3_USE_SR"] = "true"
 
+    @info("Testing $(title)")
     res = nothing
     ok = failed = 0
     for ex in _examples
-        fn = tempname() * '.' * wstype
+        if fig != ""
+            fn = tempname() * '.' * fig
+        end
         try
             clearws()
             eval(ex.code)
             updatews()
-            savefig(fn)
+            if fig != ""
+                savefig(fn)
+            end
             res = "ok"
             ok += 1
         catch e
             res = "failed"
             failed += 1
         end
-        @test isfile(fn)
-        @test filesize(fn) > 0
+        if fig != ""
+            @test isfile(fn)
+            @test filesize(fn) > 0
+        end
         @info("Testing plot: $(ex.title) => $res")
     end
     @info("$ok tests passed. $failed tests failed.")
 
-    @test isfile(file_path)
-
     emergencyclosegks()
-    try
-        rm(file_path, force=true)
-    catch
+
+    if wstype != "nul"
+        @test isfile(file_path)
+        @test filesize(file_path) > 0
     end
 end
 
-@timev basic_tests("pdf")
-@timev basic_tests("svg")
-@timev basic_tests("png")
+@timev basic_tests("interactive graphics")
+@timev basic_tests("multi-page PDF", wstype="pdf")
+@timev basic_tests("single-page PDF files", fig="pdf")
+@timev basic_tests("SVG output", fig="svg")
+@timev basic_tests("PNG images", fig="png")
