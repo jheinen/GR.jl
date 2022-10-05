@@ -333,7 +333,7 @@ function init(always::Bool = false)
                 end
                 ENV["GKS_QT"] = string("env $env=", GRPreferences.libpath[], " ", GRPreferences.gksqt[])
             end
-            @debug "BinaryBuilder Setup" ENV["GKSwstype"] ENV["GKS_QT"]
+            @debug "Artifacts setup" ENV["GKSwstype"] ENV["GKS_QT"]
         end
         if "GKS_IGNORE_ENCODING" in keys(ENV)
             text_encoding[] = ENCODING_UTF8
