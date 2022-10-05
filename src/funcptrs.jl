@@ -33,14 +33,21 @@ function load_libs(always::Bool = false)
     libGR_handle[]  = Libdl.dlopen(GRPreferences.libGR[])
     libGR3_handle[] = Libdl.dlopen(GRPreferences.libGR3[])
     libGRM_handle[] = Libdl.dlopen(GRPreferences.libGRM[])
-    env, sep = if os === :Windows
-        "PATH", ";"
+    lp = GRPreferences.libpath[]
+    env, components, sep = if os === :Windows
+        hard_limit = 4095 - length(lp) - 1
+        prev = if (tmp = get(ENV, "PATH", "")) |> length > hard_limit
+            tmp[1:hard_limit]
+        else
+            tmp
+        end
+        "PATH", (lp, prev), ";"
     elseif os === :Darwin
-        "DYLD_FALLBACK_LIBRARY_PATH", ':'
+        "DYLD_FALLBACK_LIBRARY_PATH", nothing, ':'
     else
-        "LD_LIBRARY_PATH", ":"
+        "LD_LIBRARY_PATH", nothing, ":"
     end
-    ENV[env] = join((GRPreferences.libpath[], get(ENV, env, "")), sep)
+    ENV[env] = join((lp, something(components, get(ENV, env, ""))), sep)
     @debug "Set library search path `$env` to" ENV[env]
     libs_loaded[] = true
     check_env[] = true
