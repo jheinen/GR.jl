@@ -1,8 +1,9 @@
-using Test
-
-using GR
+ENV["JULIA_DEBUG"] = "GR"
 
 using Random
+using Test
+using GR
+
 rng = MersenneTwister(1234)
 
 mutable struct Example
