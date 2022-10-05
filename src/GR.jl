@@ -324,7 +324,13 @@ function init(always::Bool = false)
         else
             haskey(ENV, "GKSwstype") || get!(ENV, "GKSwstype", "gksqt")
             if !haskey(ENV, "GKS_QT")
-                env = (os == :Darwin) ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
+                env = if os === :Windows
+                    "PATH"
+                elseif os === :Darwin
+                    "DYLD_FALLBACK_LIBRARY_PATH"
+                else
+                    "LD_LIBRARY_PATH"
+                end
                 ENV["GKS_QT"] = string("env $env=", GRPreferences.libpath[], " ", GRPreferences.gksqt[])
             end
             @debug "BinaryBuilder Setup" ENV["GKSwstype"] ENV["GKS_QT"]
