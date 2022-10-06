@@ -324,14 +324,13 @@ function init(always::Bool = false)
         else
             haskey(ENV, "GKSwstype") || get!(ENV, "GKSwstype", "gksqt")
             if !haskey(ENV, "GKS_QT")
-                key = if os === :Windows
-                    "PATH"
-                elseif os === :Darwin
-                    "DYLD_FALLBACK_LIBRARY_PATH"
+                gks_qt = if os === :Windows
+                    "set PATH=$(GRPreferences.libpath[]) & \"$(GRPreferences.gksqt[])\""
                 else
-                    "LD_LIBRARY_PATH"
+                    key = os === :Darwin ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
+                    "env $key=$(GRPreferences.libpath[]) $(GRPreferences.gksqt[])"
                 end
-                ENV["GKS_QT"] = string("env $key=", GRPreferences.libpath[], " ", GRPreferences.gksqt[])
+                ENV["GKS_QT"] = gks_qt
             end
             @debug "Artifacts setup" ENV["GKSwstype"] ENV["GKS_QT"]
         end
