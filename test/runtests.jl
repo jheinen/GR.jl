@@ -165,11 +165,12 @@ Example("Isosurface plot", quote
     isosurface(v, isovalue=0.2)
 end),
 
-Example("Shade points", quote
+Example("Volume plot", quote
     GR.GR3.terminate()
-
     volume(randn(rng, 50, 50, 50))
+end),
 
+Example("Shade points", quote
     N = 1_000_000
     x = randn(rng, N)
     y = randn(rng, N)
