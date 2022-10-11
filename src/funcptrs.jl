@@ -33,9 +33,13 @@ function load_libs(always::Bool = false)
     libGR_handle[]  = Libdl.dlopen(GRPreferences.libGR[])
     libGR3_handle[] = Libdl.dlopen(GRPreferences.libGR3[])
     libGRM_handle[] = Libdl.dlopen(GRPreferences.libGRM[])
+    lp = GRPreferences.libpath[]
     if os === :Windows
-        ENV["PATH"] = join((GRPreferences.libpath[], get(ENV, "PATH", "")), ';')
+        ENV["PATH"] = join((lp, get(ENV, "PATH", "")), ';')
         @debug "`windows`: set library search path to" ENV["PATH"]
+    elseif os === :Darwin
+        ENV["DYLD_FALLBACK_LIBRARY_PATH"] = join((lp, get(ENV, "DYLD_FALLBACK_LIBRARY_PATH", "")), ':')
+        @debug "`macOS`: set fallback library search path to" ENV["DYLD_FALLBACK_LIBRARY_PATH"]
     end
     libs_loaded[] = true
     check_env[] = true
