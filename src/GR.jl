@@ -27,8 +27,6 @@ end
 import Base64
 import Libdl
 
-const os = Sys.KERNEL === :NT ? :Windows : Sys.KERNEL
-
 export
   init,
   initgr,
@@ -324,10 +322,10 @@ function init(always::Bool = false)
         else
             haskey(ENV, "GKSwstype") || get!(ENV, "GKSwstype", "gksqt")
             if !haskey(ENV, "GKS_QT")
-                ENV["GKS_QT"] = if os === :Windows
+                ENV["GKS_QT"] = if Sys.iswindows()
                     "set PATH=$(GRPreferences.libpath[]) & \"$(GRPreferences.gksqt[])\""
                 else
-                    key = os === :Darwin ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
+                    key = Sys.isapple() ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
                     "env $key=$(GRPreferences.libpath[]) $(GRPreferences.gksqt[])"
                 end
             end

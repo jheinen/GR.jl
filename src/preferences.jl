@@ -6,8 +6,6 @@ module GRPreferences
         @debug "import GR_jll failed" err
     end
 
-    const os = Sys.KERNEL === :NT ? :Windows : Sys.KERNEL
-
     const grdir   = Ref{Union{Nothing,String}}()
     const gksqt   = Ref{Union{Nothing,String}}()
     const libGR   = Ref{Union{Nothing,String}}()
@@ -17,18 +15,16 @@ module GRPreferences
     const libpath = Ref{Union{Nothing,String}}()
 
     lib_path(grdir, lib) =
-        if os === :Windows
+        if Sys.iswindows()
             joinpath(grdir, "bin", lib)
-        elseif os === :Darwin
-            joinpath(grdir, "lib", lib)
         else
             joinpath(grdir, "lib", lib)
         end
 
     gksqt_path(grdir) = 
-        if os === :Windows
+        if Sys.iswindows()
             joinpath(grdir, "bin", "gksqt.exe")
-        elseif os === :Darwin
+        elseif Sys.isapple()
             joinpath(grdir, "Applications", "gksqt.app", "Contents", "MacOS", "gksqt")
         else
             joinpath(grdir, "bin", "gksqt")
