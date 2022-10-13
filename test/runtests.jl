@@ -228,10 +228,10 @@ function basic_tests(title; wstype="nul", fig="")
             if fig != ""
                 savefig(fn)
             end
-            res = "ok"
+            res = "\e[32mok\e[0m"
             ok += 1
         catch e
-            res = "failed"
+            res = "\e[31mfailed\e[0m"
             failed += 1
         end
         if fig != ""
