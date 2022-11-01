@@ -1,5 +1,5 @@
 """
-    GR.Preferences.Builder is a Module that contains the GR bulid script.
+    GR.GRPreferences.Builder is a Module that contains the GR build script.
 
     The main purpose is to select a binary provider and store that choice in
     (Local)Preferences.jl.
@@ -110,11 +110,9 @@ end
     Run the bulid process for GR. Can be invoked as GR.Builder.build()
         or via Pkg.build("GR)
 
-    To set a provider set ENV["JULIA_GR_PROVIDER"] to either
+    Set provider to either
     1. "GR"
     2. "BinaryBuilder"
-    
-    or `delete!(ENV, "JULIA_GR_PROVIDER")` to select default.
 
     Also delete or set `ENV["GRDIR"] = ""`
 """

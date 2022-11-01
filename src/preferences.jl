@@ -79,8 +79,7 @@ module GRPreferences
     )
 
     function use_deps_binary(; export_prefs = false, force = false)
-        ENV["JULIA_GR_PROVIDER"] = "GR"
-        Builder.build()
+        Builder.build("GR")
         set_preferences!(
             GRPreferences,
             "binary" => "system",
