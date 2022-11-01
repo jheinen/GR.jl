@@ -256,7 +256,7 @@ Currently, this is the deps directory of the GR package:
 `joinpath(pathof(GR), "..", "deps")`
 """
 function get_default_install_dir()
-    return joinpath(@__DIR__, "..", "deps")
+    return abspath(joinpath(@__DIR__, "..", "deps"))
 end
 
 """

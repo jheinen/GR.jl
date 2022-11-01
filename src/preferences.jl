@@ -1,5 +1,7 @@
 module GRPreferences
     using Preferences
+    using Artifacts
+    using TOML
     try
         import GR_jll
     catch err
@@ -62,30 +64,160 @@ module GRPreferences
         end
     end
 
-    use_system_binary(grdir; export_prefs = false, force = false) = set_preferences!(
-        GRPreferences,
-        "binary" => "system",
-        "grdir" => grdir,
-        export_prefs = export_prefs,
-        force = force
-    )
+    """
+        use_system_binary(grdir; export_prefs = false, force = false, override = :depot)
 
-    use_jll_binary(; export_prefs = false, force = false) = set_preferences!(
-        GRPreferences,
-        "binary" => "GR_jll",
-        "grdir" => nothing,
-        export_prefs = export_prefs,
-        force = force
-    )
+    Use the system binaries located at `grdir`.
+    See `Preferences.set_preferences!` for the `export_prefs` and `force` keywords.
 
-    function use_upstream_binary(; export_prefs = false, force = false)
-        grdir = Downloader.download()
+    The override keyword can be either:
+    * :depot, Override GR_jll using the depot Overrides.toml
+    * :project, Override GR_jll using the project Preferences.toml
+    * (:depot, :project), Overide GR_jll in both the depot and the project
+    """
+    function use_system_binary(grdir; export_prefs = false, force = false, override = :depot)
         set_preferences!(
             GRPreferences,
             "binary" => "system",
             "grdir" => grdir,
             export_prefs = export_prefs,
             force = force
+        )
+        if override isa Symbol
+            override = (override,)
+        end
+        if :depot in override
+            override_depot(grdir)
+        end
+        if :project in override
+            override_project(grdir; force)
+        end
+        @info "Please restart Julia to change the GR binary configuration."
+    end
+
+
+    """
+        use_jll_binary(; export_prefs = false, force = false)
+
+    Use GR_jll in the its standard configuration from BinaryBuilder.org.
+
+    See `Preferences.set_preferences!` for the `export_prefs` and `force` keywords.
+    """
+    function use_jll_binary(; export_prefs = false, force = false)
+        set_preferences!(
+            GRPreferences,
+            "binary" => "GR_jll",
+            "grdir" => nothing,
+            export_prefs = export_prefs,
+            force = force
+        )
+        unoverride_depot()
+        unoverride_project(; force)
+        @info "Please restart Julia to change the GR binary configuration."
+    end
+
+
+    """
+        use_upstream_binary([install_dir]; export_prefs = false, force = false, override = :depot)
+
+    Download the binaries from https://github.com/sciapp/gr/ and configure GR to use those.
+
+    A directory "gr" will be placed within `install_dir` containing the upstream binaries.
+    By default install_dir will be `joinpath(pathof(GR), "deps")`.
+
+    See `use_system_binary` for details.
+    """
+    function use_upstream_binary(args...; export_prefs = false, force = false, override = :depot)
+        grdir = Downloader.download(args...)
+        use_system_binary(grdir; export_prefs, force, override)
+    end
+
+    """
+        get_override_toml_path()
+
+    Get the path the depot's Overrides.toml
+    """
+    function get_override_toml_path()
+        override_toml_path = joinpath(Artifacts.artifacts_dirs()[1], "Overrides.toml")
+    end
+
+    """
+        override_depot([grdir])
+
+    Override GR_jll in the DEPOT_PATH[1]/artifacts/Overrides.toml with `grdir`.
+    """
+    function override_depot(grdir = grdir[])
+        override_toml_path = get_override_toml_path()
+        override_dict = if isfile(override_toml_path)
+            TOML.parsefile(override_toml_path)
+        else
+            Dict{String,Any}()
+        end
+        override_dict["d2c73de3-f751-5644-a686-071e5b155ba9"] = Dict("GR" => grdir)
+        open(override_toml_path, "w") do io
+            TOML.print(io, override_dict)
+        end
+    end
+
+    """
+        unoverride_depot()
+
+    Remove the override for GR_jll in DEPOT_PATH[1]/artifats/Overrides.toml
+    """
+    function unoverride_depot()
+        override_toml_path = get_override_toml_path()
+        override_dict = if isfile(override_toml_path)
+            TOML.parsefile(override_toml_path)
+        else
+            Dict{String,Any}()
+        end
+        delete!(override_dict, "d2c73de3-f751-5644-a686-071e5b155ba9")
+        open(override_toml_path, "w") do io
+            TOML.print(io, override_dict)
+        end
+    end
+
+    """
+        override_project([grdir])
+
+    Override individual GR_jll artifacts in the (Local)Preferences.toml of the project.
+    """
+    function override_project(grdir = grdir[]; force = false)
+        mod = if isdefined(@__MODULE__, :GR_jll)
+            GR_jll
+        else
+            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9")
+        end
+        set_preferences!(
+            GR_jll,
+            "libGR_path" => lib_path(grdir, "libGR"),
+            "libGR3_path" => lib_path(grdir, "libGR3"),
+            "libGRM_path" => lib_path(grdir, "libGRM"),
+            "libGKS_path" => lib_path(grdir, "libGKS"),
+            "gksqt_path" => gksqt_path(grdir);
+            force
+        )
+    end
+
+    """
+        unoverride_project()
+
+    Remove overrides for GR_jll artifacts in the (Local)Preferences.toml of the project.
+    """
+    function unoverride_project(; force = false)
+        mod = if isdefined(@__MODULE__, :GR_jll)
+            GR_jll
+        else
+            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9")
+        end
+        delete_preferences!(
+            GR_jll,
+            "libGR_path",
+            "libGR3_path",
+            "libGRM_path",
+            "libGKS_path",
+            "gksqt_path";
+            force
         )
     end
 end
