@@ -121,7 +121,9 @@ end
 function build(provider::String = "GR")
 
 current_dir = pwd()
-cd(joinpath(@__DIR__, "..", "deps"))
+deps_dir = joinpath(@__DIR__, "..", "deps", "gr")
+mkpath(deps_dir)
+cd(deps_dir)
 
 try
 
