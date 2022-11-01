@@ -5,6 +5,7 @@ module GRPreferences
     catch err
         @debug "import GR_jll failed" err
     end
+    include("build.jl")
 
     const grdir   = Ref{Union{Nothing,String}}()
     const gksqt   = Ref{Union{Nothing,String}}()
@@ -14,12 +15,16 @@ module GRPreferences
     const libGKS  = Ref{Union{Nothing,String}}()
     const libpath = Ref{Union{Nothing,String}}()
 
-    lib_path(grdir, lib) =
+    lib_path(grdir::AbstractString, lib::AbstractString) =
         if Sys.iswindows()
             joinpath(grdir, "bin", lib)
         else
             joinpath(grdir, "lib", lib)
         end
+
+    # Default grdir to deps/gr if nothing
+    lib_path(grdir::Nothing, lib::AbstractString) =
+        lib_path(joinpath(@__DIR__, "..", "deps", "gr"))
 
     gksqt_path(grdir) = 
         if Sys.iswindows()
@@ -29,6 +34,10 @@ module GRPreferences
         else
             joinpath(grdir, "bin", "gksqt")
         end
+
+    # Default grdir to deps/gr if nothing
+    gksqt_path(grdir::Nothing) =
+        gksqt_path(joinpath(@__DIR__, "..", "deps", "gr"))
 
     function __init__()
         binary = @load_preference("binary", haskey(ENV, "GRDIR") ? "system" : "GR_jll")
@@ -68,4 +77,16 @@ module GRPreferences
         export_prefs = export_prefs,
         force = force
     )
+
+    function use_deps_binary(; export_prefs = false, force = false)
+        ENV["JULIA_GR_PROVIDER"] = "GR"
+        Builder.build()
+        set_preferences!(
+            GRPreferences,
+            "binary" => "system",
+            "grdir" => abspath(joinpath(@__DIR__, "..", "deps", "gr")),
+            export_prefs = export_prefs,
+            force = force
+        )
+    end
 end
