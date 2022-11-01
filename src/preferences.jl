@@ -5,7 +5,7 @@ module GRPreferences
     catch err
         @debug "import GR_jll failed" err
     end
-    include("build.jl")
+    include("downloader.jl")
 
     const grdir   = Ref{Union{Nothing,String}}()
     const gksqt   = Ref{Union{Nothing,String}}()
@@ -24,7 +24,7 @@ module GRPreferences
 
     # Default grdir to deps/gr if nothing
     lib_path(grdir::Nothing, lib::AbstractString) =
-        lib_path(joinpath(@__DIR__, "..", "deps", "gr"))
+        lib_path(joinpath(@__DIR__, "..", "deps", "gr"), lib)
 
     gksqt_path(grdir) = 
         if Sys.iswindows()
@@ -78,12 +78,12 @@ module GRPreferences
         force = force
     )
 
-    function use_deps_binary(; export_prefs = false, force = false)
-        Builder.build("GR")
+    function use_upstream_binary(; export_prefs = false, force = false)
+        grdir = Downloader.download()
         set_preferences!(
             GRPreferences,
             "binary" => "system",
-            "grdir" => abspath(joinpath(@__DIR__, "..", "deps", "gr")),
+            "grdir" => grdir,
             export_prefs = export_prefs,
             force = force
         )
