@@ -48,9 +48,7 @@ function get_grdir()
             end
         end
     end
-    if have_dir
-        @info("Found existing GR run-time in $grdir")
-    end
+    have_dir && @info "Found existing GR run-time in $grdir"
     return have_dir ? grdir : nothing
 end
 
@@ -96,11 +94,7 @@ end
 Figure out which specific operating system this, including the specific Linux distribution.
 """
 function get_os_and_arch()
-    if Sys.iswindows()
-        os = "Windows"
-    else
-        os = string(Sys.KERNEL)
-    end
+    os = Sys.iswindows() ? "Windows" : string(Sys.KERNEL)
 
     arch = Sys.ARCH
 
@@ -277,13 +271,10 @@ function download_tarball(version, os, arch, downloads_dir = mktempdir())
     end
 
     # Download latest tarball from gr-framework.org
-    if !ok
-        if !try_download("https://gr-framework.org/downloads/$tarball", file)
-            @warn "Using insecure connection"
-            if !try_download("http://gr-framework.org/downloads/$tarball", file)
-                error("Cannot download GR run-time")
-            end
-        end
+    if !ok && !try_download("https://gr-framework.org/downloads/$tarball", file)
+        @warn "Using insecure connection"
+        try_download("http://gr-framework.org/downloads/$tarball", file) ||
+            error("Cannot download GR run-time")
     end
 
     return file
@@ -340,17 +331,13 @@ function download(install_dir = get_default_install_dir(); force = false)
         end
 
         # Address Mac specific framework and rpath issues
-        if Sys.isapple()
-            apple_install(destination_dir)
-        end
+        Sys.isapple() && apple_install(destination_dir)
 
         grdir = destination_dir
     end # if isnothing(grdir)
 
     # Check dependencies when using Linux or FreeBSD
-    if Sys.islinux() || Sys.isfreebsd()
-        check_dependencies(grdir)
-    end
+    (Sys.islinux() || Sys.isfreebsd()) && check_dependencies(grdir)
 
     @info "grdir" grdir
     return grdir
