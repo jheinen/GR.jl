@@ -99,6 +99,7 @@ module GRPreferences
         end
         :depot in override && override_depot(grdir)
         :project in override && override_project(grdir; force)
+        __init__()
         @info "Please restart Julia to change the GR binary configuration."
     end
 
@@ -126,6 +127,7 @@ module GRPreferences
         end
         unoverride_depot()
         unoverride_project(; force)
+        __init__()
         @info "Please restart Julia to change the GR binary configuration."
     end
 
@@ -256,7 +258,7 @@ module GRPreferences
         @info "GRDIR Environment Variable" get(ENV, "GRDIR", missing)
         @info "GR Preferences" binary grdir
         isnothing(resolved_grdir) ||
-            @info "resolved_grdir" isdir(resolved_grdir) isdir.(joinpath.((resolved_grdir,), ("bin", "lib", "include", "fonts")))
+            @info "resolved_grdir" resolved_dir isdir(resolved_grdir) isdir.(joinpath.((resolved_grdir,), ("bin", "lib", "include", "fonts")))
         @info "GR_jll Preferences" libGR_path libGR3_path libGRM_path libGKS_path gksqt_path
         @info "GR_jll Override.toml" override_toml_path isfile(override_toml_path) gr_jll_override_dict
 
