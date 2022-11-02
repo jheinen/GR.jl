@@ -195,13 +195,8 @@ module GRPreferences
     Override individual GR_jll artifacts in the (Local)Preferences.toml of the project.
     """
     function override_project(grdir = grdir[]; force = false)
-        mod = if isdefined(@__MODULE__, :GR_jll)
-            GR_jll
-        else
-            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9")
-        end
         set_preferences!(
-            GR_jll,
+            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9"), # GR_jll
             "libGR_path" => lib_path(grdir, "libGR"),
             "libGR3_path" => lib_path(grdir, "libGR3"),
             "libGRM_path" => lib_path(grdir, "libGRM"),
@@ -217,13 +212,8 @@ module GRPreferences
     Remove overrides for GR_jll artifacts in the (Local)Preferences.toml of the project.
     """
     function unoverride_project(; force = false)
-        mod = if isdefined(@__MODULE__, :GR_jll)
-            GR_jll
-        else
-            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9")
-        end
         delete_preferences!(
-            GR_jll,
+            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9"), # GR_jll
             "libGR_path",
             "libGR3_path",
             "libGRM_path",
