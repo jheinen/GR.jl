@@ -298,7 +298,7 @@ end
 Download tarball from https://github.com/sciapp/gr/releases and extract the
 tarball into install_dir. 
 """
-function download(install_dir = get_default_install_dir())
+function download(install_dir = get_default_install_dir(); force = false)
 
     # Save the current directory so we can change back to it later
     current_dir = pwd()
@@ -309,8 +309,13 @@ function download(install_dir = get_default_install_dir())
     # Ensure the working directory exists
     mkpath(install_dir)
 
-    # Check for an existing installation
-    grdir = get_grdir()
+    if force
+        # Download regardless if an existing installation exists
+        grdir = nothing
+    else
+        # Check for an existing installation
+        grdir = get_grdir()
+    end
 
     # We did not find an existing installation
     if isnothing(grdir)
@@ -327,7 +332,9 @@ function download(install_dir = get_default_install_dir())
             file = download_tarball(version, os, arch, downloads_dir)
 
             # Extract the tarball
-            rm(destination_dir; force=true, recursive=true)
+            if isdir(destination_dir) || force
+                rm(destination_dir; force=force, recursive=true)
+            end
             mktempdir() do extract_dir
                 Tar.extract(`$(p7zip_jll.p7zip()) x $file -so`, extract_dir)
                 mv(joinpath(extract_dir, "gr"), destination_dir)

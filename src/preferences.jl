@@ -140,7 +140,7 @@ module GRPreferences
     See `use_system_binary` for details.
     """
     function use_upstream_binary(args...; export_prefs = false, force = false, override = :depot)
-        grdir = Downloader.download(args...)
+        grdir = Downloader.download(args...; force)
         use_system_binary(grdir; export_prefs, force, override)
     end
 
