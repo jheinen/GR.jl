@@ -288,13 +288,14 @@ tarball into install_dir.
 """
 function download(install_dir = get_default_install_dir(); force = false)
 
-    # Save the current directory so we can change back to it later
-    current_dir = pwd()
-    
+    # If the install_dir path ends in gr, then install in the parent dir
+    # Use a trailing slash if you really want the install in gr/gr
+    basename(install_dir) == "gr" && (install_dir = dirname(install_dir))
+
     # Configure directories
     destination_dir = joinpath(install_dir, "gr")
 
-    # Ensure the working directory exists
+    # Ensure the install directory exists
     mkpath(install_dir)
 
     grdir = if force
