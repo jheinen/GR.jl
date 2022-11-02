@@ -5,7 +5,12 @@ module GRPreferences
     try
         import GR_jll
     catch err
-        @debug "import GR_jll failed" err
+        @debug """
+        import GR_jll failed.
+        Consider using `GR.GRPreferences.use_jll_binary()` or
+        `GR.GRPreferences.use_upstream_binary()` to repair.
+        Importing GR a second time will allow use of these functions.
+        """
     end
     include("downloader.jl")
 
