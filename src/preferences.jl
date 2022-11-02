@@ -223,4 +223,53 @@ module GRPreferences
             force
         )
     end
+
+    """
+        diagnostics()
+
+    Output diagnostics about preferences and overrides for GR and GR_jll.
+    """
+    function diagnostics()
+        # GR Preferences
+        binary = @load_preference("binary")
+        grdir = @load_preference("grdir")
+
+        # GR_jll Preferences
+        GR_jll_uuid = Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9")
+        libGR_path = load_preference(GR_jll_uuid, "libGR_path")
+        libGR3_path = load_preference(GR_jll_uuid, "libGR3_path")
+        libGRM_path = load_preference(GR_jll_uuid, "libGRM_path")
+        libGKS_path = load_preference(GR_jll_uuid, "libGKS_path")
+        gksqt_path = load_preference(GR_jll_uuid, "gksqt_path")
+
+        # Override.toml in DEPOT_PATH
+        override_toml_path = get_override_toml_path()
+        override_dict = if isfile(override_toml_path)
+            TOML.parsefile(override_toml_path)
+        else
+            Dict{String,Any}()
+        end
+        gr_jll_override_dict = get(override_dict, string(GR_jll_uuid), Dict{String,Any}())
+        resolved_grdir = haskey(ENV, "GRDIR") ? ENV["GRDIR"] : grdir
+
+        # Output
+        @info "GRDIR Environment Variable" get(ENV, "GRDIR", missing)
+        @info "GR Preferences" binary grdir
+        isnothing(resolved_grdir) ||
+            @info "resolved_grdir" isdir(resolved_grdir) isdir.(joinpath.((resolved_grdir,), ("bin", "lib", "include", "fonts")))
+        @info "GR_jll Preferences" libGR_path libGR3_path libGRM_path libGKS_path gksqt_path
+        @info "GR_jll Override.toml" override_toml_path isfile(override_toml_path) gr_jll_override_dict
+
+        if(isdefined(@__MODULE__, :GR_jll))
+            @info "GR_jll" GR_jll.libGR_path GR_jll.libGR3_path GR_jll.libGRM_path GR_jll.libGKS_path GR_jll.gksqt_path
+        else
+            @info "GR_jll is not loaded"
+        end
+
+        return (;
+                binary, grdir,
+                libGR_path, libGR3_path, libGRM_path, libGKS_path, gksqt_path,
+                override_toml_path, gr_jll_override_dict
+        )
+    end
 end
