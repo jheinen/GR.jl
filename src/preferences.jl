@@ -97,12 +97,8 @@ module GRPreferences
         if override isa Symbol
             override = (override,)
         end
-        if :depot in override
-            override_depot(grdir)
-        end
-        if :project in override
-            override_project(grdir; force)
-        end
+        :depot in override && override_depot(grdir)
+        :project in override && override_project(grdir; force)
         @info "Please restart Julia to change the GR binary configuration."
     end
 

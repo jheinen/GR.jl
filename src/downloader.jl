@@ -200,12 +200,10 @@ function check_dependencies(grdir::String)
         gksqt = joinpath(grdir, "bin", "gksqt")
         res = read(`ldd $gksqt`, String)
         if occursin("not found", res)
-            @warn(
-                "Missing dependencies for GKS QtTerm. Did you install the Qt5 run-time?"
-            )
-            @warn(
-                "Please refer to https://gr-framework.org/julia.html for further information."
-            )
+            @warn """
+            Missing dependencies for GKS QtTerm. Did you install the Qt5 run-time ?
+            Please refer to https://gr-framework.org/julia.html for further information.
+            """
         end
     catch
         # Fail silently
@@ -223,13 +221,13 @@ function apple_install(grdir::String)
         `/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f $app`,
     )
     try
-        @static if VERSION >= v"1.4.0-DEV.265"
-            have_qml = haskey(
+        have_qml = @static if VERSION >= v"1.4.0-DEV.265"
+            haskey(
                 Pkg.dependencies(),
                 UUID("2db162a6-7e43-52c3-8d84-290c1c42d82a"),
             )
         else
-            have_qml = haskey(Pkg.API.installed(), "QML")
+            haskey(Pkg.API.installed(), "QML")
         end
         # Set rpath of gr/lib/qt5plugin.so to that of QML
         if have_qml
@@ -255,9 +253,8 @@ Return the default install directory where we have write permissions.
 Currently, this is the deps directory of the GR package:
 `joinpath(pathof(GR), "..", "deps")`
 """
-function get_default_install_dir()
-    return abspath(joinpath(@__DIR__, "..", "deps"))
-end
+get_default_install_dir() =
+    abspath(joinpath(@__DIR__, "..", "deps"))
 
 """
     download_tarball(version, os, arch, downloads_dir = mktempdir())
@@ -270,19 +267,19 @@ function download_tarball(version, os, arch, downloads_dir = mktempdir())
 
     @info("Downloading pre-compiled GR $version $os binary", file)
     # Download versioned tarballs from Github
-    if version != "latest"
-        ok = try_download(
+    ok = if version != "latest"
+        try_download(
             "https://github.com/sciapp/gr/releases/download/v$version/$tarball",
             file,
         )
     else
-        ok = false
+        false
     end
 
     # Download latest tarball from gr-framework.org
     if !ok
         if !try_download("https://gr-framework.org/downloads/$tarball", file)
-            @warn("Using insecure connection")
+            @warn "Using insecure connection"
             if !try_download("http://gr-framework.org/downloads/$tarball", file)
                 error("Cannot download GR run-time")
             end
@@ -309,12 +306,12 @@ function download(install_dir = get_default_install_dir(); force = false)
     # Ensure the working directory exists
     mkpath(install_dir)
 
-    if force
+    grdir = if force
         # Download regardless if an existing installation exists
-        grdir = nothing
+        nothing
     else
         # Check for an existing installation
-        grdir = get_grdir()
+        get_grdir()
     end
 
     # We did not find an existing installation
