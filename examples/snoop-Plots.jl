@@ -12,7 +12,7 @@ x = LinRange(0, 1, 51)
 y = x .- x.^2
 GR.scatter(x, y)
 
-sz = LinRange(50, 300, length(x))
+sz = LinRange(0.5, 3, length(x))
 c = LinRange(0, 255, length(x))
 GR.scatter(x, y, sz, c)
 
