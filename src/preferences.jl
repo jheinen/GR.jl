@@ -76,13 +76,19 @@ module GRPreferences
     * (:depot, :project), Overide GR_jll in both the depot and the project
     """
     function use_system_binary(grdir; export_prefs = false, force = false, override = :depot)
-        set_preferences!(
-            GRPreferences,
-            "binary" => "system",
-            "grdir" => grdir,
-            export_prefs = export_prefs,
-            force = force
-        )
+        try
+            set_preferences!(
+                GRPreferences,
+                "binary" => "system",
+                "grdir" => grdir,
+                export_prefs = export_prefs,
+                force = force
+            )
+        catch err
+            if err isa ArgumentError
+                throw(ArgumentError("Could not set GR system binary preference. Consider using the `force = true` keyword argument."))
+            end
+        end
         if override isa Symbol
             override = (override,)
         end
@@ -104,13 +110,19 @@ module GRPreferences
     See `Preferences.set_preferences!` for the `export_prefs` and `force` keywords.
     """
     function use_jll_binary(; export_prefs = false, force = false)
-        set_preferences!(
-            GRPreferences,
-            "binary" => "GR_jll",
-            "grdir" => nothing,
-            export_prefs = export_prefs,
-            force = force
-        )
+        try
+            set_preferences!(
+                GRPreferences,
+                "binary" => "GR_jll",
+                "grdir" => nothing,
+                export_prefs = export_prefs,
+                force = force
+            )
+        catch err
+            if err isa ArgumentError
+                throw(ArgumentError("Could not set GR jll binary preference. Consider using the `force = true` keyword argument."))
+            end
+        end
         unoverride_depot()
         unoverride_project(; force)
         @info "Please restart Julia to change the GR binary configuration."
