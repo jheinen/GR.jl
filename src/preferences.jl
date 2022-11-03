@@ -157,12 +157,12 @@ module GRPreferences
     end
 
     """
-        get_override_toml_path()
+        get_overrides_toml_path()
 
     Get the path the depot's Overrides.toml
     """
-    function get_override_toml_path()
-        override_toml_path = joinpath(Artifacts.artifacts_dirs()[1], "Overrides.toml")
+    function get_overrides_toml_path()
+        overrides_toml_path = joinpath(Artifacts.artifacts_dirs()[1], "Overrides.toml")
     end
 
     """
@@ -171,14 +171,14 @@ module GRPreferences
     Override GR_jll in the DEPOT_PATH[1]/artifacts/Overrides.toml with `grdir`.
     """
     function override_depot(grdir = grdir[])
-        override_toml_path = get_override_toml_path()
-        override_dict = if isfile(override_toml_path)
-            TOML.parsefile(override_toml_path)
+        overrides_toml_path = get_overrides_toml_path()
+        override_dict = if isfile(overrides_toml_path)
+            TOML.parsefile(overrides_toml_path)
         else
             Dict{String,Any}()
         end
         override_dict["d2c73de3-f751-5644-a686-071e5b155ba9"] = Dict("GR" => grdir)
-        open(override_toml_path, "w") do io
+        open(overrides_toml_path, "w") do io
             TOML.print(io, override_dict)
         end
     end
@@ -189,14 +189,14 @@ module GRPreferences
     Remove the override for GR_jll in DEPOT_PATH[1]/artifats/Overrides.toml
     """
     function unoverride_depot()
-        override_toml_path = get_override_toml_path()
-        override_dict = if isfile(override_toml_path)
-            TOML.parsefile(override_toml_path)
+        overrides_toml_path = get_overrides_toml_path()
+        override_dict = if isfile(overrides_toml_path)
+            TOML.parsefile(overrides_toml_path)
         else
             Dict{String,Any}()
         end
         delete!(override_dict, "d2c73de3-f751-5644-a686-071e5b155ba9")
-        open(override_toml_path, "w") do io
+        open(overrides_toml_path, "w") do io
             TOML.print(io, override_dict)
         end
     end
@@ -254,9 +254,9 @@ module GRPreferences
         gksqt_path = load_preference(GR_jll_uuid, "gksqt_path")
 
         # Override.toml in DEPOT_PATH
-        override_toml_path = get_override_toml_path()
-        override_dict = if isfile(override_toml_path)
-            TOML.parsefile(override_toml_path)
+        overrides_toml_path = get_overrides_toml_path()
+        override_dict = if isfile(overrides_toml_path)
+            TOML.parsefile(overrides_toml_path)
         else
             Dict{String,Any}()
         end
@@ -269,7 +269,7 @@ module GRPreferences
         isnothing(resolved_grdir) ||
             @info "resolved_grdir" resolved_grdir isdir(resolved_grdir) isdir.(joinpath.((resolved_grdir,), ("bin", "lib", "include", "fonts")))
         @info "GR_jll Preferences" libGR_path libGR3_path libGRM_path libGKS_path gksqt_path
-        @info "GR_jll Override.toml" override_toml_path isfile(override_toml_path) get(gr_jll_override_dict, "GR", nothing)
+        @info "GR_jll Overrides.toml" overrides_toml_path isfile(overrides_toml_path) get(gr_jll_override_dict, "GR", nothing)
 
         if(isdefined(@__MODULE__, :GR_jll))
             @info "GR_jll" GR_jll.libGR_path GR_jll.libGR3_path GR_jll.libGRM_path GR_jll.libGKS_path GR_jll.gksqt_path
@@ -280,7 +280,7 @@ module GRPreferences
         return (;
                 binary, grdir,
                 libGR_path, libGR3_path, libGRM_path, libGKS_path, gksqt_path,
-                override_toml_path, gr_jll_override_dict
+                overrides_toml_path, gr_jll_override_dict
         )
     end
 end
