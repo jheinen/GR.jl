@@ -258,7 +258,7 @@ module GRPreferences
         @info "GRDIR Environment Variable" get(ENV, "GRDIR", missing)
         @info "GR Preferences" binary grdir
         isnothing(resolved_grdir) ||
-            @info "resolved_grdir" resolved_dir isdir(resolved_grdir) isdir.(joinpath.((resolved_grdir,), ("bin", "lib", "include", "fonts")))
+            @info "resolved_grdir" resolved_grdir isdir(resolved_grdir) isdir.(joinpath.((resolved_grdir,), ("bin", "lib", "include", "fonts")))
         @info "GR_jll Preferences" libGR_path libGR3_path libGRM_path libGKS_path gksqt_path
         @info "GR_jll Override.toml" override_toml_path isfile(override_toml_path) gr_jll_override_dict
 
