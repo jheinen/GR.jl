@@ -269,7 +269,7 @@ module GRPreferences
         isnothing(resolved_grdir) ||
             @info "resolved_grdir" resolved_grdir isdir(resolved_grdir) isdir.(joinpath.((resolved_grdir,), ("bin", "lib", "include", "fonts")))
         @info "GR_jll Preferences" libGR_path libGR3_path libGRM_path libGKS_path gksqt_path
-        @info "GR_jll Override.toml" override_toml_path isfile(override_toml_path) gr_jll_override_dict
+        @info "GR_jll Override.toml" override_toml_path isfile(override_toml_path) get(gr_jll_override_dict, "GR", nothing)
 
         if(isdefined(@__MODULE__, :GR_jll))
             @info "GR_jll" GR_jll.libGR_path GR_jll.libGR3_path GR_jll.libGRM_path GR_jll.libGKS_path GR_jll.gksqt_path
