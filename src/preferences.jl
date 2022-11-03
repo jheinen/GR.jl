@@ -63,7 +63,7 @@ module GRPreferences
             libGR3[]  = lib_path(grdir[], "libGR3")
             libGRM[]  = lib_path(grdir[], "libGRM")
             libGKS[]  = lib_path(grdir[], "libGKS")
-            libpath[] = joinpath(grdir[], "lib")
+            libpath[] = lib_path(grdir[], "")
         else
             error("Unknown GR binary: $binary")
         end
