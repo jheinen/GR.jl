@@ -255,3 +255,12 @@ end
 @timev basic_tests("single-page PDF files", fig="pdf")
 @timev basic_tests("SVG output", fig="svg")
 @timev basic_tests("PNG images", fig="png")
+
+GR.GRPreferences.download(pwd(); force = true)
+GR.GRPreferences.download(joinpath(pwd(), "gr"); force = true)
+readdir("gr") .|> println
+GR.GRPreferences.download(; force = true)
+GR.GRPreferences.use_upstream_binary(; force = true)
+GR.GRPreferences.diagnostics()
+GR.GRPreferences.use_jll_binary(; force = true)
+GR.GRPreferences.diagnostics()
