@@ -80,3 +80,43 @@ However, if you want to permanently use your own GR run-time, you have to set th
 
 Please note that with the method shown here, `GR_jll` is not imported.
 
+### Switching binaries via GR.GRPreferences
+
+To aid in switching between BinaryBuilder and upstream framework binaries, the `GR.GRPReferences` module implements three methods `use_system_binary()`, `use_upstream_binary()`, and `use_jll_binary()`. These use [Preferences.jl](https://github.com/JuliaPackaging/Preferences.jl) to configure GR.jl
+and GR_jll.jl.
+
+To use an existing GR install, invoke `use_system_binary`.
+
+```julia
+using GR
+GR.GRPreferences.use_system_binary("/path/to/gr"; force = true)
+```
+
+To download and switch to [upstream binaries](https://github.com/sciapp/gr/releases) invoke `use_upstream_binary`.
+
+```julia
+using GR # repeat this if there is an error
+GR.GRPreferences.use_upstream_binary(; force = true)
+```
+
+`use_system_binary` and `use_upstream_binary` accept an `override` keyword. This may be set to one of the following:
+* `:depot` (default) - Use Overrides.toml in the Julia depot. This normally resides in `.julia/artifacts/Overrides.toml`
+* `:project` - Use LocalPreferences.toml. This is usually located near the Project.toml of your active project environment.
+* `(:depot, :project)` - Use both of the override mechanisms above.
+
+To switch back to BinaryBuilder binaries supplied with [GR_jll](https://github.com/JuliaBinaryWrappers/GR_jll.jl), invoke `use_jll_binary`:
+
+```julia
+using GR # repeat this if there is an error
+GR.GRPreferences.use_jll_binary(; force = true)
+```
+
+This will reset both the `:depot` and `:project` override mechanisms above.
+
+If you encounter difficulties switching between binaries, the `diagnostics()` function will provide useful information.
+Please include this information when asking for assistance.
+
+```julia
+using GR
+GR.GRPreferences.diagnostics()
+```
