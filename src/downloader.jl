@@ -34,8 +34,7 @@ or `nothing` if a GR install is not located in any of those locations.
 function get_grdir()
     if "GRDIR" in keys(ENV)
         grdir = ENV["GRDIR"]
-        have_dir = length(grdir) > 0
-        if have_dir
+        if (have_dir = !isempty(grdir))
             have_dir = isdir(joinpath(grdir, "fonts"))
         end
     else
