@@ -55,6 +55,15 @@ module GRPreferences
             libGR3[]  = GR_jll.libGR3
             libGRM[]  = GR_jll.libGRM
             libGKS[]  = GR_jll.libGKS
+
+            # Because GR_jll does not dlopen as of 0.69.1+1, we need to append
+            # the LIBPATH_list similar to JLLWrappers.@init_library_product
+            push!(GR_jll.LIBPATH_list, dirname(GR_jll.libGR))
+            # Recompute LIBPATH similar to JLLWrappers.@generate_init_footer
+            unique!(GR_jll.LIBPATH_list)
+            pathsep = GR_jll.JLLWrappers.pathsep
+            GR_jll.LIBPATH[] = join(vcat(GR_jll.LIBPATH_list, Base.invokelatest(GR_jll.JLLWrappers.get_julia_libpaths))::Vector{String}, pathsep)
+
             libpath[] = GR_jll.LIBPATH[]
         elseif binary == "system"
             grdir[]   = haskey(ENV, "GRDIR") ? ENV["GRDIR"] : @load_preference("grdir")
