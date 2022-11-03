@@ -34,7 +34,9 @@ function load_libs(always::Bool = false)
     libGR3_handle[] = Libdl.dlopen(GRPreferences.libGR3[])
     libGRM_handle[] = Libdl.dlopen(GRPreferences.libGRM[])
     # Fix svgplugin.dll loading issues on Windows, why?
-    Libdl.dlopen(joinpath(GRPreferences.libpath[], "svgplugin"))
+    @static if Sys.iswindows()
+        Libdl.dlopen(joinpath(dirname(GRPreferences.libGR[]), "svgplugin"))
+    end
     lp = GRPreferences.libpath[]
     if Sys.iswindows()
         ENV["PATH"] = join((lp, get(ENV, "PATH", "")), ';')
