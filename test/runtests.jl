@@ -155,13 +155,15 @@ Example("Heatmap plot", quote
 end),
 
 Example("Image plot", quote
+    x = LinRange(-2, 2, 40)
+    y = LinRange(0, pi, 20)
+    z = sin.(x') .+ cos.(y)
     imshow(z)
 end),
 
 Example("Isosurface plot", quote
     s = LinRange(-1, 1, 40)
-    x, y, z = meshgrid(s, s, s)
-    v = 1 .- (x .^ 2 .+ y .^ 2 .+ z .^ 2) .^ 0.5
+    v = 1 .- (s .^ 2 .+ (s .^ 2)' .+ reshape(s,1,1,:) .^ 2) .^ 0.5
     isosurface(v, isovalue=0.2)
 end),
 
