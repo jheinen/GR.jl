@@ -213,6 +213,9 @@ function basic_tests(title; wstype="nul", fig="")
         file_path = tempname() * '.' * wstype
         ENV["GKS_WSTYPE"] = wstype
         ENV["GKS_FILEPATH"] = file_path
+    elseif fig == ""
+        delete!(ENV, "GKS_WSTYPE")
+        delete!(ENV, "GKS_FILEPATH")
     end
     ENV["GR3_USE_SR"] = "true"
 
