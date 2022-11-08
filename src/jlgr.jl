@@ -1046,7 +1046,7 @@ function plot_iso(V, plt=plt[])
     else
         color = (0.0, 0.5, 0.8)
     end
-    GR.setspace3d(-rotation, tilt, 30, 0)
+    GR.setspace3d(-rotation, tilt, 45, 2.5)
     GR.gr3.isosurface(V, isovalue, color)
 end
 
