@@ -369,6 +369,17 @@ function surface(px, py, pz, option::Int)
   end
 end
 
+function isosurface(data::Array{Float64,3}, iso::Float64, color)
+  _data = [ Float32(value) for value in data ]
+  nx, ny, nz = size(data)
+  _color = [ Float32(value) for value in color ]
+  ccall(GR.libGR3_ptr(:gr3_isosurface),
+        Nothing,
+        (Int32, Int32, Int32, Ptr{Float32}, Float32, Ptr{Float32}, Ptr{Int32}),
+        nx, ny, nz, @ArrayToVector(Float32, _data), Float32(iso), @ArrayToVector(Float32, _color), C_NULL)
+  _check_error()
+end
+
 function volume(data::Array{Float64,3}, algorithm::Int64)
   dmin = Cdouble[-1]
   dmax = Cdouble[-1]

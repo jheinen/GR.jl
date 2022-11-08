@@ -27,6 +27,7 @@
 :gr3_setbackgroundcolor
 :gr3_createisosurfacemesh
 :gr3_surface
+:gr3_isosurface
 :gr_volume
 :gr3_createxslicemesh
 :gr3_createyslicemesh

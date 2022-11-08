@@ -64,8 +64,6 @@ signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
 
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
-const gr3 = GR.gr3
-
 const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale]
 
 const colors = [
@@ -1039,47 +1037,17 @@ function plot_img(I, plt=plt[])
 end
 
 function plot_iso(V, plt=plt[])
-    viewport = plt.kvs[:viewport]
-
-    if viewport[4] - viewport[3] < viewport[2] - viewport[1]
-        width = viewport[4] - viewport[3]
-        centerx = 0.5 * (viewport[1] + viewport[2])
-        xmin = max(centerx - 0.5 * width, viewport[1])
-        xmax = min(centerx + 0.5 * width, viewport[2])
-        ymin = viewport[3]
-        ymax = viewport[4]
-    else
-        height = viewport[2] - viewport[1]
-        centery = 0.5 * (viewport[3] + viewport[4])
-        xmin = viewport[1]
-        xmax = viewport[2]
-        ymin = max(centery - 0.5 * height, viewport[3])
-        ymax = min(centery + 0.5 * height, viewport[4])
-    end
-
-    GR.selntran(0)
-    values = round.(UInt16, (V .- _min(V)) ./ (_max(V) .- _min(V)) .* (2^16-1))
     nx, ny, nz = size(V)
-    isovalue = (get(plt.kvs, :isovalue, 0.5) - _min(V)) / (_max(V) - _min(V))
-    rotation = get(plt.kvs, :rotation, 40) * π / 180.0
-    tilt = get(plt.kvs, :tilt, 60) * π / 180.0
-    r = 2.5
-    gr3.clear()
-    mesh = gr3.createisosurfacemesh(values, (2/(nx-1), 2/(ny-1), 2/(nz-1)),
-                                    (-1., -1., -1.),
-                                    round(Int64, isovalue * (2^16-1)))
+    isovalue = get(plt.kvs, :isovalue, 0.5)
+    rotation = get(plt.kvs, :rotation, 40)
+    tilt = get(plt.kvs, :tilt, 60)
     if haskey(plt.kvs, :color)
         color = plt.kvs[:color]
     else
         color = (0.0, 0.5, 0.8)
     end
-    gr3.setbackgroundcolor(1, 1, 1, 0)
-    gr3.drawmesh(mesh, 1, (0, 0, 0), (0, 0, 1), (0, 1, 0), color, (1, 1, 1))
-    gr3.cameralookat(r*sin(tilt)*sin(rotation), r*cos(tilt), r*sin(tilt)*cos(rotation), 0, 0, 0, 0, 1, 0)
-    gr3.setcameraprojectionparameters(45, 1, 200)
-    gr3.drawimage(xmin, xmax, ymin, ymax, 500, 500, gr3.DRAWABLE_GKS)
-    gr3.deletemesh(mesh)
-    GR.selntran(1)
+    GR.setspace3d(-rotation, tilt, 30, 0)
+    GR.gr3.isosurface(V, isovalue, color)
 end
 
 function plot_polar(θ, ρ, plt=plt[])
@@ -1449,7 +1417,7 @@ function plot_data(flag=true, plt=plt[])
                 end
             end
             if get(plt.kvs, :accelerate, true)
-                gr3.clear()
+                GR.gr3.clear()
                 GR.gr3.surface(x, y, z, option)
             else
                 GR.surface(x, y, z, option)
@@ -1458,7 +1426,7 @@ function plot_data(flag=true, plt=plt[])
             colorbar(0.05)
         elseif kind === :volume
             algorithm = get(plt.kvs, :algorithm, 0)
-            gr3.clear()
+            GR.gr3.clear()
             dmin, dmax = GR.gr3.volume(c, algorithm)
             draw_axes(kind, 2)
             plt.kvs[:zrange] = dmin, dmax
