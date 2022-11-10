@@ -1,7 +1,7 @@
 name = "GR"
 uuid = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
 author = ["Josef Heinen (@jheinen)"]
-version = "0.69.5"
+version = "0.70.0"
 
 [deps]
 Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -28,5 +28,5 @@ p7zip_jll = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 HTTP = "0.8, 0.9, 1"
 JSON = "0.20, 0.21, 1"
 Preferences = "1"
-GR_jll = "0.69.1"
+GR_jll = "=0.70.0"
 julia = "1.6"
