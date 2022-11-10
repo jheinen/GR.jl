@@ -35,9 +35,22 @@ function load_libs(always::Bool = false)
     libGRM_handle[] = Libdl.dlopen(GRPreferences.libGRM[])
     lp = GRPreferences.libpath[]
     if Sys.iswindows()
-        ENV["PATH"] = join((lp, get(ENV, "PATH", "")), ';')
-        @debug "`windows`: set library search path to" ENV["PATH"]
+        try
+            # Use Win32 lib loader API
+            # https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-adddlldirectory
+            for d in split(lp, ";")
+                isempty(d) || @ccall "kernel32".AddDllDirectory(push!(transcode(UInt16, String(d)),0x0000)::Ptr{UInt16})::Ptr{Nothing}
+                @debug "`windows`: AddDllDirectory($d)"
+            end
+            # 0x400 is LOAD_LIBRARY_SEARCH_USER_DIRS
+            @ccall kernel32.SetDefaultDllDirectories(0x00000400::UInt32)::Bool
+        catch err
+            # Set PATH as a fallback option
+            ENV["PATH"] = join((lp, get(ENV, "PATH", "")), ';')
+            @debug "`windows`: set library search path to" ENV["PATH"]
+        end
     elseif Sys.isapple()
+        # Might not be needed if ENV["GRDIR"] is set
         ENV["DYLD_FALLBACK_LIBRARY_PATH"] = join((lp, get(ENV, "DYLD_FALLBACK_LIBRARY_PATH", "")), ':')
         @debug "`macOS`: set fallback library search path to" ENV["DYLD_FALLBACK_LIBRARY_PATH"]
     end
