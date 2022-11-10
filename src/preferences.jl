@@ -47,9 +47,12 @@ module GRPreferences
         gksqt_path(joinpath(@__DIR__, "..", "deps", "gr"))
 
     function __init__()
-        binary = @load_preference("binary", haskey(ENV, "GRDIR") ? "system" : "GR_jll")
+        gr_jll_artifact_dir = GR_jll.find_artifact_dir()
+        default_binary = haskey(ENV, "GRDIR") &&
+            ENV["GRDIR"] != gr_jll_artifact_dir ? "system" : "GR_jll"
+        binary = @load_preference("binary", default_binary)
         if binary == "GR_jll"
-            grdir[]   = GR_jll.find_artifact_dir()
+            grdir[]   = gr_jll_artifact_dir
             gksqt[]   = GR_jll.gksqt_path
             libGR[]   = GR_jll.libGR
             libGR3[]  = GR_jll.libGR3
@@ -65,6 +68,7 @@ module GRPreferences
             GR_jll.LIBPATH[] = join(vcat(GR_jll.LIBPATH_list, Base.invokelatest(GR_jll.JLLWrappers.get_julia_libpaths))::Vector{String}, pathsep)
 
             libpath[] = GR_jll.LIBPATH[]
+            ENV["GRDIR"] = grdir[]
         elseif binary == "system"
             grdir[]   = haskey(ENV, "GRDIR") ? ENV["GRDIR"] : @load_preference("grdir")
             gksqt[]   = gksqt_path(grdir[])
@@ -73,6 +77,7 @@ module GRPreferences
             libGRM[]  = lib_path(grdir[], "libGRM")
             libGKS[]  = lib_path(grdir[], "libGKS")
             libpath[] = lib_path(grdir[], "")
+            ENV["GRDIR"] = grdir[]
         else
             error("Unknown GR binary: $binary")
         end
