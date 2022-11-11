@@ -47,10 +47,11 @@ function load_libs(always::Bool = false)
                 end
                 @debug "`windows`: AddDllDirectory($d)"
             end
-            # 0x400 is LOAD_LIBRARY_SEARCH_USER_DIRS
-            status = @ccall "kernel32".SetDefaultDllDirectories(0x00000400::UInt32)::Bool
+            # 0x0400 is LOAD_LIBRARY_SEARCH_USER_DIRS
+            # 0x1000 is LOAD_LIBRARY_SEARCH_DEFAULT_DIRS (application, system, user dirs)
+            status = @ccall "kernel32".SetDefaultDllDirectories(0x00001000::UInt32)::Bool
             if status == 0
-                error("`windows`: Could not run kernel32.SetDefaultDllDirectories(0x400)")
+                error("`windows`: Could not run kernel32.SetDefaultDllDirectories(0x1000)")
             end
         catch err
             @debug "`windows`: Could not use Win32 lib loader API. Using PATH environment variable instead." exception=(err, catch_backtrace())
