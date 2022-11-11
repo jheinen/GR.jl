@@ -24,6 +24,11 @@ const libGR3_ptrs = LibGR3_Ptrs()
 
 const libs_loaded = Ref(false)
 
+@static if Sys.iswindows()
+    # See AddDllDirectory
+    const dll_directory_cookies = Ptr{Nothing}[]
+end
+
 """
     load_libs(always = false)
     Load shared GR libraries from either GR_jll or from GR tarball.
@@ -44,6 +49,7 @@ function load_libs(always::Bool = false)
                     if cookie == C_NULL
                         error("`windows`: Could not run kernel32.AddDllDirectory(\"$d\")")
                     end
+                    push!(dll_directory_cookies, cookie)
                 end
                 @debug "`windows`: AddDllDirectory($d)"
             end
