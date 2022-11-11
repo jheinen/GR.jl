@@ -175,6 +175,7 @@ Try to download url to file. Return `true` if successful, or `false` otherwise.
 """
 function try_download(url, file)
     try
+        @debug "Downloading" url file
         Base.download(url, file)
         true
     catch err
@@ -324,7 +325,7 @@ function download(install_dir = get_default_install_dir(); force = false)
                 rm(destination_dir; force=force, recursive=true)
             end
             mktempdir() do extract_dir
-                Tar.extract(`$(p7zip_jll.p7zip()) x $file -so`, extract_dir)
+                Tar.extract(`$(p7zip_jll.p7zip()) x $file -so`, extract_dir; set_permissions = !Sys.iswindows())
                 mv(joinpath(extract_dir, "gr"), destination_dir)
             end
             rm(file)
