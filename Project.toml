@@ -1,7 +1,7 @@
 name = "GR"
 uuid = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
 author = ["Josef Heinen (@jheinen)"]
-version = "0.70.0"
+version = "0.70.1"
 
 [deps]
 Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
