@@ -48,7 +48,8 @@ function load_libs(always::Bool = false)
                 @debug "`windows`: AddDllDirectory($d)"
             end
             # 0x400 is LOAD_LIBRARY_SEARCH_USER_DIRS
-            status = @ccall "kernel32".SetDefaultDllDirectories(0x00000400::UInt32)::Bool
+            #status = @ccall "kernel32".SetDefaultDllDirectories(0x00000400::UInt32)::Bool
+            status = 0 # For debugging, remove line and uncomment the above line
             if status == 0
                 error("`windows`: Could not run kernel32.SetDefaultDllDirectories(0x400)")
             end
