@@ -8,6 +8,7 @@ module Downloader
 using Pkg
 using UUIDs
 using Tar
+using Downloads
 using p7zip_jll
 
 const version = v"0.70.0"
@@ -175,8 +176,7 @@ Try to download url to file. Return `true` if successful, or `false` otherwise.
 """
 function try_download(url, file)
     try
-        @debug "Downloading" url file
-        Base.download(url, file)
+        Downloads.download(url, file)
         true
     catch err
         rethrow()
