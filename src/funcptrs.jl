@@ -34,17 +34,26 @@ function load_libs(always::Bool = false)
     libGR3_handle[] = Libdl.dlopen(GRPreferences.libGR3[])
     libGRM_handle[] = Libdl.dlopen(GRPreferences.libGRM[])
     lp = GRPreferences.libpath[]
-    if Sys.iswindows()
+    @static if Sys.iswindows()
         try
             # Use Win32 lib loader API
             # https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-adddlldirectory
             for d in split(lp, ";")
-                isempty(d) || @ccall "kernel32".AddDllDirectory(push!(transcode(UInt16, String(d)),0x0000)::Ptr{UInt16})::Ptr{Nothing}
+                if !isempty(d)
+                    cookie = @ccall "kernel32".AddDllDirectory(push!(transcode(UInt16, String(d)),0x0000)::Ptr{UInt16})::Ptr{Nothing}
+                    if cookie == C_NULL
+                        error("`windows`: Could not run kernel32.AddDllDirectory(\"$d\")")
+                    end
+                end
                 @debug "`windows`: AddDllDirectory($d)"
             end
             # 0x400 is LOAD_LIBRARY_SEARCH_USER_DIRS
-            @ccall "kernel32".SetDefaultDllDirectories(0x00000400::UInt32)::Bool
+            status = @ccall "kernel32".SetDefaultDllDirectories(0x00000400::UInt32)::Bool
+            if status == 0
+                error("`windows`: Could not run kernel32.SetDefaultDllDirectories(0x400)")
+            end
         catch err
+            @debug "`windows`: Could not use Win32 lib loader API. Using PATH environment variable instead." exception=(err, catch_backtrace())
             # Set PATH as a fallback option
             ENV["PATH"] = join((lp, get(ENV, "PATH", "")), ';')
             @debug "`windows`: set library search path to" ENV["PATH"]
