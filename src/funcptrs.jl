@@ -43,7 +43,7 @@ function load_libs(always::Bool = false)
                 @debug "`windows`: AddDllDirectory($d)"
             end
             # 0x400 is LOAD_LIBRARY_SEARCH_USER_DIRS
-            @ccall kernel32.SetDefaultDllDirectories(0x00000400::UInt32)::Bool
+            @ccall "kernel32".SetDefaultDllDirectories(0x00000400::UInt32)::Bool
         catch err
             # Set PATH as a fallback option
             ENV["PATH"] = join((lp, get(ENV, "PATH", "")), ';')
