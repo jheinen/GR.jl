@@ -325,7 +325,12 @@ function download(install_dir = get_default_install_dir(); force = false)
                 rm(destination_dir; force=force, recursive=true)
             end
             mktempdir() do extract_dir
-                Tar.extract(`$(p7zip_jll.p7zip()) x $file -so`, extract_dir; set_permissions = !Sys.iswindows())
+                @static if VERSION >= v"1.7"
+                    kwargs = (; set_permissions = !Sys.iswindows())
+                else
+                    kwargs = (;)
+                end
+                Tar.extract(`$(p7zip_jll.p7zip()) x $file -so`, extract_dir; kwargs...)
                 mv(joinpath(extract_dir, "gr"), destination_dir)
             end
             rm(file)
