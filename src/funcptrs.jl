@@ -24,6 +24,11 @@ const libGR3_ptrs = LibGR3_Ptrs()
 
 const libs_loaded = Ref(false)
 
+@static if Sys.iswindows()
+    # See AddDllDirectory
+    const dll_directory_cookies = Ptr{Nothing}[]
+end
+
 """
     load_libs(always = false)
     Load shared GR libraries from either GR_jll or from GR tarball.
@@ -44,14 +49,15 @@ function load_libs(always::Bool = false)
                     if cookie == C_NULL
                         error("`windows`: Could not run kernel32.AddDllDirectory(\"$d\")")
                     end
+                    push!(dll_directory_cookies, cookie)
                 end
                 @debug "`windows`: AddDllDirectory($d)"
             end
-            # 0x400 is LOAD_LIBRARY_SEARCH_USER_DIRS
-            #status = @ccall "kernel32".SetDefaultDllDirectories(0x00000400::UInt32)::Bool
-            status = 0 # For debugging, remove line and uncomment the above line
+            # 0x0400 is LOAD_LIBRARY_SEARCH_USER_DIRS
+            # 0x1000 is LOAD_LIBRARY_SEARCH_DEFAULT_DIRS (application, system, user dirs)
+            status = @ccall "kernel32".SetDefaultDllDirectories(0x00001000::UInt32)::Bool
             if status == 0
-                error("`windows`: Could not run kernel32.SetDefaultDllDirectories(0x400)")
+                error("`windows`: Could not run kernel32.SetDefaultDllDirectories(0x1000)")
             end
         catch err
             @debug "`windows`: Could not use Win32 lib loader API. Using PATH environment variable instead." exception=(err, catch_backtrace())
