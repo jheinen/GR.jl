@@ -4,18 +4,26 @@ LibGit2 = Pkg.GitTools.LibGit2
 TOML = Pkg.TOML
 
 Plots_jl = joinpath(mkpath(tempname()), "Plots.jl")
+Plots_toml = joinpath(Plots_jl, "Project.toml")
 
 # clone and checkout the latest stable version of Plots
 depot = joinpath(first(DEPOT_PATH), "registries", "General", "P", "Plots", "Versions.toml")
 stable = maximum(VersionNumber.(keys(TOML.parse(read(depot, String)))))
-# don't use the `https` protocol for `macOS`
-repo = Pkg.GitTools.ensure_clone(stdout, Plots_jl, "http://github.com/JuliaPlots/Plots.jl")
+for i ∈ 1:6
+    try
+        global repo = Pkg.GitTools.ensure_clone(stdout, Plots_jl, "https://github.com/JuliaPlots/Plots.jl")
+        break
+    catch err
+        @warn err
+        sleep(20i)
+    end
+end
+@assert isfile(Plots_toml) "spurious network error: clone failed, bailing out"
 tag = LibGit2.GitObject(repo, "v$stable")
 hash = string(LibGit2.target(tag))
 LibGit2.checkout!(repo, hash)
 
 # fake the supported GR version for testing (for `Pkg.develop`)
-Plots_toml = joinpath(Plots_jl, "Project.toml")
 toml = TOML.parse(read(Plots_toml, String))
 toml["compat"]["GR"] = GR.version()  
 open(Plots_toml, "w") do io
