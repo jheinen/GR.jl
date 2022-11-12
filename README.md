@@ -7,6 +7,10 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jheinen/GR.jl/master)
 [![Join the chat at https://gitter.im/jheinen/GR.jl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jheinen/GR.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+[![PkgEval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/G/GR.named.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/G/GR.html)
+[![CI](https://github.com/jheinen/GR.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/jheinen/GR.jl/actions/workflows/ci.yml)
+[![Coverage Status](https://codecov.io/gh/jheinen/GR.jl/branch/master/graphs/badge.svg?branch=master)](https://app.codecov.io/gh/jheinen/GR.jl)
+
 [![Screenshots](https://gr-framework.org/_images/screenshots.png)](https://gr-framework.org)
 
 This module provides a Julia interface to
