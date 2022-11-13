@@ -7,6 +7,10 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jheinen/GR.jl/master)
 [![Join the chat at https://gitter.im/jheinen/GR.jl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jheinen/GR.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+[![PkgEval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/G/GR.named.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/G/GR.html)
+[![CI](https://github.com/jheinen/GR.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/jheinen/GR.jl/actions/workflows/ci.yml)
+[![Coverage Status](https://codecov.io/gh/jheinen/GR.jl/branch/master/graphs/badge.svg?branch=master)](https://app.codecov.io/gh/jheinen/GR.jl)
+
 [![Screenshots](https://gr-framework.org/_images/screenshots.png)](https://gr-framework.org)
 
 This module provides a Julia interface to
@@ -17,12 +21,14 @@ visualisation applications.
 
 From the Julia REPL an up to date version can be installed with:
 
-    Pkg.add("GR")
-
+```julia
+julia> using Pkg
+julia> Pkg.add("GR")
+```
 or in the [Pkg REPL-mode](https://docs.julialang.org/en/v1/stdlib/Pkg/index.html#Getting-Started-1):
-
-    add GR
-
+```julia
+pkg> add GR
+```
 The Julia package manager will download and install a pre-compiled
 run-time (for your hardware architecture), if the GR software is not
 already installed in the recommended locations.
@@ -65,11 +71,11 @@ Besides ``GR`` and ``Plots`` there is a nice package called [GRUtils](https://gi
 
 Another alternative is the use of binaries from GR tarballs, which are provided directly by the GR developers as stand-alone distributions for selected platforms - regardless of the programming language. In this case, only one GR runtime environment is required for different language environments (Julia, Python, C/C++), whose installation path can be specified by the environment variable `GRDIR`.
 
-   ```julia
-   ENV["JULIA_DEBUG"] = "GR" # Turn on debug statements for the GR package
-   ENV["GRDIR"] = "<path of you GR installation>" # e.g. "/usr/local/gr"
-   using GR
-   ```
+```julia
+ENV["JULIA_DEBUG"] = "GR" # Turn on debug statements for the GR package
+ENV["GRDIR"] = "<path of you GR installation>" # e.g. "/usr/local/gr"
+using GR
+```
 
 For more information about setting up a local GR installation, see the [GR Framework](https://gr-framework.org) website.
 

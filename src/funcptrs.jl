@@ -43,6 +43,8 @@ function load_libs(always::Bool = false)
         try
             # Use Win32 lib loader API
             # https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-adddlldirectory
+            # To use these paths, use
+            # LoadLibraryExW with LOAD_LIBRARY_SEARCH_USER_DIRS (0x00000400)
             for d in split(lp, ";")
                 if !isempty(d)
                     cookie = @ccall "kernel32".AddDllDirectory(push!(transcode(UInt16, String(d)),0x0000)::Ptr{UInt16})::Ptr{Nothing}
@@ -52,12 +54,6 @@ function load_libs(always::Bool = false)
                     push!(dll_directory_cookies, cookie)
                 end
                 @debug "`windows`: AddDllDirectory($d)"
-            end
-            # 0x0400 is LOAD_LIBRARY_SEARCH_USER_DIRS
-            # 0x1000 is LOAD_LIBRARY_SEARCH_DEFAULT_DIRS (application, system, user dirs)
-            status = @ccall "kernel32".SetDefaultDllDirectories(0x00001000::UInt32)::Bool
-            if status == 0
-                error("`windows`: Could not run kernel32.SetDefaultDllDirectories(0x1000). $(Libc.FormatMessage())")
             end
         catch err
             @debug "`windows`: Could not use Win32 lib loader API. Using PATH environment variable instead." exception=(err, catch_backtrace())
