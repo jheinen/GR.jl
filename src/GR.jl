@@ -179,6 +179,7 @@ export
   polygonmesh3d,
   setscientificformat,
   setresizebehaviour,
+  inqprojectiontype,
   # Convenience functions
   jlgr,
   colormap,
@@ -4226,6 +4227,15 @@ function setresizebehaviour(flag)
         Nothing,
         (Int32, ),
         flag)
+end
+
+function inqprojectiontype()
+    proj = Cint[0]
+    ccall( libGR_ptr(:gr_inqprojectiontype),
+          Nothing,
+          (Ptr{Cint}, ),
+          proj)
+  return Int(proj[1])
 end
 
 # JS functions

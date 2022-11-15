@@ -151,4 +151,5 @@
 :gr_polygonmesh3d
 :gr_setscientificformat
 :gr_setresizebehaviour
+:gr_inqprojectiontype
 ]

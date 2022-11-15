@@ -1349,6 +1349,7 @@ function plot_data(flag=true, plt=plt[])
                 x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
                 zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
+            proj = GR.inqprojectiontype()
             GR.setprojectiontype(0)
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 0)
@@ -1361,12 +1362,14 @@ function plot_data(flag=true, plt=plt[])
             end
             GR.contour(x, y, h, z, clabels ? 1001 : 1000)
             colorbar(0, length(h))
+            GR.setprojectiontype(proj)
         elseif kind === :contourf
             zmin, zmax = plt.kvs[:zrange]
             if length(x) == length(y) == length(z)
                 x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
                 zmin, zmax = get(plt.kvs, :zlim, (_min(z), _max(z)))
             end
+            proj = GR.inqprojectiontype()
             GR.setprojectiontype(0)
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 0)
@@ -1379,6 +1382,7 @@ function plot_data(flag=true, plt=plt[])
             end
             GR.contourf(x, y, h, z, clabels ? 1 : 0)
             colorbar(0, length(h))
+            GR.setprojectiontype(proj)
         elseif kind === :hexbin
             nbins = get(plt.kvs, :nbins, 40)
             cntmax = GR.hexbin(x, y, nbins)
