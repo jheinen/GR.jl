@@ -324,7 +324,7 @@ function init(always::Bool = false)
             haskey(ENV, "GKSwstype") || get!(ENV, "GKSwstype", "gksqt")
             if !haskey(ENV, "GKS_QT")
                 ENV["GKS_QT"] = if Sys.iswindows()
-                    "set PATH=$(GRPreferences.libpath[]) & \"$(GRPreferences.gksqt[])\""
+                    "$(GRPreferences.gksqt[])"
                 else
                     key = Sys.isapple() ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
                     "env $key=$(GRPreferences.libpath[]) $(GRPreferences.gksqt[])"
