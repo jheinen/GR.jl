@@ -1535,12 +1535,7 @@ function plot_args(@nospecialize args; fmt=:xys, plt=plt[])
                     else
                         y = a
                         n = isrowvec(y) ? size(y, 2) : size(y, 1)
-                        if haskey(plt.kvs, :xlim)
-                            xmin, xmax = plt.kvs[:xlim]
-                            x = linspace(xmin, xmax, n)
-                        else
-                            x = linspace(1, n, n)
-                        end
+                        x = linspace(1, n, n)
                         z = nothing
                         c = nothing
                     end
@@ -1575,18 +1570,8 @@ function plot_args(@nospecialize args; fmt=:xys, plt=plt[])
                     elseif fmt === :xyzc && length(args) == 0
                         z = a'
                         nx, ny = size(z)
-                        if haskey(plt.kvs, :xlim)
-                            xmin, xmax = plt.kvs[:xlim]
-                            x = linspace(xmin, xmax, nx)
-                        else
-                            x = linspace(1, nx, nx)
-                        end
-                        if haskey(plt.kvs, :ylim)
-                            ymin, ymax = plt.kvs[:ylim]
-                            y = linspace(ymin, ymax, ny)
-                        else
-                            y = linspace(1, ny, ny)
-                        end
+                        x = linspace(1, nx, nx)
+                        y = linspace(1, ny, ny)
                         c = nothing
                     end
                 end
