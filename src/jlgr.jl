@@ -64,7 +64,7 @@ signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
 
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
-const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
@@ -85,6 +85,9 @@ const fonts = Dict(
     "DejaVuSans" => 233)
 
 const distinct_cmap = (0, 1, 984, 987, 989, 983, 994, 988)
+
+const theta_zero_location = Dict(
+    "E" => 0, "N" => π/2, "W" => π, "S" => 1.5π)
 
 const default_kvs = Dict{Symbol, Any}(
                     :ax      => false,
@@ -604,9 +607,12 @@ function draw_polar_axes(plt=plt[])
             GR.drawarc(-r, r, -r, r, 0, 359)
         end
     end
+
+    sign = if get(plt.kvs, :theta_direction, 1) > 0 1 else -1 end
+    offs = theta_zero_location[get(plt.kvs, :theta_zero_location, "E")]
     for alpha in 0:45:315
-        sinf = sin(alpha * π / 180)
-        cosf = cos(alpha * π / 180)
+        sinf = sin((alpha * sign) * π / 180 + offs)
+        cosf = cos((alpha * sign) * π / 180 + offs)
         GR.polyline([cosf, 0], [sinf, 0])
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_HALF)
         x, y = GR.wctondc(1.1 * cosf, 1.1 * sinf)
@@ -1054,12 +1060,14 @@ end
 function plot_polar(θ, ρ, plt=plt[])
     window = plt.kvs[:window]
     rmin, rmax = window[3], window[4]
+    sign = if get(plt.kvs, :theta_direction, 1) > 0 1 else -1 end
+    offs = theta_zero_location[get(plt.kvs, :theta_zero_location, "E")]
     ρ = ρ ./ rmax
     n = length(ρ)
     x, y = zeros(n), zeros(n)
     for i in 1:n
-        x[i] = ρ[i] * cos(θ[i])
-        y[i] = ρ[i] * sin(θ[i])
+        x[i] = ρ[i] * cos(θ[i] * sign + offs)
+        y[i] = ρ[i] * sin(θ[i] * sign + offs)
     end
     GR.polyline(x, y)
 end
