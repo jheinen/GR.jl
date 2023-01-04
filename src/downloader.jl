@@ -11,7 +11,7 @@ using Tar
 using Downloads
 using p7zip_jll
 
-const version = v"0.71.2"
+const version = v"0.71.3"
 const GR_UUID = UUID("28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71")
 
 
