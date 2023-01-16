@@ -7,25 +7,26 @@
 # The increase in drawing speed through the GR Matplotlib backend is comparatively
 # small, since most of the time is spent in Matplotlib/Python.
 
+ENV["JULIA_PYTHONCALL_EXE"] = "/usr/local/bin/python3"
 ENV["GKSwstype"] = "gksqt"
 ENV["MPLBACKEND"]="module://gr.matplotlib.backend_gr"
 
-import PyPlot
+import PythonPlot
 import GR
 
 function mpl()
     x = collect(0:0.01:2*pi)
 
-    PyPlot.plot(x, sin.(x))
-    PyPlot.ion()
+    PythonPlot.plot(x, sin.(x))
+    PythonPlot.ion()
     t = time_ns()
     for i = 1:100
-        PyPlot.cla()
-        PyPlot.plot(x .+ i / 10.0, sin.(x .+ i / 10.0))
+        PythonPlot.cla()
+        PythonPlot.plot(x .+ i / 10.0, sin.(x .+ i / 10.0))
         if haskey(ENV, "MPLBACKEND")
-           PyPlot.show()
+           PythonPlot.show()
         else
-           PyPlot.pause(0.0001)
+           PythonPlot.pause(0.0001)
         end
     end
 
