@@ -4,10 +4,10 @@ USER root
 ENV JULIA_DEPOT_PATH=/opt/julia
 # Julia dependencies
 RUN apt-get update && apt-get install -my wget curl gnupg && \
-    wget https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-1.8.1-linux-x86_64.tar.gz && \
-    tar -xzvf julia-1.8.1-linux-x86_64.tar.gz && ls && \
-    cp -R julia-1.8.1/* /usr && \
-    rm -rf ${HOME}/julia-1.8.1*
+    wget https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-1.8.5-linux-x86_64.tar.gz && \
+    tar -xzvf julia-1.8.5-linux-x86_64.tar.gz && ls && \
+    cp -R julia-1.8.5/* /usr && \
+    rm -rf ${HOME}/julia-1.8.5*
 # Show Julia where conda libraries are
 RUN echo "push!(Libdl.DL_LOAD_PATH, \"${CONDA_DIR}/lib\")" >> /usr/etc/julia/juliarc.jl && \
     # Create JULIA_DEPOT_PATH
