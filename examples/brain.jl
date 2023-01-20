@@ -37,6 +37,10 @@ function cursor(motion, x, y)
   display()
 end
  
+if haskey(ENV, "GR3_USE_SR")
+  delete!(ENV, "GR3_USE_SR")
+end
+
 f = open("brain.bin", "r")
 data = Vector{UInt16}(undef, 5120000)
 data = reshape(read!(f, data), 200, 160, 160)
