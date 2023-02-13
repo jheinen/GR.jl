@@ -1,7 +1,7 @@
 using Plots, Test
 
 @info("Interactive tests")
-Plots.test_examples(:gr)
+Plots.test_examples(:gr, disp=true)
 
 @info("Figure output tests")
 prefix = tempname()
