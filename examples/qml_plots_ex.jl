@@ -1,7 +1,6 @@
 ENV["QSG_RENDER_LOOP"] = "basic"
 using CxxWrap # for safe_cfunction
 using QML
-using Qt5QuickControls2_jll
 using Observables
 using Plots
 import GR
