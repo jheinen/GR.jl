@@ -148,7 +148,7 @@ function set_viewport(kind, subplot, plt=plt[])
         if haskey(plt.kvs, :dpi)
             dpi = plt.kvs[:dpi]
         else
-            dpi = round(width / mwidth * 0.0254)
+            dpi = round(width / mwidth * 0.0254, RoundNearestTiesUp)
         end
         if dpi > 200
             w, h = plt.kvs[:size] .* (dpi / 100)
@@ -183,7 +183,7 @@ function set_viewport(kind, subplot, plt=plt[])
         vp1, vp2, vp3, vp4 = vp
     end
     left_margin = haskey(plt.kvs, :ylabel) ? 0.05 : 0
-    if kind === :contour || kind === :contourf || kind === :hexbin || kind === :heatmap || kind === :nonuniformheatmap || kind === :polarheatmap || kind === :nonuniformpolarheatmap || kind === :surface || kind === :trisurf || kind === :volume
+    if kind === :contour || kind === :contourf || kind === :tricont || kind === :hexbin || kind === :heatmap || kind === :nonuniformheatmap || kind === :polarheatmap || kind === :nonuniformpolarheatmap || kind === :surface || kind === :trisurf || kind === :volume
         right_margin = (vp2 - vp1) * 0.1
     else
         right_margin = 0
@@ -366,13 +366,13 @@ function auto_tick(amin, amax)
     tick_size = (5.0, 2.0, 1.0, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01)
     tick = 1.0
     for i in 1:length(tick_size)
-        n = (amax - amin) / scale / tick_size[i]
+        n = trunc((amax - amin) / scale / tick_size[i])
         if n > 7
             tick = tick_size[i - 1]
             break
         end
     end
-    tick *= scale
+    tick * scale
 end
 
 function set_window(kind, plt=plt[])
@@ -602,14 +602,14 @@ function draw_polar_axes(plt=plt[])
         if i % 2 == 0
             GR.setlinecolorind(88)
             if i > 0
-                GR.drawarc(-r, r, -r, r, 0, 359)
+                GR.drawarc(-r, r, -r, r, 0, 360)
             end
             GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
             x, y = GR.wctondc(0.05, r)
             GR.text(x, y, string(signif(rmin + i * tick, 12)))
         else
             GR.setlinecolorind(90)
-            GR.drawarc(-r, r, -r, r, 0, 359)
+            GR.drawarc(-r, r, -r, r, 0, 360)
         end
     end
 
@@ -621,7 +621,7 @@ function draw_polar_axes(plt=plt[])
         GR.polyline([cosf, 0], [sinf, 0])
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_HALF)
         x, y = GR.wctondc(1.1 * cosf, 1.1 * sinf)
-        GR.textext(x, y, string(alpha, "^o"))
+        GR.text(x, y, string(alpha, "°"))
     end
 
     if haskey(plt.kvs, :title)
@@ -745,12 +745,11 @@ function colorbar(off=0, colors=256, plt=plt[])
         options = GR.inqscale()
         GR.setscale(options & mask)
     end
-    h = 0.5 * (zmax - zmin) / (colors - 1)
+    h = 0 ###0.5 * (zmax - zmin) / (colors - 1)
     GR.setwindow(0, 1, zmin, zmax)
     GR.setviewport(viewport[2] + 0.02 + off, viewport[2] + 0.05 + off,
                    viewport[3], viewport[4])
-    l = zeros(Int32, 1, colors)
-    l[1,:] = Int[round(Int, _i) for _i in linspace(1000, 1255, colors)]
+    l = Int32[round(1000 + _i * 255, RoundNearestTiesUp) for _i in linspace(0, 1, colors)]
     GR.cellarray(0, 1, zmax + h, zmin - h, 1, colors, l)
     GR.setlinecolorind(1)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
@@ -780,8 +779,8 @@ end
 
 function to_rgba(value, cmap)
     if !isnan(value)
-        i = round(Int, value * 255 + 1)
-        cmap[i]
+        i = round(Int, value * 255, RoundNearestTiesUp)
+        cmap[i + 1]
     else
         zero(UInt32)
     end
@@ -985,7 +984,7 @@ sequentially at X = 1, 2, etc.
 # Normalize a color c with the range [cmin, cmax]
 #   0 <= normalize_color(c, cmin, cmax) <= 1
 function normalize_color(c, cmin, cmax)
-    c = clamp(float(c), cmin, cmax) - cmin
+    c = clamp(c, cmin, cmax) - cmin
     if cmin != cmax
         c /= cmax - cmin
     end
@@ -1006,7 +1005,7 @@ function plot_img(I, plt=plt[])
         width, height = size(I)
         cmin, cmax = plt.kvs[:crange]
         data = map(x -> normalize_color(x, cmin, cmax), I)
-        data = Int32[round(Int32, 1000 + _i * 255) for _i in data]
+        data = Int32[round(1000 + _i * 255, RoundNearestTiesUp) for _i in data]
     end
 
     if width  * (viewport[4] - viewport[3]) <
@@ -1298,8 +1297,9 @@ function plot_data(flag=true, plt=plt[])
                 if c !== nothing
                     cmin, cmax = plt.kvs[:crange]
                     c = map(x -> normalize_color(x, cmin, cmax), c)
+                    cind = Int[round(1000 + _i * 255, RoundNearestTiesUp) for _i in c]
                 end
-                GR.polymarker(x, y, z, c)
+                GR.polymarker(x, y, z, cind)
             else
                 GR.polymarker(x, y)
             end
@@ -1345,7 +1345,7 @@ function plot_data(flag=true, plt=plt[])
             if get(plt.kvs, :yflip, false)
                 data = reverse(data, dims=2)
             end
-            colors = Int[round(Int, 1000 + _i * 255) for _i in data]
+            colors = Int[round(1000 + _i * 255, RoundNearestTiesUp) for _i in data]
             if kind === :polarheatmap
                 GR.polarcellarray(0, 0, 0, 360, 0, 1, w, h, colors)
             else
@@ -1369,8 +1369,10 @@ function plot_data(flag=true, plt=plt[])
             levels = get(plt.kvs, :levels, 0)
             clabels = get(plt.kvs, :clabels, false)
             if typeof(levels) <: Int
-                hmin, hmax = GR.adjustrange(zmin, zmax)
-                h = linspace(hmin, hmax, levels == 0 ? 21 : levels + 1)
+                if levels == 0
+                    levels = 20
+                end
+                h = [zmin + (_i - 1) * (zmax - zmin) / levels for _i = 1:levels]
             else
                 h = float(levels)
             end
@@ -1389,8 +1391,10 @@ function plot_data(flag=true, plt=plt[])
             levels = get(plt.kvs, :levels, 0)
             clabels = get(plt.kvs, :clabels, false)
             if typeof(levels) <: Int
-                hmin, hmax = GR.adjustrange(zmin, zmax)
-                h = linspace(hmin, hmax, levels == 0 ? 21 : levels + 1)
+                if levels == 0
+                    levels = 20
+                end
+                h = [zmin + (_i - 1) * (zmax - zmin) / levels for _i = 1:levels]
             else
                 h = float(levels)
             end
@@ -1414,7 +1418,7 @@ function plot_data(flag=true, plt=plt[])
                 rgba = [to_rgba(value, cmap) for value = data]
                 GR.drawimage(0.5, w + 0.5, h + 0.5, 0.5, w, h, rgba)
             else
-                colors = Int[round(Int, isnan(_i) ? 1256 : 1000 + _i * 255) for _i in data]
+                colors = Int[round(isnan(_i) ? 1256 : 1000 + _i * 255, RoundNearestTiesUp) for _i in data]
                 GR.nonuniformcellarray(x, y, w, h, colors)
             end
             colorbar(0, levels)
@@ -1457,7 +1461,7 @@ function plot_data(flag=true, plt=plt[])
             if c !== nothing
                 cmin, cmax = plt.kvs[:crange]
                 c = map(x -> normalize_color(x, cmin, cmax), c)
-                cind = Int[round(Int, 1000 + _i * 255) for _i in c]
+                cind = Int[round(1000 + _i * 255, RoundNearestTiesUp) for _i in c]
                 for i in 1:length(x)
                     GR.setmarkercolorind(cind[i])
                     GR.polymarker3d([x[i]], [y[i]], [z[i]])
@@ -1481,6 +1485,7 @@ function plot_data(flag=true, plt=plt[])
             zmin, zmax = plt.kvs[:zrange]
             levels = linspace(zmin, zmax, 20)
             GR.tricontour(x, y, z, levels)
+            colorbar()
         elseif kind === :shade
             xform = get(plt.kvs, :xform, 5)
             if contains_NaN(x)
