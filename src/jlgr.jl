@@ -64,7 +64,7 @@ signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
 
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
-const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
@@ -114,11 +114,12 @@ mutable struct PlotObject
   kvs::Dict{Symbol, Any}
 end
 
-function Figure(width=600, height=450)
+function Figure(width=600, height=450, dpi=100)
     obj = Dict{Symbol, Any}()
     args = []
     kvs = copy(default_kvs)
     kvs[:size] = (width, height)
+    kvs[:dpi] = dpi
     PlotObject(obj, args, kvs)
 end
 
@@ -144,7 +145,11 @@ function set_viewport(kind, subplot, plt=plt[])
         w = 0.0254 *  width * plt.kvs[:figsize][1] / mwidth
         h = 0.0254 * height * plt.kvs[:figsize][2] / mheight
     else
-        dpi = width / mwidth * 0.0254
+        if haskey(plt.kvs, :dpi)
+            dpi = plt.kvs[:dpi]
+        else
+            dpi = round(width / mwidth * 0.0254)
+        end
         if dpi > 200
             w, h = plt.kvs[:size] .* (dpi / 100)
         else
@@ -154,19 +159,19 @@ function set_viewport(kind, subplot, plt=plt[])
     viewport = zeros(4)
     vp = copy(float(subplot))
     if w > h
-        ratio = float(h) / w
+        ratio = w / h
         msize = mwidth * w / width
-        GR.setwsviewport(0, msize, 0, msize * ratio)
-        GR.setwswindow(0, 1, 0, ratio)
-        vp[3] *= ratio
-        vp[4] *= ratio
+        GR.setwsviewport(0, msize, 0, msize / ratio)
+        GR.setwswindow(0, 1, 0, 1 / ratio)
+        vp[3] /= ratio
+        vp[4] /= ratio
     else
-        ratio = float(w) / h
+        ratio = h / w
         msize = mheight * h / height
-        GR.setwsviewport(0, msize * ratio, 0, msize)
-        GR.setwswindow(0, ratio, 0, 1)
-        vp[1] *= ratio
-        vp[2] *= ratio
+        GR.setwsviewport(0, msize / ratio, 0, msize)
+        GR.setwswindow(0, 1 / ratio, 0, 1)
+        vp[1] /= ratio
+        vp[2] /= ratio
     end
     if kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :trisurf || kind === :volume
         extent = min(vp[2] - vp[1], vp[4] - vp[3])
@@ -820,8 +825,8 @@ arguments.
     julia> # Restore all default settings and set the title
     julia> figure(title="Example Figure")
 """
-function figure(; kv...)
-    plt[] = Figure()
+function figure(width::Int, height::Int, dpi::Int; kv...)
+    plt[] = Figure(width, height, dpi)
     merge!(plt[].kvs, Dict(kv))
     plt[]
 end
@@ -1006,13 +1011,13 @@ function plot_img(I, plt=plt[])
 
     if width  * (viewport[4] - viewport[3]) <
         height * (viewport[2] - viewport[1])
-        w = float(width) / height * (viewport[4] - viewport[3])
+        w = width / height * (viewport[4] - viewport[3])
         xmin = max(0.5 * (viewport[1] + viewport[2] - w), viewport[1])
         xmax = min(0.5 * (viewport[1] + viewport[2] + w), viewport[2])
         ymin = viewport[3]
         ymax = viewport[4]
     else
-        h = float(height) / width * (viewport[2] - viewport[1])
+        h = height / width * (viewport[2] - viewport[1])
         xmin = viewport[1]
         xmax = viewport[2]
         ymin = max(0.5 * (viewport[4] + viewport[3] - h), viewport[3])
