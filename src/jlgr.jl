@@ -1448,6 +1448,8 @@ function plot_data(flag=true, plt=plt[])
             colorbar(0.05)
         elseif kind === :volume
             algorithm = get(plt.kvs, :algorithm, 0)
+            w, h, ratio = GR.inqvpsize()
+            GR.setpicturesizeforvolume(round(Int, w * ratio), round(Int, h * ratio))
             GR.gr3.clear()
             dmin, dmax = GR.gr3.volume(c, algorithm)
             draw_axes(kind, 2)

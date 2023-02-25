@@ -175,6 +175,7 @@ export
   inqtextencoding,
   loadfont,
   inqvpsize,
+  setpicturesizeforvolume,
   inqtransformationparameters,
   polygonmesh3d,
   setscientificformat,
@@ -4189,6 +4190,13 @@ function inqvpsize()
         (Ptr{Cint}, Ptr{Cint}, Ptr{Cdouble}),
         width, height, device_pixel_ratio)
   return width[1], height[1], device_pixel_ratio[1]
+end
+
+function setpicturesizeforvolume(width::Int, height::Int)
+  ccall( libGR_ptr(:gr_setpicturesizeforvolume),
+        Nothing,
+        (Cint, Cint),
+        width, height)
 end
 
 function inqtransformationparameters()

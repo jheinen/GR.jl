@@ -147,6 +147,7 @@
 :gr_inqtextencoding
 :gr_loadfont
 :gr_inqvpsize
+:gr_setpicturesizeforvolume
 :gr_inqtransformationparameters
 :gr_polygonmesh3d
 :gr_setscientificformat
