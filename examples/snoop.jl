@@ -107,8 +107,6 @@ s = LinRange(-1, 1, 40)
 v = 1 .- (s .^ 2 .+ (s .^ 2)' .+ reshape(s,1,1,:) .^ 2) .^ 0.5
 isosurface(v, isovalue=0.2)
 
-GR.GR3.terminate()
-
 volume(randn(rng, 50, 50, 50))
 
 N = 1_000_000

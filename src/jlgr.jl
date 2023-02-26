@@ -277,7 +277,7 @@ function minmax(kind, plt=plt[])
             x0, x1 = Extrema64(x)
             xmin = min(x0, xmin)
             xmax = max(x1, xmax)
-        elseif kind === :volume
+        elseif kind === :volume || kind === :isosurface
             xmin, xmax = -1, 1
         else
             xmin, xmax = 0, 1
@@ -289,7 +289,7 @@ function minmax(kind, plt=plt[])
             y0, y1 = Extrema64(y)
             ymin = min(y0, ymin)
             ymax = max(y1, ymax)
-        elseif kind === :volume
+        elseif kind === :volume || kind === :isosurface
             ymin, ymax = -1, 1
         else
             ymin, ymax = 0, 1
@@ -301,7 +301,7 @@ function minmax(kind, plt=plt[])
             z0, z1 = Extrema64(z)
             zmin = min(z0, zmin)
             zmax = max(z1, zmax)
-        elseif kind === :volume
+        elseif kind === :volume || kind === :isosurface
             zmin, zmax = -1, 1
         else
             zmin, zmax = 0, 1
@@ -404,7 +404,7 @@ function set_window(kind, plt=plt[])
     end
 
     xmin, xmax = plt.kvs[:xrange]
-    if kind === :heatmap || kind === :polarheatmap && !haskey(plt.kvs, :xlim)
+    if kind === :heatmap && !haskey(plt.kvs, :xlim)
         xmin -= 0.5
         xmax += 0.5
     end
@@ -429,7 +429,7 @@ function set_window(kind, plt=plt[])
     plt.kvs[:xaxis] = xtick, xorg, majorx
 
     ymin, ymax = plt.kvs[:yrange]
-    if kind === :heatmap || kind === :polarheatmap && !haskey(plt.kvs, :ylim)
+    if kind === :heatmap && !haskey(plt.kvs, :ylim)
         ymin -= 0.5
         ymax += 0.5
     end
@@ -1056,9 +1056,22 @@ function plot_iso(V, plt=plt[])
     else
         color = (0.0, 0.5, 0.8)
     end
-    GR.setwindow3d(-1, 1, -1, 1, -1, 1)
-    GR.setspace3d(-rotation, tilt, 45, 2.5)
-    GR.gr3.isosurface(V, isovalue, color)
+    w, h, ratio = GR.inqvpsize()
+    GR.selntran(0)
+    GR.gr3.clear()
+    vmin, vmax = extrema(V)
+    data = trunc.(UInt16, (V .- vmin) / (vmax - vmin) * 65535)
+    mesh = GR.gr3.createisosurfacemesh(data, (2 / (nx - 1), 2 / (ny - 1), 2 / (nz - 1)), (-1.0, -1.0, -1.0), trunc(Int64, (isovalue - vmin) / (vmax - vmin) * 65535))
+    GR.gr3.setbackgroundcolor(1, 1, 1, 0)
+    GR.gr3.drawmesh(mesh, 1, (0, 0, 0), (0, 0, 1), (0, 1, 0), color, (1, 1, 1))
+    r = 2.5
+    rotation *= π / 180
+    tilt *= π / 180
+    GR.gr3.cameralookat(r * sin(tilt) * sin(rotation), r * cos(tilt), r * sin(tilt) * cos(rotation), 0, 0, 0, 0, 1, 0)
+    vp = plt.kvs[:viewport]
+    GR.gr3.drawimage(vp..., trunc(Int, w * ratio), trunc(Int, h * ratio), GR.gr3.DRAWABLE_GKS)
+    GR.gr3.deletemesh(mesh)
+    GR.selntran(1)
 end
 
 function plot_polar(θ, ρ, plt=plt[])
@@ -1345,7 +1358,7 @@ function plot_data(flag=true, plt=plt[])
             if get(plt.kvs, :yflip, false)
                 data = reverse(data, dims=2)
             end
-            colors = Int[round(1000 + _i * 255, RoundNearestTiesUp) for _i in data]
+            colors = round.(Int32, 1000 .+ data .* 255, RoundNearestTiesUp)
             if kind === :polarheatmap
                 GR.polarcellarray(0, 0, 0, 360, 0, 1, w, h, colors)
             else
@@ -1446,6 +1459,7 @@ function plot_data(flag=true, plt=plt[])
             end
             draw_axes(kind, 2)
             colorbar(0.05)
+            GR.gr3.terminate()
         elseif kind === :volume
             algorithm = get(plt.kvs, :algorithm, 0)
             w, h, ratio = GR.inqvpsize()
@@ -2170,8 +2184,17 @@ function heatmap(D, plt=plt[]; kv...)
     nothing
 end
 
+is_uniformly_spaced(v; tol = 1e-6) =
+    let dv = diff(v)
+        maximum(dv) - minimum(dv) < tol * sum(abs.(dv)) / length(dv)
+    end
+
 function heatmap(x, y, z, plt=plt[]; kv...)
-    create_context(:nonuniformheatmap, Dict(kv))
+    if is_uniformly_spaced(x) && is_uniformly_spaced(y)
+        create_context(:heatmap, Dict(kv))
+    else
+        create_context(:nonuniformheatmap, Dict(kv))
+    end
 
     if ndims(z) == 2
         plt.args = [(x, y, z', nothing, "")]
@@ -2200,7 +2223,11 @@ function polarheatmap(D; kv...)
 end
 
 function polarheatmap(x, y, z, plt=plt[]; kv...)
-    create_context(:nonuniformpolarheatmap, Dict(kv))
+    if is_uniformly_spaced(x) && is_uniformly_spaced(y)
+        create_context(:polarheatmap, Dict(kv))
+    else
+        create_context(:nonuniformpolarheatmap, Dict(kv))
+    end
 
     if ndims(z) == 2
         plt.args = [(x, y, z', nothing, "")]
