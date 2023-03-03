@@ -1056,22 +1056,10 @@ function plot_iso(V, plt=plt[])
     else
         color = (0.0, 0.5, 0.8)
     end
-    w, h, ratio = GR.inqvpsize()
-    GR.selntran(0)
     GR.gr3.clear()
-    vmin, vmax = extrema(V)
-    data = trunc.(UInt16, (V .- vmin) / (vmax - vmin) * 65535)
-    mesh = GR.gr3.createisosurfacemesh(data, (2 / (nx - 1), 2 / (ny - 1), 2 / (nz - 1)), (-1.0, -1.0, -1.0), trunc(Int64, (isovalue - vmin) / (vmax - vmin) * 65535))
-    GR.gr3.setbackgroundcolor(1, 1, 1, 0)
-    GR.gr3.drawmesh(mesh, 1, (0, 0, 0), (0, 0, 1), (0, 1, 0), color, (1, 1, 1))
-    r = 2.5
-    rotation *= π / 180
-    tilt *= π / 180
-    GR.gr3.cameralookat(r * sin(tilt) * sin(rotation), r * cos(tilt), r * sin(tilt) * cos(rotation), 0, 0, 0, 0, 1, 0)
-    vp = plt.kvs[:viewport]
-    GR.gr3.drawimage(vp..., trunc(Int, w * ratio), trunc(Int, h * ratio), GR.gr3.DRAWABLE_GKS)
-    GR.gr3.deletemesh(mesh)
-    GR.selntran(1)
+    GR.setwindow3d(-1, 1, -1, 1, -1, 1)
+    GR.setspace3d(-rotation, tilt, 45, 2.5)
+    GR.gr3.isosurface(V, isovalue, color)
 end
 
 function plot_polar(θ, ρ, plt=plt[])
