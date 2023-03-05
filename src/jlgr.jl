@@ -1056,10 +1056,12 @@ function plot_iso(V, plt=plt[])
     else
         color = (0.0, 0.5, 0.8)
     end
-    GR.gr3.clear()
     GR.setwindow3d(-1, 1, -1, 1, -1, 1)
     GR.setspace3d(-rotation, tilt, 45, 2.5)
+    ambient, diffuse, specular, specular_power = GR.gr3.getlightparameters()
+    GR.gr3.setlightparameters(0.2, 0.8, 0.7, 128.0)
     GR.gr3.isosurface(V, isovalue, color)
+    GR.gr3.setlightparameters(ambient, diffuse, specular, specular_power)
 end
 
 function plot_polar(θ, ρ, plt=plt[])
@@ -1439,12 +1441,14 @@ function plot_data(flag=true, plt=plt[])
                     x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
                 end
             end
+            ambient, diffuse, specular, specular_power = GR.gr3.getlightparameters()
+            GR.gr3.setlightparameters(0.2, 0.8, 0.7, 128.0)
             if get(plt.kvs, :accelerate, true)
-                GR.gr3.clear()
                 GR.gr3.surface(x, y, z, option)
             else
                 GR.surface(x, y, z, option)
             end
+            GR.gr3.setlightparameters(ambient, diffuse, specular, specular_power)
             draw_axes(kind, 2)
             colorbar(0.05)
             GR.gr3.terminate()
@@ -1452,8 +1456,10 @@ function plot_data(flag=true, plt=plt[])
             algorithm = get(plt.kvs, :algorithm, 0)
             w, h, ratio = GR.inqvpsize()
             GR.setpicturesizeforvolume(round(Int, w * ratio), round(Int, h * ratio))
-            GR.gr3.clear()
+            ambient, diffuse, specular, specular_power = GR.gr3.getlightparameters()
+            GR.gr3.setlightparameters(0.8, 0.2, 0.1, 10.0)
             dmin, dmax = GR.gr3.volume(c, algorithm)
+            GR.gr3.setlightparameters(ambient, diffuse, specular, specular_power)
             draw_axes(kind, 2)
             plt.kvs[:zrange] = dmin, dmax
             colorbar(0.05)

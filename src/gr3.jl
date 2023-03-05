@@ -369,6 +369,27 @@ function surface(px, py, pz, option::Int)
   end
 end
 
+function setlightparameters(ambient, diffuse, specular, specular_power)
+  ccall(GR.libGR3_ptr(:gr3_setlightparameters),
+        Nothing,
+        (Float32, Float32, Float32, Float32),
+        ambient, diffuse, specular, specular_power)
+  _check_error()
+end
+
+function getlightparameters()
+  ambient = Cfloat[1]
+  diffuse = Cfloat[1]
+  specular = Cfloat[1]
+  specular_power = Cfloat[1]
+  ccall(GR.libGR3_ptr(:gr3_getlightparameters),
+        Nothing,
+        (Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Ptr{Float32}),
+        ambient, diffuse, specular, specular_power)
+  _check_error()
+  return ambient[1], diffuse[1], specular[1], specular_power[1]
+end
+
 function isosurface(data::Array{Float64,3}, iso::Float64, color)
   _data = [ Float32(value) for value in data ]
   nx, ny, nz = size(data)
