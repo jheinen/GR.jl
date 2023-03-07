@@ -47,7 +47,7 @@ module GRPreferences
         gksqt_path(joinpath(@__DIR__, "..", "deps", "gr"))
 
     function __init__()
-        gr_jll_artifact_dir = GR_jll.find_artifact_dir()
+        gr_jll_artifact_dir = GR_jll.artifact_dir
         default_binary = haskey(ENV, "GRDIR") &&
             ENV["GRDIR"] != gr_jll_artifact_dir ? "system" : "GR_jll"
         binary = @load_preference("binary", default_binary)
