@@ -1441,14 +1441,11 @@ function plot_data(flag=true, plt=plt[])
                     x, y, z = GR.gridit(vec(x), vec(y), vec(z'), 200, 200)
                 end
             end
-            ambient, diffuse, specular, specular_power = GR.gr3.getlightparameters()
-            GR.gr3.setlightparameters(0.2, 0.8, 0.7, 128.0)
             if get(plt.kvs, :accelerate, true)
                 GR.gr3.surface(x, y, z, option)
             else
                 GR.surface(x, y, z, option)
             end
-            GR.gr3.setlightparameters(ambient, diffuse, specular, specular_power)
             draw_axes(kind, 2)
             colorbar(0.05)
             GR.gr3.terminate()
