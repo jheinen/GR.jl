@@ -830,6 +830,12 @@ function figure(width::Int, height::Int, dpi::Int; kv...)
     plt[]
 end
 
+function figure(; kv...)
+   plt[] = Figure()
+   merge!(plt[].kvs, Dict(kv))
+   plt[]
+end
+
 """
 Set the hold flag for combining multiple plots.
 
