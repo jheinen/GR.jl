@@ -6,4 +6,5 @@
 :grm_plot
 :grm_args_delete
 :grm_close
+:grm_plot_from_file
 ]
