@@ -4002,14 +4002,6 @@ function closemeta(handle)
           handle)
 end
 
-function grplot(path::String; kwargs...)
-    args = [["julia", path]; [string(k, ":", v) for (k, v) in pairs(kwargs)]]
-    ccall(libGRM_ptr(:grm_plot_from_file),
-          Nothing,
-          (Cint, Ptr{Ptr{UInt8}}, ),
-          length(args), args)
-end
-
 function shadepoints(x, y; dims=[1200, 1200], xform=1)
     @assert length(x) == length(y)
     n = length(x)

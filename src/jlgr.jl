@@ -2833,4 +2833,12 @@ function mainloop(plt=plt[])
     end
 end
 
+function plot(path::String; kwargs...)
+    args = [["julia", path]; [string(k, ":", v) for (k, v) in pairs(kwargs)]]
+    ccall(GR.libGRM_ptr(:grm_plot_from_file),
+          Nothing,
+          (Cint, Ptr{Ptr{UInt8}}, ),
+          length(args), args)
+end
+
 end # module
