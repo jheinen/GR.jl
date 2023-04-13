@@ -10,7 +10,7 @@ function display()
   gr3.drawmesh(mesh, 1, (0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 1, 1), (1, 1, 1))
   r = 1.5
   gr3.cameralookat(center[1], center[2], center[3], 0, 0, 0, up[1], up[2], up[3])
-  gr3.drawimage(0.0, width, 0.0, height, width, height, gr3.DRAWABLE_OPENGL)
+  gr3.drawimage(0.0, w, 0.0, h, width, height, gr3.DRAWABLE_OPENGL)
 
   GLFW.SwapBuffers(window)
   gr3.deletemesh(mesh)
@@ -37,9 +37,7 @@ function cursor(motion, x, y)
   display()
 end
  
-if haskey(ENV, "GR3_USE_SR")
-  delete!(ENV, "GR3_USE_SR")
-end
+ENV["GR3_USE_OPENGL"] = "true"
 
 f = open("brain.bin", "r")
 data = Vector{UInt16}(undef, 5120000)
@@ -50,6 +48,11 @@ width = height = 500
 isolevel = 128
 center = (0., 0., 2.)
 up = (-1., 0., 0.)
+
+monitor = GLFW.GetPrimaryMonitor()
+xscale, yscale = GLFW.GetMonitorContentScale(monitor)
+w = xscale * width
+h = yscale * height
 
 window = GLFW.CreateWindow(width, height, "MRI example")
 GLFW.MakeContextCurrent(window)
