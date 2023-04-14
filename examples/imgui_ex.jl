@@ -1,3 +1,7 @@
+# This example does NOT work with recent CImGui versions (v1.82.0)
+#
+# import Pkg; Pkg.add(name="CImGui", version="v1.78.0")
+#
 using CImGui
 using CImGui.CSyntax
 using CImGui.CSyntax.CStatic
