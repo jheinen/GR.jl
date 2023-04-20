@@ -16,6 +16,7 @@ module GRPreferences
 
     const grdir   = Ref{Union{Nothing,String}}()
     const gksqt   = Ref{Union{Nothing,String}}()
+    const grplot  = Ref{Union{Nothing,String}}()
     const libGR   = Ref{Union{Nothing,String}}()
     const libGR3  = Ref{Union{Nothing,String}}()
     const libGRM  = Ref{Union{Nothing,String}}()
@@ -46,6 +47,19 @@ module GRPreferences
     gksqt_path(grdir::Nothing) =
         gksqt_path(joinpath(@__DIR__, "..", "deps", "gr"))
 
+    grplot_path(grdir) =
+        if Sys.iswindows()
+            joinpath(grdir, "bin", "grplot.exe")
+        elseif Sys.isapple()
+            joinpath(grdir, "Applications", "grplot.app", "Contents", "MacOS", "grplot")
+        else
+            joinpath(grdir, "bin", "grplot")
+        end
+
+    # Default grdir to deps/gr if nothing
+    grplot_path(grdir::Nothing) =
+        grplot_path(joinpath(@__DIR__, "..", "deps", "gr"))
+
     function __init__()
         gr_jll_artifact_dir = GR_jll.artifact_dir
         default_binary = haskey(ENV, "GRDIR") &&
@@ -54,6 +68,7 @@ module GRPreferences
         if binary == "GR_jll"
             grdir[]   = gr_jll_artifact_dir
             gksqt[]   = GR_jll.gksqt_path
+            grplot[]  = GR_jll.grplot_path
             libGR[]   = GR_jll.libGR
             libGR3[]  = GR_jll.libGR3
             libGRM[]  = GR_jll.libGRM
@@ -72,6 +87,7 @@ module GRPreferences
         elseif binary == "system"
             grdir[]   = haskey(ENV, "GRDIR") ? ENV["GRDIR"] : @load_preference("grdir")
             gksqt[]   = gksqt_path(grdir[])
+            grplot[]  = grplot_path(grdir[])
             libGR[]   = lib_path(grdir[], "libGR")
             libGR3[]  = lib_path(grdir[], "libGR3")
             libGRM[]  = lib_path(grdir[], "libGRM")
@@ -218,7 +234,8 @@ module GRPreferences
             "libGR3_path" => lib_path(grdir, "libGR3"),
             "libGRM_path" => lib_path(grdir, "libGRM"),
             "libGKS_path" => lib_path(grdir, "libGKS"),
-            "gksqt_path" => gksqt_path(grdir);
+            "gksqt_path" => gksqt_path(grdir),
+            "grplot_path" => grplot_path(grdir);
             force
         )
     end
@@ -235,7 +252,8 @@ module GRPreferences
             "libGR3_path",
             "libGRM_path",
             "libGKS_path",
-            "gksqt_path";
+            "gksqt_path",
+            "grplot_path";
             force
         )
     end
@@ -257,6 +275,7 @@ module GRPreferences
         libGRM_path = load_preference(GR_jll_uuid, "libGRM_path")
         libGKS_path = load_preference(GR_jll_uuid, "libGKS_path")
         gksqt_path = load_preference(GR_jll_uuid, "gksqt_path")
+        grplot_path = load_preference(GR_jll_uuid, "grplot_path")
 
         # Override.toml in DEPOT_PATH
         overrides_toml_path = get_overrides_toml_path()
@@ -273,18 +292,18 @@ module GRPreferences
         @info "GR Preferences" binary grdir
         isnothing(resolved_grdir) ||
             @info "resolved_grdir" resolved_grdir isdir(resolved_grdir) isdir.(joinpath.((resolved_grdir,), ("bin", "lib", "include", "fonts")))
-        @info "GR_jll Preferences" libGR_path libGR3_path libGRM_path libGKS_path gksqt_path
+        @info "GR_jll Preferences" libGR_path libGR3_path libGRM_path libGKS_path gksqt_path grplot_path
         @info "GR_jll Overrides.toml" overrides_toml_path isfile(overrides_toml_path) get(gr_jll_override_dict, "GR", nothing)
 
         if(isdefined(@__MODULE__, :GR_jll))
-            @info "GR_jll" GR_jll.libGR_path GR_jll.libGR3_path GR_jll.libGRM_path GR_jll.libGKS_path GR_jll.gksqt_path
+            @info "GR_jll" GR_jll.libGR_path GR_jll.libGR3_path GR_jll.libGRM_path GR_jll.libGKS_path GR_jll.gksqt_path GR_jll.grplot_path
         else
             @info "GR_jll is not loaded"
         end
 
         return (;
                 binary, grdir,
-                libGR_path, libGR3_path, libGRM_path, libGKS_path, gksqt_path,
+                libGR_path, libGR3_path, libGRM_path, libGKS_path, gksqt_path, grplot_path,
                 overrides_toml_path, gr_jll_override_dict
         )
     end

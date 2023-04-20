@@ -1171,7 +1171,7 @@ function plot_data(flag=true, plt=plt[])
 
     target = GR.displayname()
     if flag && target !== ""
-        if target == "js" || target == "meta" || target == "pluto" || target == "js-server"
+        if target == "js" || target == "meta" || target == "plot" || target == "pluto" || target == "js-server"
             send_meta(0)
         else
             send_serialized(target)
