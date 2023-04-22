@@ -314,7 +314,13 @@ function init(always::Bool = false)
             if display_name[] == "js" || display_name[] == "pluto" || display_name[] == "js-server"
                 send_c[], recv_c[] = js.initjs()
             elseif display_name[] == "plot"
-                grplot_proc[] = run(`$(GRPreferences.grplot[]) --listen`, wait=false)
+                if Sys.iswindows()
+                    grplot_proc[] = run(`set PATH=$(GRPreferences.libpath[]) \& \"$(GRPreferences.grplot[])\" --listen`,  wait=false)
+
+                else
+                    key = Sys.isapple() ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
+                    grplot_proc[] = run(`env $key=$(GRPreferences.libpath[]) $(GRPreferences.grplot[]) --listen`, wait=false)
+                end
                 println("[WARNING] GR Plot is an experimental feature that isn't recommended for production use")
                 sleep(1)
                 atexit(shutdown)
