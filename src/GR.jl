@@ -315,8 +315,7 @@ function init(always::Bool = false)
                 send_c[], recv_c[] = js.initjs()
             elseif display_name[] == "plot"
                 if Sys.iswindows()
-                    grplot_proc[] = run(`set PATH=$(GRPreferences.libpath[]) \& \"$(GRPreferences.grplot[])\" --listen`,  wait=false)
-
+                    grplot_proc[] = run(`\"$(GRPreferences.grplot[])\" --listen`, wait=false)
                 else
                     key = Sys.isapple() ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
                     grplot_proc[] = run(`env $key=$(GRPreferences.libpath[]) $(GRPreferences.grplot[]) --listen`, wait=false)
