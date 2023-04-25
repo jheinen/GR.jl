@@ -111,6 +111,7 @@
 :gr_endgraphics
 :gr_getgraphics
 :gr_drawgraphics
+:gr_startlistener
 :gr_mathtex
 :gr_inqmathtex
 :gr_setregenflags

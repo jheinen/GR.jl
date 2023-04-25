@@ -140,6 +140,7 @@ export
   endgraphics,
   getgraphics,
   drawgraphics,
+  startlistener,
   mathtex,
   inqmathtex,
   selectcontext,
@@ -249,7 +250,6 @@ const send_c = Ref(C_NULL)
 const recv_c = Ref(C_NULL)
 const text_encoding = Ref(ENCODING_UTF8)
 const check_env = Ref(true)
-const grplot_proc = Ref{Union{Nothing,Base.Process}}(nothing)
 
 isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected() && (isdefined(Main.Atom, :PlotPaneEnabled) ? Main.Atom.PlotPaneEnabled[] : true)
@@ -271,10 +271,6 @@ function set_callback()
           callback_c)
 end
 """
-
-function shutdown()
-    kill(grplot_proc[])
-end
 
 """
     init(always::Bool = false)
@@ -314,15 +310,14 @@ function init(always::Bool = false)
             if display_name[] == "js" || display_name[] == "pluto" || display_name[] == "js-server"
                 send_c[], recv_c[] = js.initjs()
             elseif display_name[] == "plot"
-                if Sys.iswindows()
-                    grplot_proc[] = run(`\"$(GRPreferences.grplot[])\" --listen`, wait=false)
+                ENV["GR_PLOT"] = if Sys.iswindows()
+                    "set PATH=$(GRPreferences.libpath[]) & \"$(GRPreferences.grplot[])\" --listen"
                 else
                     key = Sys.isapple() ? "DYLD_FALLBACK_LIBRARY_PATH" : "LD_LIBRARY_PATH"
-                    grplot_proc[] = run(`env $key=$(GRPreferences.libpath[]) $(GRPreferences.grplot[]) --listen`, wait=false)
+                    "env $key=$(GRPreferences.libpath[]) $(GRPreferences.grplot[]) --listen"
                 end
+                GR.startlistener()
                 println("[WARNING] GR Plot is an experimental feature that isn't recommended for production use")
-                sleep(1)
-                atexit(shutdown)
                 ENV["GKS_WSTYPE"] = "nul"
             end
             @debug "Found GRDISPLAY in ENV" display_name[]
@@ -3315,6 +3310,14 @@ function drawgraphics(string)
               Int32,
               (Ptr{Cchar}, ),
               string)
+  return Int(ret)
+end
+
+function startlistener()
+  ret = ccall( libGR_ptr(:gr_startlistener),
+              Int32,
+              (),
+              )
   return Int(ret)
 end
 
