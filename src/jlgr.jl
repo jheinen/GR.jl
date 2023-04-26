@@ -1103,9 +1103,15 @@ function send_data(handle, name, data)
     nothing
 end
 
+function shutdown()
+    GR.sendmetaref(handle[], "cmd", 's', "close");
+    GR.sendmetaref(handle[], "", '\0', "", 0);
+end
+
 function send_meta(target, plt=plt[])
     if handle[] === C_NULL
         handle[] = GR.openmeta(target)
+        atexit(shutdown)
     end
     if handle[] != C_NULL
         for (k, v) in plt.kvs
@@ -1141,7 +1147,6 @@ function send_meta(target, plt=plt[])
             GR.sendmetaref(handle[], "kind", 's', string(plt.kvs[:kind]));
         end
         GR.sendmetaref(handle[], "", '\0', "", 0);
-        #GR.closemeta(handle[])
     end
     nothing
 end
