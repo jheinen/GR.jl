@@ -1104,8 +1104,10 @@ function send_data(handle, name, data)
 end
 
 function shutdown()
-    GR.sendmetaref(handle[], "cmd", 's', "close");
-    GR.sendmetaref(handle[], "", '\0', "", 0);
+    if handle[] != C_NULL
+        GR.sendmetaref(handle[], "cmd", 's', "close");
+        GR.sendmetaref(handle[], "", '\0', "", 0);
+    end
 end
 
 function send_meta(target, plt=plt[])
