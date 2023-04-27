@@ -64,7 +64,7 @@ signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
 
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
-const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :clines, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
@@ -1404,6 +1404,7 @@ function plot_data(flag=true, plt=plt[])
             GR.setspace(zmin, zmax, 0, 90)
             levels = get(plt.kvs, :levels, 0)
             clabels = get(plt.kvs, :clabels, false)
+            clines = get(plt.kvs, :clines, true)
             if typeof(levels) <: Int
                 if levels == 0
                     levels = 20
@@ -1412,7 +1413,7 @@ function plot_data(flag=true, plt=plt[])
             else
                 h = float(levels)
             end
-            GR.contourf(x, y, h, z, clabels ? 1 : 0)
+            GR.contourf(x, y, h, z, clines ? (clabels ? 1 : 0) : -1)
             colorbar(0, length(h))
             GR.setprojectiontype(proj)
         elseif kind === :hexbin
