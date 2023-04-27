@@ -317,7 +317,6 @@ function init(always::Bool = false)
                     "env $key=$(GRPreferences.libpath[]) $(GRPreferences.grplot[]) --listen"
                 end
                 GR.startlistener()
-                println("[WARNING] GR Plot is an experimental feature that isn't recommended for production use")
                 ENV["GKS_WSTYPE"] = "nul"
             end
             @debug "Found GRDISPLAY in ENV" display_name[]
