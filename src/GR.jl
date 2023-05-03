@@ -3687,9 +3687,7 @@ function show()
         content = string(osc_seq(), "1337;File=inline=1;height=24;preserveAspectRatio=0:", Base64.base64encode(open(read,file_path[])), st_seq())
         if figure_count[] != -1
             figure_count[] += 1
-            if figure_count[] > 1
-                print("\e[s\e[H\e[2J\e[u")
-            end
+            (figure_count[] > 1) && print("\e[24A")
         end
         println(content)
         rm(file_path[])
