@@ -104,9 +104,11 @@ heatmap(z)
 
 imshow(z)
 
-ρ = LinRange(0, 7, 200)
-θ = LinRange(0, 2π, 360)
-polarheatmap(θ, ρ, sin.(2ρ) .* cos.(θ'))
+if !haskey(ENV, "GRDISPLAY")
+    ρ = LinRange(0, 7, 200)
+    θ = LinRange(0, 2π, 360)
+    polarheatmap(θ, ρ, sin.(2ρ) .* cos.(θ'))
+end
 
 s = LinRange(-1, 1, 40)
 v = 1 .- (s .^ 2 .+ (s .^ 2)' .+ reshape(s, 1, 1, :) .^ 2) .^ 0.5
@@ -119,34 +121,36 @@ x = randn(rng, N)
 y = randn(rng, N)
 shade(x, y)
 
-setprojectiontype(0)
+if !haskey(ENV, "GRDISPLAY")
+    setprojectiontype(0)
 
-clearws()
-xd = -2 .+ 4 * rand(rng, 100)
-yd = -2 .+ 4 * rand(rng, 100)
-zd = [xd[i] * exp(-xd[i]^2 - yd[i]^2) for i = 1:100]
+    clearws()
+    xd = -2 .+ 4 * rand(rng, 100)
+    yd = -2 .+ 4 * rand(rng, 100)
+    zd = [xd[i] * exp(-xd[i]^2 - yd[i]^2) for i = 1:100]
 
-setwsviewport(0, 0.1, 0, 0.1)
-setwswindow(0, 1, 0, 1)
+    setwsviewport(0, 0.1, 0, 0.1)
+    setwswindow(0, 1, 0, 1)
 
-setviewport(0.1, 0.95, 0.1, 0.95)
-setwindow(-2, 2, -2, 2)
-setspace(-0.5, 0.5, 0, 90)
+    setviewport(0.1, 0.95, 0.1, 0.95)
+    setwindow(-2, 2, -2, 2)
+    setspace(-0.5, 0.5, 0, 90)
 
-setcolormap(0)
-setlinecolorind(1)
-setmarkersize(1)
-setmarkertype(-1)
-setmarkercolorind(1)
-setcharheight(0.024)
-settextalign(2, 0)
-settextfontprec(3, 0)
+    setcolormap(0)
+    setlinecolorind(1)
+    setmarkersize(1)
+    setmarkertype(-1)
+    setmarkercolorind(1)
+    setcharheight(0.024)
+    settextalign(2, 0)
+    settextfontprec(3, 0)
 
-x, y, z = gridit(xd, yd, zd, 200, 200)
-h = -0.5:0.05:0.5
-surface(x, y, z, 5)
-contour(x, y, h, z, 0)
-polymarker(xd, yd)
-GR.axes(0.25, 0.25, -2, -2, 2, 2, 0.01)
+    x, y, z = gridit(xd, yd, zd, 200, 200)
+    h = -0.5:0.05:0.5
+    surface(x, y, z, 5)
+    contour(x, y, h, z, 0)
+    polymarker(xd, yd)
+    GR.axes(0.25, 0.25, -2, -2, 2, 2, 0.01)
 
-updatews()
+    updatews()
+end
