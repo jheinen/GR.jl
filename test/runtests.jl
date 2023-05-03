@@ -133,6 +133,11 @@ Example("Surface plot on a triangular mesh", quote
     trisurf(x, y, z)
 end),
 
+Example("Simple surface plot", quote
+    z = peaks()
+    surface(z)
+end),
+
 Example("Wireframe plot", quote
     x = 8 .* rand(rng, 100) .- 4
     y = 8 .* rand(rng, 100) .- 4
@@ -155,15 +160,18 @@ Example("Heatmap plot", quote
 end),
 
 Example("Image plot", quote
-    x = LinRange(-2, 2, 40)
-    y = LinRange(0, pi, 20)
-    z = sin.(x') .+ cos.(y)
     imshow(z)
+end),
+
+Example("Polar heatmap plot", quote
+    ρ = LinRange(0, 7, 200)
+    θ = LinRange(0, 2π, 360)
+    polarheatmap(θ, ρ, sin.(2ρ) .* cos.(θ'))
 end),
 
 Example("Isosurface plot", quote
     s = LinRange(-1, 1, 40)
-    v = 1 .- (s .^ 2 .+ (s .^ 2)' .+ reshape(s,1,1,:) .^ 2) .^ 0.5
+    v = 1 .- (s .^ 2 .+ (s .^ 2)' .+ reshape(s, 1, 1, :) .^ 2) .^ 0.5
     isosurface(v, isovalue=0.2)
 end),
 
