@@ -256,6 +256,8 @@ isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnect
 ispluto() = isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module
 isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (isdefined(Main.VSCodeServer, :PLOT_PANE_ENABLED) ? Main.VSCodeServer.PLOT_PANE_ENABLED[] : true)
 
+setraw!(raw) = ccall(:jl_tty_set_mode, Int32, (Ptr{Cvoid}, Int32), stdin.handle, raw)
+
 include("preferences.jl")
 
 # Load function pointer caching mechanism
@@ -401,6 +403,21 @@ function st_seq()
         "\a\033\\"
     else
         "\a"
+    end
+end
+
+function is_dark_mode()
+    try
+        setraw!(true)
+        print(stdin, "\033]11;?\033\\")
+        resp = read(stdin, 24)
+        setraw!(false)
+        bg = String(resp)[10:23]
+        red, green, blue = parse.(Int, rsplit(bg, '/'), base=16) ./ 0xffff
+        return 0.3 * red + 0.59 * green + 0.11 * blue < 0.5
+    catch e
+        setraw!(false)
+        return false
     end
 end
 
@@ -3616,6 +3633,7 @@ function inline(mime="svg", scroll=true)
         if mime == "iterm"
             file_path[] = tempname() * ".png"
             ENV["GKS_WSTYPE"] = "png"
+            usecolorscheme(is_dark_mode() ? 2 : 1)
         elseif mime == "mlterm"
             file_path[] = tempname() * ".six"
             ENV["GKS_WSTYPE"] = "six"
