@@ -31,7 +31,7 @@ end
 
 """
     load_libs(always = false)
-    Load shared GR libraries from either GR_jll or from GR tarball.
+    Load shared GR libraries from either GRCore_jll or from GR tarball.
     always is a boolean flag that is passed through to init.
 """
 function load_libs(always::Bool = false)

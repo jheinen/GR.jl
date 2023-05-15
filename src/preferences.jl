@@ -2,11 +2,14 @@ module GRPreferences
     using Preferences
     using Artifacts
     using TOML
+    import JLLPrefixes
+    import Scratch
+    import Requires
     try
-        import GR_jll
+        import GRCore_jll
     catch err
         @debug """
-        import GR_jll failed.
+        import GRCore_jll failed.
         Consider using `GR.GRPreferences.use_jll_binary()` or
         `GR.GRPreferences.use_upstream_binary()` to repair.
         Importing GR a second time will allow use of these functions.
@@ -22,6 +25,9 @@ module GRPreferences
     const libGRM  = Ref{Union{Nothing,String}}()
     const libGKS  = Ref{Union{Nothing,String}}()
     const libpath = Ref{Union{Nothing,String}}()
+
+    const pkg_version = VersionNumber(TOML.parsefile(joinpath(dirname(@__DIR__), "Project.toml"))["version"])
+    const GR_jll_scratch = Ref{String}()
 
     lib_path(grdir::AbstractString, lib::AbstractString) =
         if Sys.iswindows()
@@ -61,29 +67,38 @@ module GRPreferences
         grplot_path(joinpath(@__DIR__, "..", "deps", "gr"))
 
     function __init__()
-        gr_jll_artifact_dir = GR_jll.artifact_dir
+        gr_jll_artifact_dir = GRCore_jll.artifact_dir
         default_binary = haskey(ENV, "GRDIR") &&
             ENV["GRDIR"] != gr_jll_artifact_dir ? "system" : "GR_jll"
         binary = @load_preference("binary", default_binary)
         if binary == "GR_jll"
-            grdir[]   = gr_jll_artifact_dir
-            gksqt[]   = GR_jll.gksqt_path
-            grplot[]  = GR_jll.grplot_path
-            libGR[]   = GR_jll.libGR
-            libGR3[]  = GR_jll.libGR3
-            libGRM[]  = GR_jll.libGRM
-            libGKS[]  = GR_jll.libGKS
+            scratch_name = "gr_prefix-$(pkg_version.major).$(pkg_version.minor)"
+            grdir[] = Scratch.@get_scratch!(scratch_name)
+            if !isdir(joinpath(grdir[], "lib"))
+                JLLPrefixes.deploy_artifact_paths(grdir[], [GRCore_jll.artifact_dir])
+            end
 
-            # Because GR_jll does not dlopen as of 0.69.1+1, we need to append
+            gksqt[]   = nothing
+            grplot[]  = nothing
+            libGR[]   = GRCore_jll.libGR
+            libGR3[]  = GRCore_jll.libGR3
+            libGRM[]  = GRCore_jll.libGRM
+            libGKS[]  = GRCore_jll.libGKS
+            
+            # Because GRCore_jll does not dlopen as of 0.69.1+1, we need to append
             # the LIBPATH_list similar to JLLWrappers.@init_library_product
-            push!(GR_jll.LIBPATH_list, dirname(GR_jll.libGR))
+            push!(GRCore_jll.LIBPATH_list, dirname(GRCore_jll.libGR))
             # Recompute LIBPATH similar to JLLWrappers.@generate_init_footer
-            unique!(GR_jll.LIBPATH_list)
-            pathsep = GR_jll.JLLWrappers.pathsep
-            GR_jll.LIBPATH[] = join(vcat(GR_jll.LIBPATH_list, Base.invokelatest(GR_jll.JLLWrappers.get_julia_libpaths))::Vector{String}, pathsep)
+            unique!(GRCore_jll.LIBPATH_list)
+            pathsep = GRCore_jll.JLLWrappers.pathsep
+            GRCore_jll.LIBPATH[] = join(vcat(GRCore_jll.LIBPATH_list, Base.invokelatest(GRCore_jll.JLLWrappers.get_julia_libpaths))::Vector{String}, pathsep)
 
-            libpath[] = GR_jll.LIBPATH[]
+            libpath[] = GRCore_jll.LIBPATH[]
             ENV["GRDIR"] = grdir[]
+
+            @static if !isdefined(Base, :get_extension)
+                Requires.@require GRQt5_jll = "be234c1c-6cf4-5063-8676-3229d64ce17a" begin include("../ext/GRQt5Ext.jl") end
+            end
         elseif binary == "system"
             grdir[]   = haskey(ENV, "GRDIR") ? ENV["GRDIR"] : @load_preference("grdir")
             gksqt[]   = gksqt_path(grdir[])
@@ -106,9 +121,9 @@ module GRPreferences
     See `Preferences.set_preferences!` for the `export_prefs` and `force` keywords.
 
     The override keyword can be either:
-    * :depot, Override GR_jll using the depot Overrides.toml
-    * :project, Override GR_jll using the project Preferences.toml
-    * (:depot, :project), Overide GR_jll in both the depot and the project
+    * :depot, Override GRCore_jll using the depot Overrides.toml
+    * :project, Override GRCore_jll using the project Preferences.toml
+    * (:depot, :project), Overide GRCore_jll in both the depot and the project
     """
     function use_system_binary(grdir; export_prefs = false, force = false, override = :depot)
         try
@@ -137,7 +152,7 @@ module GRPreferences
     """
         use_jll_binary(; export_prefs = false, force = false)
 
-    Use GR_jll in the its standard configuration from BinaryBuilder.org.
+    Use GRCore_jll in the its standard configuration from BinaryBuilder.org.
 
     See `Preferences.set_preferences!` for the `export_prefs` and `force` keywords.
     """
@@ -189,7 +204,7 @@ module GRPreferences
     """
         override_depot([grdir])
 
-    Override GR_jll in the DEPOT_PATH[1]/artifacts/Overrides.toml with `grdir`.
+    Override GRCore_jll in the DEPOT_PATH[1]/artifacts/Overrides.toml with `grdir`.
     """
     function override_depot(grdir = grdir[])
         overrides_toml_path = get_overrides_toml_path()
@@ -207,7 +222,7 @@ module GRPreferences
     """
         unoverride_depot()
 
-    Remove the override for GR_jll in DEPOT_PATH[1]/artifats/Overrides.toml
+    Remove the override for GRCore_jll in DEPOT_PATH[1]/artifats/Overrides.toml
     """
     function unoverride_depot()
         overrides_toml_path = get_overrides_toml_path()
@@ -225,11 +240,11 @@ module GRPreferences
     """
         override_project([grdir])
 
-    Override individual GR_jll artifacts in the (Local)Preferences.toml of the project.
+    Override individual GRCore_jll artifacts in the (Local)Preferences.toml of the project.
     """
     function override_project(grdir = grdir[]; force = false)
         set_preferences!(
-            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9"), # GR_jll
+            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9"), # GRCore_jll
             "libGR_path" => lib_path(grdir, "libGR"),
             "libGR3_path" => lib_path(grdir, "libGR3"),
             "libGRM_path" => lib_path(grdir, "libGRM"),
@@ -243,11 +258,11 @@ module GRPreferences
     """
         unoverride_project()
 
-    Remove overrides for GR_jll artifacts in the (Local)Preferences.toml of the project.
+    Remove overrides for GRCore_jll artifacts in the (Local)Preferences.toml of the project.
     """
     function unoverride_project(; force = false)
         delete_preferences!(
-            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9"), # GR_jll
+            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9"), # GRCore_jll
             "libGR_path",
             "libGR3_path",
             "libGRM_path",
@@ -261,14 +276,14 @@ module GRPreferences
     """
         diagnostics()
 
-    Output diagnostics about preferences and overrides for GR and GR_jll.
+    Output diagnostics about preferences and overrides for GR and GRCore_jll.
     """
     function diagnostics()
         # GR Preferences
         binary = @load_preference("binary")
         grdir = @load_preference("grdir")
 
-        # GR_jll Preferences
+        # GRCore_jll Preferences
         GR_jll_uuid = Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9")
         libGR_path = load_preference(GR_jll_uuid, "libGR_path")
         libGR3_path = load_preference(GR_jll_uuid, "libGR3_path")
@@ -292,13 +307,13 @@ module GRPreferences
         @info "GR Preferences" binary grdir
         isnothing(resolved_grdir) ||
             @info "resolved_grdir" resolved_grdir isdir(resolved_grdir) isdir.(joinpath.((resolved_grdir,), ("bin", "lib", "include", "fonts")))
-        @info "GR_jll Preferences" libGR_path libGR3_path libGRM_path libGKS_path gksqt_path grplot_path
-        @info "GR_jll Overrides.toml" overrides_toml_path isfile(overrides_toml_path) get(gr_jll_override_dict, "GR", nothing)
+        @info "GRCore_jll Preferences" libGR_path libGR3_path libGRM_path libGKS_path gksqt_path grplot_path
+        @info "GRCore_jll Overrides.toml" overrides_toml_path isfile(overrides_toml_path) get(gr_jll_override_dict, "GR", nothing)
 
-        if(isdefined(@__MODULE__, :GR_jll))
-            @info "GR_jll" GR_jll.libGR_path GR_jll.libGR3_path GR_jll.libGRM_path GR_jll.libGKS_path GR_jll.gksqt_path GR_jll.grplot_path
+        if(isdefined(@__MODULE__, :GRCore_jll))
+            @info "GRCore_jll" GRCore_jll.libGR_path GRCore_jll.libGR3_path GRCore_jll.libGRM_path GRCore_jll.libGKS_path GRCore_jll.gksqt_path GRCore_jll.grplot_path
         else
-            @info "GR_jll is not loaded"
+            @info "GRCore_jll is not loaded"
         end
 
         return (;

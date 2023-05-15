@@ -338,6 +338,10 @@ function init(always::Bool = false)
         else
             haskey(ENV, "GKSwstype") || get!(ENV, "GKSwstype", "gksqt")
             if !haskey(ENV, "GKS_QT")
+                if isnothing(GRPreferences.gksqt[])
+                    @warn "The gksqt plotting window is no longer installed by default, please install and import the GRQt5_jll or GRQt6_jll package to enable it"
+                    ENV["GKSwstype"] = 100
+                end
                 ENV["GKS_QT"] = if Sys.iswindows()
                     "set PATH=$(GRPreferences.libpath[]) & \"$(GRPreferences.gksqt[])\""
                 else
