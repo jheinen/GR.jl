@@ -88,6 +88,7 @@ export
   redrawseg,
   setsegtran,
   closeseg,
+  samplelocator,
   emergencyclosegks,
   updategks,
   setspace,
@@ -2060,6 +2061,17 @@ function closeseg()
         Nothing,
         ()
         )
+end
+
+function samplelocator()
+  x = Cdouble[0]
+  y = Cdouble[0]
+  buttons = Cint[0]
+  ccall( libGR_ptr(:gr_samplelocator),
+        Nothing,
+        (Ptr{Float64}, Ptr{Float64}, Ptr{Int32}),
+        x, y, buttons)
+  return x[1], y[1], buttons[1]
 end
 
 function emergencyclosegks()

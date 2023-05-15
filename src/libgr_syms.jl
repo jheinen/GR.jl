@@ -59,6 +59,7 @@
 :gr_redrawsegws
 :gr_setsegtran
 :gr_closeseg
+:gr_samplelocator
 :gr_emergencyclosegks
 :gr_updategks
 :gr_setspace
