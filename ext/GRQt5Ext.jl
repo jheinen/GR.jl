@@ -2,7 +2,12 @@ module GRQt5Ext
 
 import GR
 import JLLPrefixes
-import ..GRQt5_jll
+
+if isdefined(Base, :get_extension) 
+  import GRQt5_jll
+else 
+  import ..GRQt5_jll
+end
 
 function __init__()
   grdir = GR.GRPreferences.grdir[]
