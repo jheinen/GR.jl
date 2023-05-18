@@ -13,6 +13,9 @@ function __init__()
   grdir = GR.GRPreferences.grdir[]
   if !isfile(GR.GRPreferences.gksqt_path(grdir))
     JLLPrefixes.deploy_artifact_paths(grdir, [GRQt5_jll.artifact_dir])
+    if Sys.iswindows()
+      JLLPrefixes.deploy_artifact_paths(grdir, [GRQt5_jll.Qt5Base_jll.artifact_dir]; strategy=:copy)
+    end
   end
   pathsep = GRQt5_jll.JLLWrappers.pathsep
   existing_paths = split(GR.GRPreferences.libpath[], pathsep)

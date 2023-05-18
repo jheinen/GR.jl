@@ -87,7 +87,9 @@ module GRPreferences
             
             # Because GRCore_jll does not dlopen as of 0.69.1+1, we need to append
             # the LIBPATH_list similar to JLLWrappers.@init_library_product
-            push!(GRCore_jll.LIBPATH_list, dirname(GRCore_jll.libGR))
+            grcore_libdir = dirname(GRCore_jll.libGR)
+            push!(GRCore_jll.LIBPATH_list, grcore_libdir)
+            push!(GRCore_jll.LIBPATH_list, joinpath(grdir[], basename(grcore_libdir))) # add scratchdir/bin or scratchdir/lib
             # Recompute LIBPATH similar to JLLWrappers.@generate_init_footer
             unique!(GRCore_jll.LIBPATH_list)
             pathsep = GRCore_jll.JLLWrappers.pathsep
