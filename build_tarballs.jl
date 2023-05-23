@@ -1,21 +1,17 @@
 # Note that this script can accept some limited command-line arguments, run
 # `julia build_tarballs.jl --help` to see a usage message.
-#
-# Examples:
-#   - env BINARYBUILDER_AUTOMATIC_APPLE=true julia build_tarballs.jl x86_64-apple-darwin14
-#   - julia build_tarballs.jl x86_64-linux-gnu
-#   - julia build_tarballs.jl x86_64-w64-mingw32
-#
 using BinaryBuilder
 
 name = "GR"
-version = v"0.72.4"
+version = v"0.72.6"
 
 # Collection of sources required to complete build
 sources = [
-    GitSource("https://github.com/sciapp/gr.git", "45c2c98c7e1f116a6c15748decbe9654b7db3649"),
+    GitSource("https://github.com/sciapp/gr.git", "630000edb97d77049cb51603aa77ac6000b773e7"),
     FileSource("https://github.com/sciapp/gr/releases/download/v$version/gr-$version.js",
-               "20e1633681598e86c8b9983bef9628cb20d912b312f4024edec5dd3fa153414a", "gr.js")
+               "203269cc2dbce49536e54e7f0ece3542a8bd5bec4931b0937846a1e260e00312", "gr.js"),
+    ArchiveSource("https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.14.sdk.tar.xz",
+                  "0f03869f72df8705b832910517b47dd5b79eb4e160512602f593ed243b28715f")
 ]
 
 # Bash recipe for building across all platforms
@@ -35,6 +31,15 @@ if [[ $target == *"mingw"* ]]; then
     tifflags=-DTIFF_LIBRARY=${libdir}/libtiff-5.dll
 else
     tifflags=-DTIFF_LIBRARY=${libdir}/libtiff.${dlext}
+fi
+
+if [[ "${target}" == x86_64-apple-darwin* ]]; then
+    pushd $WORKSPACE/srcdir/MacOSX10.*.sdk
+    rm -rf /opt/${target}/${target}/sys-root/System
+    cp -ra usr/* "/opt/${target}/${target}/sys-root/usr/."
+    cp -ra System "/opt/${target}/${target}/sys-root/."
+    export MACOSX_DEPLOYMENT_TARGET=10.14
+    popd
 fi
 
 if [[ "${target}" == *apple* ]]; then
@@ -71,8 +76,9 @@ platforms = [
     Platform("i686",  "linux"; libc="glibc"),
     Platform("powerpc64le",  "linux"; libc="glibc"),
     Platform("x86_64",  "windows"),
-    Platform("i686",  "windows"),    
+    Platform("i686",  "windows"),
     Platform("x86_64",  "macos"),
+    Platform("aarch64", "macos"),
     Platform("x86_64",  "freebsd"),
 ]
 platforms = expand_cxxstring_abis(platforms)
@@ -84,18 +90,19 @@ products = [
     LibraryProduct("libGRM", :libGRM, dont_dlopen=true),
     LibraryProduct("libGKS", :libGKS, dont_dlopen=true),
     ExecutableProduct("gksqt", :gksqt),
+    ExecutableProduct("grplot", :grplot),
 ]
 
 # Dependencies that must be installed before this package can be built
 dependencies = [
-    Dependency("Bzip2_jll"),
-    Dependency("Cairo_jll"),
+    Dependency("Bzip2_jll"; compat="1.0.8"),
+    Dependency("Cairo_jll"; compat="1.16.1"),
     Dependency("FFMPEG_jll"),
     Dependency("Fontconfig_jll"),
     Dependency("GLFW_jll"),
     Dependency("JpegTurbo_jll"),
     Dependency("libpng_jll"),
-    Dependency("Libtiff_jll"),
+    Dependency("Libtiff_jll"; compat="4.3.0"),
     Dependency("Pixman_jll"),
 #    Dependency("Qhull_jll"),
     Dependency("Qt5Base_jll"),
@@ -107,4 +114,4 @@ dependencies = [
 # Build the tarballs, and possibly a `build.jl` as well.
 # GCC version 7 because of ffmpeg, but building against Qt requires v8 on Windows.
 build_tarballs(ARGS, name, version, sources, script, platforms, products, dependencies;
-               preferred_gcc_version = v"8")
+               preferred_gcc_version = v"8", julia_compat="1.6")
