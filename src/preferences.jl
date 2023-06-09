@@ -17,6 +17,8 @@ module GRPreferences
     end
     include("downloader.jl")
 
+    const grcore_jll_uuid = Base.UUID("f74edf77-fc28-5533-a68a-cacf3c4a2f46")
+
     const grdir   = Ref{Union{Nothing,String}}()
     const gksqt   = Ref{Union{Nothing,String}}()
     const grplot  = Ref{Union{Nothing,String}}()
@@ -215,7 +217,7 @@ module GRPreferences
         else
             Dict{String,Any}()
         end
-        override_dict["d2c73de3-f751-5644-a686-071e5b155ba9"] = Dict("GR" => grdir)
+        override_dict[string(grcore_jll_uuid)] = Dict("GR" => grdir)
         open(overrides_toml_path, "w") do io
             TOML.print(io, override_dict)
         end
@@ -233,7 +235,7 @@ module GRPreferences
         else
             Dict{String,Any}()
         end
-        delete!(override_dict, "d2c73de3-f751-5644-a686-071e5b155ba9")
+        delete!(override_dict, string(grcore_jll_uuid))
         open(overrides_toml_path, "w") do io
             TOML.print(io, override_dict)
         end
@@ -246,7 +248,7 @@ module GRPreferences
     """
     function override_project(grdir = grdir[]; force = false)
         set_preferences!(
-            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9"), # GRCore_jll
+            grcore_jll_uuid,
             "libGR_path" => lib_path(grdir, "libGR"),
             "libGR3_path" => lib_path(grdir, "libGR3"),
             "libGRM_path" => lib_path(grdir, "libGRM"),
@@ -264,7 +266,7 @@ module GRPreferences
     """
     function unoverride_project(; force = false)
         delete_preferences!(
-            Base.UUID("d2c73de3-f751-5644-a686-071e5b155ba9"), # GRCore_jll
+            grcore_jll_uuid,
             "libGR_path",
             "libGR3_path",
             "libGRM_path",
@@ -313,7 +315,7 @@ module GRPreferences
         @info "GRCore_jll Overrides.toml" overrides_toml_path isfile(overrides_toml_path) get(gr_jll_override_dict, "GR", nothing)
 
         if(isdefined(@__MODULE__, :GRCore_jll))
-            @info "GRCore_jll" GRCore_jll.libGR_path GRCore_jll.libGR3_path GRCore_jll.libGRM_path GRCore_jll.libGKS_path GRCore_jll.gksqt_path GRCore_jll.grplot_path
+            @info "GRCore_jll" GRCore_jll.libGR_path GRCore_jll.libGR3_path GRCore_jll.libGRM_path GRCore_jll.libGKS_path
         else
             @info "GRCore_jll is not loaded"
         end
