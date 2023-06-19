@@ -2,7 +2,6 @@ module GRPreferences
     using Preferences
     using Artifacts
     using TOML
-    import JLLPrefixes
     import Scratch
     import Requires
     try
@@ -68,6 +67,44 @@ module GRPreferences
     grplot_path(grdir::Nothing) =
         grplot_path(joinpath(@__DIR__, "..", "deps", "gr"))
 
+    # Copy all files from a tree. Adapted from the JLLPrefixes package.
+    function copy_tree(src::AbstractString, dest::AbstractString)
+        for (root, dirs, files) in walkdir(src)
+            # Create all directories
+            for d in dirs
+                d_path = joinpath(root, d)
+                dest_dir = joinpath(dest, relpath(root, src), d)
+                if !ispath(dest_dir)
+                    mkpath(dest_dir)
+                end
+            end
+    
+            # Copy all files
+            for f in files
+                src_file = joinpath(root, f)
+                dest_file = joinpath(dest, relpath(root, src), f)
+                if isfile(dest_file)
+                    # Ugh, destination file already exists.  If source and destination files
+                    # have the same size and SHA256 hash, just move on, otherwise issue a
+                    # warning.
+                    if filesize(src_file) == filesize(dest_file)
+                        src_file_hash = open(io -> bytes2hex(sha256(io)), src_file, "r")
+                        dest_file_hash = open(io -> bytes2hex(sha256(io)), dest_file, "r")
+                        if src_file_hash == dest_file_hash
+                            continue
+                        end
+                    end
+    
+                    # Find source artifact that this pre-existent destination file belongs to
+                    @warn("File $(f) from $(dirname(src_file)) already exists in $(dest)")
+                else
+                    # If it's already a symlink, copy over the exact symlink target
+                    cp(src_file, dest_file)
+                end
+            end
+        end
+    end
+
     function __init__()
         gr_jll_artifact_dir = GRCore_jll.artifact_dir
         default_binary = haskey(ENV, "GRDIR") &&
@@ -77,7 +114,7 @@ module GRPreferences
             scratch_name = "gr_prefix-$(pkg_version.major).$(pkg_version.minor)"
             grdir[] = Scratch.@get_scratch!(scratch_name)
             if !isdir(joinpath(grdir[], "lib"))
-                JLLPrefixes.deploy_artifact_paths(grdir[], [GRCore_jll.artifact_dir])
+                copy_tree(GRCore_jll.artifact_dir, grdir[])
             end
 
             gksqt[]   = nothing

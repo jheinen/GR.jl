@@ -1,7 +1,6 @@
 module GRQt5Ext
 
 import GR
-import JLLPrefixes
 
 if isdefined(Base, :get_extension) 
   import GRQt5_jll
@@ -12,9 +11,9 @@ end
 function __init__()
   grdir = GR.GRPreferences.grdir[]
   if !isfile(GR.GRPreferences.gksqt_path(grdir))
-    JLLPrefixes.deploy_artifact_paths(grdir, [GRQt5_jll.artifact_dir])
+    GR.GRPreferences.copy_tree(GRQt5_jll.artifact_dir, grdir)
     if Sys.iswindows()
-      JLLPrefixes.deploy_artifact_paths(grdir, [GRQt5_jll.Qt5Base_jll.artifact_dir]; strategy=:copy)
+      GR.GRPreferences.copy_tree(GRQt5_jll.Qt5Base_jll.artifact_dir, grdir)
     end
   end
   pathsep = GRQt5_jll.JLLWrappers.pathsep
