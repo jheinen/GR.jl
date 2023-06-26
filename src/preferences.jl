@@ -3,6 +3,7 @@ module GRPreferences
     using Artifacts
     using TOML
     import Scratch
+    using SHA
     import Requires
     try
         import GRCore_jll
@@ -139,6 +140,7 @@ module GRPreferences
 
             @static if !isdefined(Base, :get_extension)
                 Requires.@require GRQt5_jll = "be234c1c-6cf4-5063-8676-3229d64ce17a" begin include("../ext/GRQt5Ext.jl") end
+                Requires.@require GRQt6_jll = "03d9041e-b4d2-508d-8c1c-d30ef48c1ce0" begin include("../ext/GRQt6Ext.jl") end
             end
         elseif binary == "system"
             grdir[]   = haskey(ENV, "GRDIR") ? ENV["GRDIR"] : @load_preference("grdir")

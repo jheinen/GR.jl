@@ -16,12 +16,10 @@ function __init__()
       GR.GRPreferences.copy_tree(GRQt5_jll.Qt5Base_jll.artifact_dir, grdir)
     end
   end
-  pathsep = GRQt5_jll.JLLWrappers.pathsep
-  existing_paths = split(GR.GRPreferences.libpath[], pathsep)
-  append!(existing_paths, GRQt5_jll.LIBPATH_list)
-  unique!(existing_paths)
-  GR.GRPreferences.libpath[] = join(existing_paths, pathsep)
-  GR.GRPreferences.gksqt[] = GR.GRPreferences.gksqt_path(grdir)
+  libpath_env = GRQt5_jll.JLLWrappers.LIBPATH_env
+  libenv = filter(x -> startswith(x, libpath_env), GRQt5_jll.gksqt().env)[1]
+  GR.GRPreferences.libpath[] = replace(libenv, libpath_env*"=" => "")
+  GR.GRPreferences.gksqt[] = GRQt5_jll.gksqt_path
   GR.GRPreferences.grplot[] = GRQt5_jll.grplot_path
 end
 
