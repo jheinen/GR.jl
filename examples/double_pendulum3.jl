@@ -64,7 +64,7 @@ function main()
 
     w1 = 0.0
     w2 = 0.0
-    t = 1
+    t = 1.0
     dt = 0.04
     state = [t1, w1, t2, w2] * pi / 180
 
