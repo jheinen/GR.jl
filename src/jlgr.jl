@@ -129,14 +129,21 @@ const scheme = Ref(0)
 const handle = Ref{Ptr{Nothing}}(C_NULL)
 
 function gcf()
-    plt[].kvs
+    obj = deepcopy(plt[].obj)
+    args = deepcopy(plt[].args)
+    kvs = deepcopy(plt[].kvs)
+    PlotObject(obj, args, kvs)
+end
+
+function plot(p::PlotObject)
+    plt[] = p
+    plot_data()
 end
 
 isrowvec(x::AbstractArray) = ndims(x) == 2 && size(x, 1) == 1 && size(x, 2) > 1
 
 isvector(x::AbstractVector) = true
 isvector(x::AbstractMatrix) = size(x, 1) == 1
-
 
 
 function set_viewport(kind, subplot, plt=plt[])
