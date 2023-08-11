@@ -25,7 +25,7 @@ function paint(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})
   r = effectiveDevicePixelRatio(window(item[])[])
   w, h = width(dev) / r, height(dev) / r
 
-  plt = gcf()
+  plt = kvs()
   plt[:size] = (w, h)
 
   if zoom === Nothing

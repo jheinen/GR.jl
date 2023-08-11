@@ -10,6 +10,7 @@ using Sockets
 export
 colormap,
 figure,
+kvs,
 gcf,
 hold,
 usecolorscheme,
@@ -127,6 +128,10 @@ const plt = Ref{PlotObject}(Figure())
 const ctx = Dict{Symbol, Any}()
 const scheme = Ref(0)
 const handle = Ref{Ptr{Nothing}}(C_NULL)
+
+function kvs()
+    plt[].kvs
+end
 
 function gcf()
     obj = deepcopy(plt[].obj)

@@ -12,7 +12,7 @@ function plot(ctx, w, h)
     ENV["GKS_WSTYPE"] = "142"
     ENV["GKSconid"] = @sprintf("%lu", UInt64(ctx.ptr))
 
-    plt = gcf()
+    plt = kvs()
     plt[:size] = (w, h)
     nbins = Int64(Gtk.GAccessor.value(sl))
 

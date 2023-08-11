@@ -188,6 +188,7 @@ export
   jlgr,
   colormap,
   figure,
+  kvs,
   gcf,
   hold,
   usecolorscheme,
