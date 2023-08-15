@@ -616,9 +616,6 @@ function draw_polar_axes(plt=plt[])
             if i > 0
                 GR.drawarc(-r, r, -r, r, 0, 360)
             end
-            GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
-            x, y = GR.wctondc(0.05, r)
-            GR.text(x, y, string(signif(rmin + i * tick, 12)))
         else
             GR.setlinecolorind(90)
             GR.drawarc(-r, r, -r, r, 0, 360)
@@ -630,10 +627,20 @@ function draw_polar_axes(plt=plt[])
     for alpha in 0:45:315
         sinf = sin((alpha * sign) * π / 180 + offs)
         cosf = cos((alpha * sign) * π / 180 + offs)
+        GR.setlinecolorind(88)
         GR.polyline([cosf, 0], [sinf, 0])
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_HALF)
         x, y = GR.wctondc(1.1 * cosf, 1.1 * sinf)
         GR.text(x, y, string(alpha, "°"))
+    end
+
+    for i in 0:n
+        r = rmin + i * tick / (rmax - rmin)
+        if i % 2 == 0 || i == n
+            GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
+            x, y = GR.wctondc(0.05, r)
+            GR.text(x, y, string(signif(rmin + i * tick, 12)))
+        end
     end
 
     if haskey(plt.kvs, :title)
@@ -1333,13 +1340,13 @@ function plot_data(flag=true, plt=plt[])
             end
         elseif kind === :stem
             GR.setlinecolorind(1)
-            GR.polyline([plt.kvs[:window][1]; plt.kvs[:window][2]], [0; 0])
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             GR.uselinespec(spec)
             for i = 1:length(y)
                 GR.polyline([x[i]; x[i]], [0; y[i]])
                 GR.polymarker([x[i]], [y[i]])
             end
+            GR.polyline([plt.kvs[:window][1]; plt.kvs[:window][2]], [0; 0])
         elseif kind === :hist
             ymin = plt.kvs[:window][3]
             for i = 1:length(y)
@@ -1384,7 +1391,7 @@ function plot_data(flag=true, plt=plt[])
             end
             draw_polar_axes()
             plt.kvs[:zrange] = cmin, cmax
-            colorbar()
+            colorbar(0.025)
         elseif kind === :contour
             zmin, zmax = plt.kvs[:zrange]
             if length(x) == length(y) == length(z)
