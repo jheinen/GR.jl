@@ -1339,13 +1339,13 @@ function plot_data(flag=true, plt=plt[])
                 GR.polymarker(x, y)
             end
         elseif kind === :stem
-            GR.setlinecolorind(1)
             GR.setmarkertype(GR.MARKERTYPE_SOLID_CIRCLE)
             GR.uselinespec(spec)
             for i = 1:length(y)
                 GR.polyline([x[i]; x[i]], [0; y[i]])
                 GR.polymarker([x[i]], [y[i]])
             end
+            GR.setlinecolorind(1)
             GR.polyline([plt.kvs[:window][1]; plt.kvs[:window][2]], [0; 0])
         elseif kind === :hist
             ymin = plt.kvs[:window][3]
