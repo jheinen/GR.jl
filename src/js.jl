@@ -409,7 +409,9 @@ function initjs()
         import UUIDs
         import JSON
       end
-      if occursin(".post", GR.version())
+      if haskey(ENV, "GR_JS")
+        jssource[] = ENV["GR_JS"]
+      elseif occursin(".post", GR.version())
         jssource[] = "https://gr-framework.org/downloads/gr-latest.js"
       end
       if GR.displayname() == "js-server"
