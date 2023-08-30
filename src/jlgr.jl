@@ -1124,7 +1124,7 @@ end
 
 function shutdown()
     if handle[] != C_NULL
-        GR.sendmetaref(handle[], "cmd", 's', "close");
+        GR.sendmetaref(handle[], "request", 's', "close");
         GR.sendmetaref(handle[], "", '\0', "", 0);
     end
 end

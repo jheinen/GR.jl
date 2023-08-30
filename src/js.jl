@@ -102,7 +102,7 @@ global_evthandler = nothing
 function register_evthandler(f::Function, id)
   global evthandler, l
   if GR.isijulia()
-    send_command(Dict("command" => "enable_events"), "cmd", id)
+    send_command(Dict("command" => "enable_events"), "request", id)
     lock(l) do
       evthandler[id] = f
     end
@@ -115,7 +115,7 @@ function unregister_evthandler(id)
   global evthandler, l
   if GR.isijulia()
     if global_evthandler === nothing
-      send_command(Dict("command" => "disable_events"), "cmd", id)
+      send_command(Dict("command" => "disable_events"), "request", id)
     end
     lock(l) do
       evthandler[id] = nothing
@@ -128,7 +128,7 @@ end
 function register_evthandler(f::Function)
   global global_evthandler, l
   if GR.isijulia()
-    send_command(Dict("command" => "enable_events"), "cmd", nothing)
+    send_command(Dict("command" => "enable_events"), "request", nothing)
     lock(l) do
       evthandler[id] = f
     end
@@ -140,11 +140,11 @@ end
 function unregister_evthandler()
   global global_evthandler, evthandler, l
   if GR.isijulia()
-    send_command(Dict("command" => "disable_events"), "cmd", nothing)
+    send_command(Dict("command" => "disable_events"), "request", nothing)
     lock(l) do
       for key in keys(evthandler)
         if evthandler[key] !== nothing
-          send_command(Dict("command" => "enable_events"), "cmd", key)
+          send_command(Dict("command" => "enable_events"), "request", key)
         end
       end
       evthandler[id] = nothing
@@ -192,7 +192,7 @@ end
 
 function disable_jseventhandling(id)
   if GR.isijulia()
-    send_command(Dict("command" => "disable_jseventhandling"), "cmd", id)
+    send_command(Dict("command" => "disable_jseventhandling"), "request", id)
   else
     error("disable_jseventhandling is only available in IJulia environments")
   end
@@ -200,7 +200,7 @@ end
 
 function enable_jseventhandling(id)
   if GR.isijulia()
-    send_command(Dict("command" => "enable_jseventhandling"), "cmd", id)
+    send_command(Dict("command" => "enable_jseventhandling"), "request", id)
   else
     error("enable_jseventhandling is only available in IJulia environments")
   end
@@ -208,7 +208,7 @@ end
 
 function disable_jseventhandling()
   if GR.isijulia()
-    send_command(Dict("command" => "disable_jseventhandling"), "cmd", nothing)
+    send_command(Dict("command" => "disable_jseventhandling"), "request", nothing)
   else
     error("disable_jseventhandling is only available in IJulia environments")
   end
@@ -217,7 +217,7 @@ end
 function enable_jseventhandling()
   global ws
   if GR.isijulia()
-    send_command(Dict("command" => "enable_jseventhandling"), "cmd", nothing)
+    send_command(Dict("command" => "enable_jseventhandling"), "request", nothing)
   else
     error("enable_jseventhandling is only available in IJulia environments")
   end
@@ -251,7 +251,7 @@ function comm_msg_callback(msg)
 end
 
 function settooltip(tthtml, ttdata, id)
-  send_command(Dict("command" => "settooltip", "html" => tthtml, "data" => ttdata), "cmd", id)
+  send_command(Dict("command" => "settooltip", "html" => tthtml, "data" => ttdata), "request", id)
   return nothing
 end
 
