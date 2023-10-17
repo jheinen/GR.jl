@@ -1349,12 +1349,14 @@ function plot_data(flag=true, plt=plt[])
             GR.polyline([plt.kvs[:window][1]; plt.kvs[:window][2]], [0; 0])
         elseif kind === :hist
             ymin = plt.kvs[:window][3]
+            GR.setfillcolorind(989)
+            GR.setfillintstyle(GR.INTSTYLE_SOLID)
             for i = 1:length(y)
-                GR.setfillcolorind(989)
-                GR.setfillintstyle(GR.INTSTYLE_SOLID)
                 GR.fillrect(x[i], x[i+1], ymin, y[i])
-                GR.setfillcolorind(1)
-                GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
+            end
+            GR.setfillcolorind(1)
+            GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
+            for i = 1:length(y)
                 GR.fillrect(x[i], x[i+1], ymin, y[i])
             end
         elseif kind === :polarhist
