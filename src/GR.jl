@@ -313,7 +313,7 @@ function init(always::Bool = false)
             display_name[] = ENV["GRDISPLAY"]
             if display_name[] == "js" || display_name[] == "pluto" || display_name[] == "js-server"
                 send_c[], recv_c[] = js.initjs()
-            elseif display_name[] == "plot"
+            elseif display_name[] == "plot" || display_name[] == "edit"
                 ENV["GR_PLOT"] = if Sys.iswindows()
                     "set PATH=$(GRPreferences.libpath[]) & \"$(GRPreferences.grplot[])\" --listen"
                 else
