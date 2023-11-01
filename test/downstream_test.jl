@@ -7,15 +7,15 @@ Plots_jl = joinpath(mkpath(tempname()), "Plots.jl")
 Plots_toml = joinpath(Plots_jl, "Project.toml")
 
 # clone and checkout the latest stable version of Plots
-try
+stable = try
     rg = first(Pkg.Registry.reachable_registries())
     Plots_UUID = first(Pkg.Registry.uuids_from_name(rg, "Plots"))
     Plots_PkgEntry = rg.pkgs[Plots_UUID]
     Plots_version_info = Pkg.Registry.registry_info(Plots_PkgEntry).version_info
-    stable = maximum(keys(Plots_version_info))
+    maximum(keys(Plots_version_info))
 catch
     depot = joinpath(first(DEPOT_PATH), "registries", "General", "P", "Plots", "Versions.toml")
-    stable = maximum(VersionNumber.(keys(TOML.parse(read(depot, String)))))
+    maximum(VersionNumber.(keys(TOML.parse(read(depot, String)))))
 end
 
 for i ∈ 1:6
