@@ -65,7 +65,7 @@ signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
 
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
-const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :clines, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :clines, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi, :keepaspect]
 
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
@@ -1166,6 +1166,9 @@ function send_meta(target, plt=plt[])
             GR.sendmetaref(handle[], "kind", 's', "barplot");
         else
             GR.sendmetaref(handle[], "kind", 's', string(plt.kvs[:kind]));
+        end
+        if get(plt.kvs, :keepaspect, false)
+            GR.sendmetaref(handle[], "keep_aspect_ratio", 'i', 1)
         end
         GR.sendmetaref(handle[], "", '\0', "", 0);
     end
