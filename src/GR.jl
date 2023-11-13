@@ -2552,7 +2552,7 @@ function surface(px, py, pz, option::Int)
           (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
           nx, ny, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, pz), option)
   else
-    println("Arrays have incorrect length or dimension.")
+    error("Arrays have incorrect length or dimension.")
   end
 end
 
@@ -2605,7 +2605,7 @@ function contour(px, py, h, pz, major_h::Int)
           (Int32, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
           nx, ny, nh, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, h), convert(Vector{Float64}, pz), major_h)
   else
-    println("Arrays have incorrect length or dimension.")
+    error("Arrays have incorrect length or dimension.")
   end
 end
 
@@ -2655,7 +2655,7 @@ function contourf(px, py, h, pz, major_h::Int)
           (Int32, Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
           nx, ny, nh, convert(Vector{Float64}, px), convert(Vector{Float64}, py), convert(Vector{Float64}, h), convert(Vector{Float64}, pz), major_h)
   else
-    println("Arrays have incorrect length or dimension.")
+    error("Arrays have incorrect length or dimension.")
   end
 end
 
@@ -3812,7 +3812,7 @@ function interp2(X, Y, Z, Xq, Yq, method::Int=0, extrapval=0)
           ny, nx, convert(Vector{Float64}, Y), convert(Vector{Float64}, X), convert(Vector{Float64}, Z), nyq, nxq, convert(Vector{Float64}, Yq), convert(Vector{Float64}, Xq), Zq, method, extrapval)
     reshape(Zq, nyq, nxq)
   else
-    println("Arrays have incorrect length or dimension.")
+    error("Arrays have incorrect length or dimension.")
     Z
   end
 end
@@ -3929,7 +3929,7 @@ function quiver(x, y, u, v, color::Bool=false)
           (Int32, Int32, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Ptr{Float64}, Int32),
           nx, ny, convert(Vector{Float64}, x), convert(Vector{Float64}, y), convert(Vector{Float64}, u), convert(Vector{Float64}, v), convert(Int32, color))
   else
-    println("Arrays have incorrect length or dimension.")
+    error("Arrays have incorrect length or dimension.")
   end
 end
 
