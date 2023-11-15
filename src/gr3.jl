@@ -182,7 +182,7 @@ function createheightmapmesh(heightmap, num_columns, num_rows)
           @ArrayToVector(Float32, heightmap), num_columns, num_rows)
     _check_error()
   else
-    println("Array has incorrect length or dimension.")
+    error("Array has incorrect length or dimension.")
   end
 end
 export createheightmapmesh
@@ -200,7 +200,7 @@ function drawheightmap(heightmap, num_columns, num_rows, positions, scales)
           @ArrayToVector(Float32, heightmap), num_columns, num_rows, @ArrayToVector(Float32, _positions), @ArrayToVector(Float32, _scales))
     _check_error()
   else
-    println("Array has incorrect length or dimension.")
+    error("Array has incorrect length or dimension.")
   end
 end
 export drawheightmap
@@ -365,7 +365,7 @@ function surface(px, py, pz, option::Int)
           nx, ny, @ArrayToVector(Float32, _px), @ArrayToVector(Float32, _py), @ArrayToVector(Float32, _pz), option)
     _check_error()
   else
-    println("Arrays have incorrect length or dimension.")
+    error("Arrays have incorrect length or dimension.")
   end
 end
 
@@ -425,7 +425,7 @@ function createslicemeshes(grid; x::Union{Real, Nothing}=nothing, y::Union{Real,
         input_max = convert(typeof(grid[1,1,1]), 1.0)
         grid = min.(grid, input_max)
     else
-        println("grid must be three dimensional array of Real numbers")
+        error("grid must be three dimensional array of Real numbers")
         return(nothing)
     end
     scaling_factor = typemax(UInt16) / input_max

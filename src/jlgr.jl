@@ -814,7 +814,7 @@ function create_context(dict::AbstractDict)
     plt[].obj = copy(plt[].kvs)
     for k in keys(dict)
         if ! (k in kw_args)
-            println("Invalid keyword: $k")
+            error("Invalid keyword: $k")
         end
     end
     merge!(plt[].kvs, dict)
@@ -889,7 +889,7 @@ function hold(flag, plt=plt[])
             end
         end
     else
-        println("Invalid hold state")
+        error("Invalid hold state")
     end
     flag
 end
@@ -898,7 +898,7 @@ function usecolorscheme(index)
     if 1 <= index <= 4
         scheme[] = index
     else
-        println("Invalid color sheme")
+        error("Invalid color sheme")
     end
     nothing
 end
