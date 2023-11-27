@@ -4296,7 +4296,28 @@ function inqprojectiontype()
           Nothing,
           (Ptr{Cint}, ),
           proj)
-  return Int(proj[1])
+    return Int(proj[1])
+end
+
+function beginselection(index, type)
+    ccall( libGR_ptr(:gr_beginselection),
+        Nothing,
+        (Cint, Cint),
+        index, type)
+end
+
+function endselection()
+    ccall( libGR_ptr(:gr_endselection),
+        Nothing,
+        (),
+        )
+end
+
+function moveselection(x, y)
+    ccall( libGR_ptr(:gr_moveselection),
+        Nothing,
+        (Cdouble, Cdouble),
+        x, y)
 end
 
 # JS functions

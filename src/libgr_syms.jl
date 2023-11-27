@@ -155,4 +155,7 @@
 :gr_setscientificformat
 :gr_setresizebehaviour
 :gr_inqprojectiontype
+:gr_beginselection
+:gr_endselection
+:gr_moveselection
 ]
