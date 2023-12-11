@@ -541,12 +541,37 @@ function draw_axes(kind, pass=1, plt=plt[])
         charheight = max(0.024 * diag, 0.012)
         GR.setcharheight(charheight)
         ztick, zorg, majorz = plt.kvs[:zaxis]
+        rotation = get(plt.kvs, :rotation, 40)
+        tilt = get(plt.kvs, :tilt, 60)
+        zi = 0 <= tilt <= 90 ? 1 : 2
         if pass == 1 && drawgrid
-            GR.grid3d(xtick, 0, ztick, xorg[1], yorg[2], zorg[1], 2, 0, 2)
-            GR.grid3d(0, ytick, 0, xorg[1], yorg[2], zorg[1], 0, 2, 0)
+            if 0 <= rotation < 90
+                GR.grid3d(xtick, 0, ztick, xorg[1], yorg[2], zorg[zi], 2, 0, 2)
+                GR.grid3d(0, ytick, 0, xorg[1], yorg[2], zorg[zi], 0, 2, 0)
+            elseif 90 <= rotation < 180
+                GR.grid3d(xtick, 0, ztick, xorg[2], yorg[2], zorg[zi], 2, 0, 2)
+                GR.grid3d(0, ytick, 0, xorg[2], yorg[2], zorg[zi], 0, 2, 0)
+            elseif 180 <= rotation < 270
+                GR.grid3d(xtick, 0, ztick, xorg[2], yorg[1], zorg[zi], 2, 0, 2)
+                GR.grid3d(0, ytick, 0, xorg[2], yorg[1], zorg[zi], 0, 2, 0)
+            else
+                GR.grid3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], 2, 0, 2)
+                GR.grid3d(0, ytick, 0, xorg[1], yorg[1], zorg[zi], 0, 2, 0)
+            end
         else
-            GR.axes3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[1], majorx, 0, majorz, -ticksize)
-            GR.axes3d(0, ytick, 0, xorg[2], yorg[1], zorg[1], 0, majory, 0, ticksize)
+            if 0 <= rotation < 90
+                GR.axes3d(xtick, 0, ztick, xorg[1], yorg[1], zorg[zi], majorx, 0, majorz, -ticksize)
+                GR.axes3d(0, ytick, 0, xorg[2], yorg[1], zorg[zi], 0, majory, 0, ticksize)
+            elseif 90 <= rotation < 180
+                GR.axes3d(0, 0, ztick, xorg[1], yorg[2], zorg[zi], 0, 0, majorz, -ticksize)
+                GR.axes3d(xtick, ytick, 0, xorg[1], yorg[1], zorg[zi], majorx, majory, 0, -ticksize)
+            elseif 180 <= rotation < 270
+                GR.axes3d(xtick, 0, ztick, xorg[2], yorg[2], zorg[zi], majorx, 0, majorz, ticksize)
+                GR.axes3d(0, ytick, 0, xorg[1], yorg[1], zorg[zi], 0, majory, 0, -ticksize)
+            else
+                GR.axes3d(0, 0, ztick, xorg[2], yorg[1], zorg[zi], 0, 0, majorz, -ticksize)
+                GR.axes3d(xtick, ytick, 0, xorg[2], yorg[2], zorg[zi], majorx, majory, 0, ticksize)
+            end
         end
     else
         charheight = max(0.018 * diag, 0.012)
