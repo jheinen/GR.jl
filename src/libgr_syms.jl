@@ -74,6 +74,7 @@
 :gr_polyline3d
 :gr_polymarker3d
 :gr_axes3d
+:gr_settitles3d
 :gr_titles3d
 :gr_surface
 :gr_contour

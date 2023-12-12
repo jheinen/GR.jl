@@ -103,6 +103,7 @@ export
   polyline3d,
   polymarker3d,
   axes3d,
+  settitles3d,
   titles3d,
   surface,
   volume,
@@ -2470,6 +2471,24 @@ function axes3d(x_tick::Real, y_tick::Real, z_tick::Real, x_org::Real, y_org::Re
         Nothing,
         (Float64, Float64, Float64, Float64, Float64, Float64, Int32, Int32, Int32, Float64),
         x_tick, y_tick, z_tick, x_org, y_org, z_org, major_x, major_y, major_z, tick_size)
+end
+
+"""
+    settitles3d(x_title, y_title, z_title)
+
+Set axis titles to be displayed in subsequent axes calls.
+
+**Parameters:**
+
+`x_title`, `y_title`, `z_title` :
+    The text to be displayed on each axis 
+
+"""
+function settitles3d(x_title, y_title, z_title)
+  ccall( libGR_ptr(:gr_settitles3d),
+        Nothing,
+        (Ptr{UInt8}, Ptr{UInt8}, Ptr{UInt8}),
+        latin1(x_title), latin1(y_title), latin1(z_title))
 end
 
 """
