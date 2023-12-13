@@ -539,11 +539,16 @@ function draw_axes(kind, pass=1, plt=plt[])
     ticksize = 0.0075 * diag
     if kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :trisurf || kind === :volume
         charheight = max(0.024 * diag, 0.012)
-        GR.setcharheight(charheight)
         ztick, zorg, majorz = plt.kvs[:zaxis]
         rotation = get(plt.kvs, :rotation, 40)
         tilt = get(plt.kvs, :tilt, 60)
         zi = 0 <= tilt <= 90 ? 1 : 2
+        xlabel = get(plt.kvs, :xlabel, "")
+        ylabel = get(plt.kvs, :ylabel, "")
+        zlabel = get(plt.kvs, :zlabel, "")
+        GR.setcharheight(charheight * 1.5)
+        GR.settitles3d(xlabel, ylabel, zlabel)
+        GR.setcharheight(charheight)
         if pass == 1 && drawgrid
             if 0 <= rotation < 90
                 GR.grid3d(xtick, 0, ztick, xorg[1], yorg[2], zorg[zi], 2, 0, 2)
@@ -597,12 +602,7 @@ function draw_axes(kind, pass=1, plt=plt[])
         text(0.5 * (viewport[1] + viewport[2]), vp[4], plt.kvs[:title])
         GR.restorestate()
     end
-    if kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :trisurf || kind === :volume
-        xlabel = get(plt.kvs, :xlabel, "")
-        ylabel = get(plt.kvs, :ylabel, "")
-        zlabel = get(plt.kvs, :zlabel, "")
-        GR.titles3d(xlabel, ylabel, zlabel)
-    else
+    if !(kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :trisurf || kind === :volume)
         if haskey(plt.kvs, :xlabel)
             GR.savestate()
             GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_BOTTOM)
