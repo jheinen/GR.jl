@@ -67,6 +67,9 @@ const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :clines, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi, :keepaspect]
 
+const grm_aliases = Dict(
+    :nbins => :num_bins, :xform => :transform, :xlim => :x_lim, :ylim => :y_lim, :zlim => :z_lim, :clim => :c_lim, :xlabel => :x_label, :ylabel => :y_label, :zlabel => :z_label, :xflip => :x_flip, :yflip => :y_flip, :zflip => :z_flip, :xlog => :x_log, :ylog => :y_log, :zlog => :z_log)
+
 const colors = [
     [0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xffff00, 0xff00ff] [0x282c34, 0xd7dae0, 0xcb4e42, 0x99c27c, 0x85a9fc, 0x5ab6c1, 0xd09a6a, 0xc57bdb] [0xfdf6e3, 0x657b83, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682] [0x002b36, 0x839496, 0xdc322f, 0x859900, 0x268bd2, 0x2aa198, 0xb58900, 0xd33682]
     ]
@@ -1161,19 +1164,22 @@ function send_meta(target, plt=plt[])
     end
     if handle[] != C_NULL
         for (k, v) in plt.kvs
+            if haskey(grm_aliases, k)
+                k = grm_aliases[k]
+            end
             if k === :backgroundcolor || k === :color || k === :colormap || k === :location || k === :nbins ||
-                k === :rotation || k === :tilt || k === :xform
+                k === :rotation || k === :tilt || k === :transform
                 GR.sendmetaref(handle[], string(k), 'i', Int32(v))
             elseif k === :alpha || k === :isovalue
                 GR.sendmetaref(handle[], string(k), 'd', Float64(v))
-            elseif k === :xlim || k === :ylim || k === :zlim || k === :clim || k === :size
+            elseif k === :x_lim || k === :y_lim || k === :z_lim || k === :c_lim || k === :size
                 GR.sendmetaref(handle[], string(k), 'D', to_double(v))
-            elseif k === :title || k === :xlabel || k === :ylabel || k === :zlabel
+            elseif k === :title || k === :x_label || k === :y_label || k === :z_label
                 GR.sendmetaref(handle[], string(k), 's', String(v))
             elseif k === :labels
                 s = [String(el) for el in v]
                 GR.sendmetaref(handle[], string(k), 'S', s, length(s))
-            elseif k === :xflip || k === :yflip || k === :zflip || k === :xlog || k === :ylog || k === :zlog
+            elseif k === :x_flip || k === :y_flip || k === :z_flip || k === :x_log || k === :y_log || k === :z_log
                 GR.sendmetaref(handle[], string(k), 'i', v ? 1 : 0)
             end
         end
@@ -1184,7 +1190,7 @@ function send_meta(target, plt=plt[])
             y !== nothing && send_data(handle[], "y", to_double(y))
             z !== nothing && send_data(handle[], "z", to_double(z))
             c !== nothing && send_data(handle[], "c", to_double(c))
-            spec !== nothing && GR.sendmetaref(handle[], "spec", 's', spec)
+            spec !== nothing && GR.sendmetaref(handle[], "line_spec", 's', spec)
             GR.sendmetaref(handle[], "", 'O', i < num_series ? "," : "]", 1)
         end
         if plt.kvs[:kind] === :hist
