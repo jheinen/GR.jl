@@ -338,7 +338,8 @@ function init(always::Bool = false)
             ENV["GKS_FILEPATH"] = file_path[]
             @debug "Found an embedded environment" mime_type[] file_path[] ENV["GKSwstype"] ENV["GKS_FILEPATH"]
         else
-            haskey(ENV, "GKSwstype") || get!(ENV, "GKSwstype", "gksqt")
+            default_wstype = haskey(ENV, "DISPLAY") ? "gksqt" : ""
+            haskey(ENV, "GKSwstype") || get!(ENV, "GKSwstype", default_wstype)
             if !haskey(ENV, "GKS_QT")
                 ENV["GKS_QT"] = if Sys.iswindows()
                     "set PATH=$(GRPreferences.libpath[]) & \"$(GRPreferences.gksqt[])\""
