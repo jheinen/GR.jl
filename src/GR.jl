@@ -185,6 +185,8 @@ export
   setscientificformat,
   setresizebehaviour,
   inqprojectiontype,
+  setmathfont,
+  inqmathfont,
   # Convenience functions
   jlgr,
   colormap,
@@ -4338,6 +4340,22 @@ function moveselection(x, y)
         Nothing,
         (Cdouble, Cdouble),
         x, y)
+end
+
+function setmathfont(font::Int)
+  ccall( libGR_ptr(:gr_setmathfont),
+        Nothing,
+        (Int32, ),
+        font)
+end
+
+function inqmathfont()
+  _font = Cint[0]
+  ccall( libGR_ptr(:gr_inqmathfont),
+        Nothing,
+        (Ptr{Cint}, ),
+        _font)
+  return _font[1]
 end
 
 # JS functions

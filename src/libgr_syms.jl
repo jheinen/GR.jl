@@ -159,4 +159,6 @@
 :gr_beginselection
 :gr_endselection
 :gr_moveselection
+:gr_setmathfont
+:gr_inqmathfont
 ]
