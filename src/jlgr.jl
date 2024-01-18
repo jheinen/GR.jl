@@ -86,7 +86,8 @@ const fonts = Dict(
     "ZapfChancery_MediumItalic" => 130,
     "ZapfDingbats" => 131,
     "CMUSerif-Math" => 232,
-    "DejaVuSans" => 233)
+    "DejaVuSans" => 233,
+    "STIXTwoMath" => 234)
 
 const distinct_cmap = (0, 1, 984, 987, 989, 983, 994, 988)
 
