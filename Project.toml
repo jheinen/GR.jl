@@ -1,7 +1,7 @@
 name = "GR"
 uuid = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
 author = ["Josef Heinen (@jheinen)"]
-version = "0.73.0"
+version = "0.73.1"
 
 [deps]
 Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -29,7 +29,7 @@ p7zip_jll = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 Artifacts = "1"
 DelimitedFiles = "1"
 Downloads = "1"
-GR_jll = "=0.73.0"
+GR_jll = "=0.73.1"
 HTTP = "0.8, 0.9, 1"
 JSON = "0.20, 0.21, 1"
 Preferences = "1"
