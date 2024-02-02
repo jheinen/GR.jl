@@ -1487,7 +1487,7 @@ function plot_data(flag=true, plt=plt[])
             cmin, cmax = plt.kvs[:crange]
             levels = get(plt.kvs, :levels, 256)
             data = map(x -> normalize_color(x, cmin, cmax), z)
-            if kind === :heatmap
+            if kind === :heatmap && !haskey(ENV, "GR_SCALE_FACTOR")
                 rgba = [to_rgba(value, cmap) for value = data]
                 GR.drawimage(0.5, w + 0.5, h + 0.5, 0.5, w, h, rgba)
             else
