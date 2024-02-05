@@ -187,6 +187,8 @@ export
   inqprojectiontype,
   setmathfont,
   inqmathfont,
+  setclipregion,
+  inqclipregion,
   # Convenience functions
   jlgr,
   colormap,
@@ -2484,7 +2486,7 @@ Set axis titles to be displayed in subsequent axes calls.
 **Parameters:**
 
 `x_title`, `y_title`, `z_title` :
-    The text to be displayed on each axis 
+    The text to be displayed on each axis
 
 """
 function settitles3d(x_title, y_title, z_title)
@@ -4356,6 +4358,22 @@ function inqmathfont()
         (Ptr{Cint}, ),
         _font)
   return _font[1]
+end
+
+function setclipregion(region::Int)
+  ccall( libGR_ptr(:gr_setclipregion),
+        Nothing,
+        (Int32, ),
+        region)
+end
+
+function inqclipregion()
+  _region = Cint[0]
+  ccall( libGR_ptr(:gr_inqclipregion),
+        Nothing,
+        (Ptr{Cint}, ),
+        _region)
+  return _region[1]
 end
 
 # JS functions

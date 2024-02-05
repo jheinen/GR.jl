@@ -161,4 +161,6 @@
 :gr_moveselection
 :gr_setmathfont
 :gr_inqmathfont
+:gr_setclipregion
+:gr_inqclipregion
 ]
