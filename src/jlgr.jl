@@ -119,7 +119,7 @@ mutable struct PlotObject
   kvs::Dict{Symbol, Any}
 end
 
-function Figure(width=600, height=450, dpi=100)
+function Figure(width=600, height=450, dpi=nothing)
     obj = Dict{Symbol, Any}()
     args = []
     kvs = copy(default_kvs)
@@ -158,12 +158,17 @@ isvector(x::AbstractMatrix) = size(x, 1) == 1
 function set_viewport(kind, subplot, plt=plt[])
     mwidth, mheight, width, height = GR.inqdspsize()
     if haskey(plt.kvs, :figsize)
-        w = 0.0254 *  width * plt.kvs[:figsize][1] / mwidth
-        h = 0.0254 * height * plt.kvs[:figsize][2] / mheight
+        w, h = plt.kvs[:figsize]
+        if w < 2 && h < 2
+            # size values < 2 are interpreted as metric values
+            w =  width * w / mwidth
+            h = height * h / mheight
+        end
     else
         if haskey(plt.kvs, :dpi)
             dpi = plt.kvs[:dpi]
-        else
+        end
+        if (dpi === nothing)
             dpi = round(width / mwidth * 0.0254, RoundNearestTiesUp)
         end
         if dpi > 200
