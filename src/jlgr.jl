@@ -1539,6 +1539,8 @@ function plot_data(flag=true, plt=plt[])
             plt.kvs[:zrange] = dmin, dmax
             colorbar(0.05)
         elseif kind === :plot3
+            linewidth = get(plt.kvs, :linewidth, 1)
+            GR.setlinewidth(linewidth)
             GR.polyline3d(x, y, z)
             draw_axes(kind, 2)
         elseif kind === :scatter3
