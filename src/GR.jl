@@ -3510,6 +3510,10 @@ const OPTION_X_LN = 512
 const OPTION_Y_LN = 1024
 const OPTION_Z_LN = 2048
 
+const SPEC_LINE = 1
+const SPEC_MARKER = 2
+const SPEC_COLOR = 4
+
 const OPTION_LINES = 0
 const OPTION_MESH = 1
 const OPTION_FILLED_MESH = 2

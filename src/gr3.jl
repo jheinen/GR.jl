@@ -369,6 +369,24 @@ function surface(px, py, pz, option::Int)
   end
 end
 
+function setalphamode(mode)
+	ccall(GR.libGR3_ptr(:gr3_setalphamode),
+		  Nothing,
+		  (Int32, ),
+		  mode)
+	_check_error()
+end
+
+function getalphamode(mode)
+	mode = Cint[0]
+	ccall(GR.libGR3_ptr(:gr3_getalphamode),
+		  Cint,
+		  (Ptr{Cint}, ),
+		  mode)
+	_check_error()
+	return mode
+end
+
 function setlightparameters(ambient, diffuse, specular, specular_power)
   ccall(GR.libGR3_ptr(:gr3_setlightparameters),
         Nothing,

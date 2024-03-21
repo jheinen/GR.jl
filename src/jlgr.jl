@@ -719,8 +719,9 @@ function legend_size(plt=plt[])
     w, h
 end
 
-hasline(mask) = ( mask == 0x00 || (mask & 0x01 != 0) )
-hasmarker(mask) = ( mask & 0x02 != 0)
+hasline(mask) = ( mask == 0x00 || (mask & GR.SPEC_LINE != 0) )
+hasmarker(mask) = ( mask & GR.SPEC_MARKER != 0 )
+hascolor(mask) = ( mask & GR.SPEC_COLOR != 0 )
 
 function draw_legend(plt=plt[])
     w, h = legend_size()
