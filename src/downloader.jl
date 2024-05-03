@@ -5,15 +5,11 @@ GR.GRPreferences.Downloader.download() can be invoked manually.
 """
 module Downloader
 
-using Pkg
-using UUIDs
 using Tar
 using Downloads
 using p7zip_jll
 
 const version = v"0.73.3"
-const GR_UUID = UUID("28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71")
-
 
 """
     get_grdir()
@@ -214,29 +210,7 @@ function apple_install(grdir::String)
     run(
         `/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f $app`,
     )
-    try
-        have_qml = @static if VERSION >= v"1.4.0-DEV.265"
-            haskey(
-                Pkg.dependencies(),
-                UUID("2db162a6-7e43-52c3-8d84-290c1c42d82a"),
-            )
-        else
-            haskey(Pkg.API.installed(), "QML")
-        end
-        # Set rpath of gr/lib/qt5plugin.so to that of QML
-        if have_qml
-            @eval import QML
-            qt = QML.qt_prefix_path()
-            path = joinpath(qt, "Frameworks")
-            if isdir(path)
-                qt5plugin = joinpath(grdir, "lib", "qt5plugin.so")
-                run(`install_name_tool -add_rpath $path $qt5plugin`)
-                @info("Using Qt " * splitdir(qt)[end] * " at " * qt)
-            end
-        end
-    catch
-        # Fail silently
-    end
+    nothing
 end
 
 
