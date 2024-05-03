@@ -15,7 +15,7 @@ module GRPreferences
         # Ignoring the error causes issues with precompilation.
         rethrow()
     end
-    # include("downloader.jl")
+    include("downloader.jl")
 
     const grdir   = Ref{Union{Nothing,String}}()
     const gksqt   = Ref{Union{Nothing,String}}()
