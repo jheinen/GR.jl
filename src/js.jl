@@ -341,7 +341,7 @@ function recv(name::Cstring, id::Int32, msg::Cstring)
     # receives string from C and sends it to JS via Comm
     global draw_end_condition
 
-    id = string(UUIDs.uuid4());
+    id = string(Base.UUID(rand(UInt128)))
     jsterm_send(unsafe_string(msg), id)
     return convert(Int32, 1)
 end
@@ -406,7 +406,6 @@ function initjs()
       send_c[] = @cfunction(send, Cstring, (Cstring, Int32))
       recv_c[] = @cfunction(recv, Int32, (Cstring, Int32, Cstring))
       @eval js begin
-        import UUIDs
         import JSON
       end
       if haskey(ENV, "GR_JS")
