@@ -163,4 +163,6 @@
 :gr_inqmathfont
 :gr_setclipregion
 :gr_inqclipregion
+:gr_axis
+:gr_drawaxis
 ]

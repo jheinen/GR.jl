@@ -244,7 +244,12 @@ export
   isinline,
   inline,
   displayname,
-  mainloop
+  mainloop,
+  axis,
+  drawaxis,
+  GRAxis,
+  GRTick,
+  GRTickLabel
 
 const ENCODING_LATIN1 = 300
 const ENCODING_UTF8 = 301
@@ -3651,6 +3656,55 @@ Base.show(io::IO, ::MIME"image/svg+xml", x::SVG) = write(io, x.s)
 Base.show(io::IO, ::MIME"image/png", x::PNG) = write(io, x.s)
 Base.show(io::IO, ::MIME"text/html", x::HTML) = print(io, x.s)
 
+struct c_tick_t
+  value::Cdouble
+  is_major::Cint
+end
+
+struct c_tick_label_t
+  tick::Cdouble
+  label::Cstring
+  width::Cdouble
+end
+
+@kwdef mutable struct c_axis_t
+  min::Cdouble = NaN
+  max::Cdouble = NaN
+  tick::Cdouble = NaN
+  org::Cdouble = NaN
+  major_count::Cint = 1
+  num_ticks::Cint = 0
+  ticks::Ptr{c_tick_t} = C_NULL
+  num_tick_labels::Cint = 0
+  tick_labels::Ptr{c_tick_label_t} = C_NULL
+  tick_size::Cdouble = NaN
+  draw_grid_lines::Cint = 0
+end
+
+mutable struct GRTick
+  value::Real
+  is_major::Int
+end
+
+mutable struct GRTickLabel
+  tick::Real
+  label::String
+  width::Real
+end
+
+@kwdef mutable struct GRAxis
+  min::Real = NaN
+  max::Real = NaN
+  tick::Real = NaN
+  org::Real = NaN
+  major_count::Int = 1
+  num_ticks::Int = 0
+  ticks::Vector{GRTick} = nothing
+  tick_labels::Vector{GRTickLabel} = nothing
+  tick_size::Real = NaN
+  draw_grid_lines::Int = 0
+end
+
 function _readfile(path)
     data = Array{UInt8}(undef, filesize(path))
     s = open(path, "r")
@@ -4378,6 +4432,72 @@ function inqclipregion()
         (Ptr{Cint}, ),
         _region)
   return _region[1]
+end
+
+function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, org::Real = NaN, major_count::Int = 1, ticks::Union{Vector{GRTick}, Nothing} = nothing, tick_labels::Union{Vector{GRTickLabel}, Nothing} = nothing, tick_size::Real = NaN, draw_grid_lines::Int = 0)::GRAxis
+  c_axis = c_axis_t(min=min, max=max, tick=tick, org=org, major_count=major_count, tick_size=tick_size, draw_grid_lines=draw_grid_lines)
+  if ticks != nothing
+    c_axis.ticks = pointer(ticks)
+    c_axis.num_ticks = size(ticks)[1]
+  else
+    c_axis.ticks = C_NULL
+    c_axis.num_ticks = 0
+  end
+  if tick_labels != nothing
+    c_axis.tick_labels = pointer(tick_labels)
+    c_axis.num_tick_labels = size(tick_labels)[1]
+  else
+    c_axis.tick_labels = C_NULL
+    c_axis.num_tick_labels = 0
+  end
+  ccall( libGR_ptr(:gr_axis),
+        Nothing,
+        (Cchar, Ptr{c_axis_t}),
+        which, Ref(c_axis))
+
+  ticks = GRTick[]
+  for i in 1:c_axis.num_ticks
+    tick = unsafe_load(c_axis.ticks, i)
+    push!(ticks, GRTick(tick.value, tick.is_major))
+  end
+
+  tick_labels = GRTickLabel[]
+  for i in 1:c_axis.num_tick_labels
+    tick_label = unsafe_load(c_axis.tick_labels, i)
+    push!(tick_labels, GRTickLabel(tick_label.tick, unsafe_string(tick_label.label), tick_label.width))
+  end
+
+  return GRAxis(min=c_axis.min, max=c_axis.max, tick=c_axis.tick, org=c_axis.org, major_count=c_axis.major_count, ticks=ticks, tick_labels=tick_labels, tick_size=c_axis.tick_size, draw_grid_lines=c_axis.draw_grid_lines)
+end
+
+function drawaxis(which::Char, axis::GRAxis)
+  c_axis = c_axis_t(min=axis.min, max=axis.max, tick=axis.tick, org=axis.org, major_count=axis.major_count, tick_size=axis.tick_size, draw_grid_lines=axis.draw_grid_lines)
+  if axis.ticks != nothing
+    ticks = c_tick_t[]
+    for tick in axis.ticks
+      push!(ticks, c_tick_t(tick.value, tick.is_major))
+    end
+    c_axis.ticks = pointer(ticks)
+    c_axis.num_ticks = size(axis.ticks)[1]
+  else
+    c_axis.ticks = C_NULL
+    c_axis.num_ticks = 0
+  end
+  if axis.tick_labels != nothing
+    tick_labels = c_tick_label_t[]
+    for tick_label in axis.tick_labels
+      push!(tick_labels, c_tick_label_t(tick_label.tick, pointer(tick_label.label), tick_label.width))
+    end
+    c_axis.tick_labels = pointer(tick_labels)
+    c_axis.num_tick_labels = size(axis.tick_labels)[1]
+  else
+    c_axis.tick_labels = C_NULL
+    c_axis.num_tick_labels = 0
+  end
+  ccall( libGR_ptr(:gr_drawaxis),
+        Nothing,
+        (Cchar, Ptr{c_axis_t}),
+        which, Ref(c_axis))
 end
 
 # JS functions
