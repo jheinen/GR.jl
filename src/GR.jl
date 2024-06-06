@@ -3667,7 +3667,7 @@ struct c_tick_label_t
   width::Cdouble
 end
 
-@kwdef mutable struct c_axis_t
+Base.@kwdef mutable struct c_axis_t
   min::Cdouble = NaN
   max::Cdouble = NaN
   tick::Cdouble = NaN
@@ -3692,7 +3692,7 @@ mutable struct GRTickLabel
   width::Real
 end
 
-@kwdef mutable struct GRAxis
+Base.@kwdef mutable struct GRAxis
   min::Real = NaN
   max::Real = NaN
   tick::Real = NaN
