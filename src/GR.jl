@@ -3672,6 +3672,7 @@ Base.@kwdef mutable struct c_axis_t
   max::Cdouble = NaN
   tick::Cdouble = NaN
   org::Cdouble = NaN
+  position::Cdouble = NaN
   major_count::Cint = 1
   num_ticks::Cint = 0
   ticks::Ptr{c_tick_t} = C_NULL
@@ -3697,6 +3698,7 @@ Base.@kwdef mutable struct GRAxis
   max::Real = NaN
   tick::Real = NaN
   org::Real = NaN
+  position::Real = NaN
   major_count::Int = 1
   num_ticks::Int = 0
   ticks::Vector{GRTick} = nothing
@@ -4434,8 +4436,8 @@ function inqclipregion()
   return _region[1]
 end
 
-function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, org::Real = NaN, major_count::Int = 1, ticks::Union{Vector{GRTick}, Nothing} = nothing, tick_labels::Union{Vector{GRTickLabel}, Nothing} = nothing, tick_size::Real = NaN, draw_grid_lines::Int = 0)::GRAxis
-  c_axis = c_axis_t(min=min, max=max, tick=tick, org=org, major_count=major_count, tick_size=tick_size, draw_grid_lines=draw_grid_lines)
+function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, org::Real = NaN, position::Real = NaN, major_count::Int = 1, ticks::Union{Vector{GRTick}, Nothing} = nothing, tick_labels::Union{Vector{GRTickLabel}, Nothing} = nothing, tick_size::Real = NaN, draw_grid_lines::Int = 0)::GRAxis
+  c_axis = c_axis_t(min=min, max=max, tick=tick, org=org, position=position, major_count=major_count, tick_size=tick_size, draw_grid_lines=draw_grid_lines)
   if ticks != nothing
     c_axis.ticks = pointer(ticks)
     c_axis.num_ticks = size(ticks)[1]
@@ -4467,11 +4469,11 @@ function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, o
     push!(tick_labels, GRTickLabel(tick_label.tick, unsafe_string(tick_label.label), tick_label.width))
   end
 
-  return GRAxis(min=c_axis.min, max=c_axis.max, tick=c_axis.tick, org=c_axis.org, major_count=c_axis.major_count, ticks=ticks, tick_labels=tick_labels, tick_size=c_axis.tick_size, draw_grid_lines=c_axis.draw_grid_lines)
+  return GRAxis(min=c_axis.min, max=c_axis.max, tick=c_axis.tick, org=c_axis.org, position=c_axis.position, major_count=c_axis.major_count, ticks=ticks, tick_labels=tick_labels, tick_size=c_axis.tick_size, draw_grid_lines=c_axis.draw_grid_lines)
 end
 
 function drawaxis(which::Char, axis::GRAxis, drawaxisline::Bool=true, drawgridlines::Bool=true)
-  c_axis = c_axis_t(min=axis.min, max=axis.max, tick=axis.tick, org=axis.org, major_count=axis.major_count, tick_size=axis.tick_size, draw_grid_lines=axis.draw_grid_lines)
+  c_axis = c_axis_t(min=axis.min, max=axis.max, tick=axis.tick, org=axis.org, position=axis.position, major_count=axis.major_count, tick_size=axis.tick_size, draw_grid_lines=axis.draw_grid_lines)
   if axis.ticks != nothing
     ticks = c_tick_t[]
     for tick in axis.ticks
