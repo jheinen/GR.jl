@@ -4470,7 +4470,7 @@ function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, o
   return GRAxis(min=c_axis.min, max=c_axis.max, tick=c_axis.tick, org=c_axis.org, major_count=c_axis.major_count, ticks=ticks, tick_labels=tick_labels, tick_size=c_axis.tick_size, draw_grid_lines=c_axis.draw_grid_lines)
 end
 
-function drawaxis(which::Char, axis::GRAxis)
+function drawaxis(which::Char, axis::GRAxis, drawaxisline::Bool=true, drawgridlines::Bool=true)
   c_axis = c_axis_t(min=axis.min, max=axis.max, tick=axis.tick, org=axis.org, major_count=axis.major_count, tick_size=axis.tick_size, draw_grid_lines=axis.draw_grid_lines)
   if axis.ticks != nothing
     ticks = c_tick_t[]
@@ -4496,8 +4496,8 @@ function drawaxis(which::Char, axis::GRAxis)
   end
   ccall( libGR_ptr(:gr_drawaxis),
         Nothing,
-        (Cchar, Ptr{c_axis_t}),
-        which, Ref(c_axis))
+        (Cchar, Ptr{c_axis_t}, Cint, Cint),
+        which, Ref(c_axis), drawaxisline ? 1 : 0, drawgridlines ? 1 : 0)
 end
 
 # JS functions
