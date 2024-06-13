@@ -3636,6 +3636,9 @@ const XFORM_LOGLOG = 3
 const XFORM_CUBIC = 4
 const XFORM_EQUALIZED = 5
 
+const AXES_WITH_GRID = 1
+const AXES_WITH_FRAME = 2
+
 # GR3 functions
 include("gr3.jl")
 
@@ -3679,7 +3682,7 @@ Base.@kwdef mutable struct c_axis_t
   num_tick_labels::Cint = 0
   tick_labels::Ptr{c_tick_label_t} = C_NULL
   tick_size::Cdouble = NaN
-  draw_grid_lines::Cint = 0
+  draw_axis_line::Cint = 1
 end
 
 mutable struct GRTick
@@ -3704,7 +3707,7 @@ Base.@kwdef mutable struct GRAxis
   ticks::Vector{GRTick} = nothing
   tick_labels::Vector{GRTickLabel} = nothing
   tick_size::Real = NaN
-  draw_grid_lines::Int = 0
+  draw_axis_line::Int = 1
 end
 
 function _readfile(path)
@@ -4436,8 +4439,8 @@ function inqclipregion()
   return _region[1]
 end
 
-function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, org::Real = NaN, position::Real = NaN, major_count::Int = 1, ticks::Union{Vector{GRTick}, Nothing} = nothing, tick_labels::Union{Vector{GRTickLabel}, Nothing} = nothing, tick_size::Real = NaN, draw_grid_lines::Int = 0)::GRAxis
-  c_axis = c_axis_t(min=min, max=max, tick=tick, org=org, position=position, major_count=major_count, tick_size=tick_size, draw_grid_lines=draw_grid_lines)
+function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, org::Real = NaN, position::Real = NaN, major_count::Int = 1, ticks::Union{Vector{GRTick}, Nothing} = nothing, tick_labels::Union{Vector{GRTickLabel}, Nothing} = nothing, tick_size::Real = NaN, draw_axis_line::Int = 1)::GRAxis
+  c_axis = c_axis_t(min=min, max=max, tick=tick, org=org, position=position, major_count=major_count, tick_size=tick_size, draw_axis_line=draw_axis_line)
   if ticks != nothing
     c_axis.ticks = pointer(ticks)
     c_axis.num_ticks = size(ticks)[1]
@@ -4469,11 +4472,11 @@ function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, o
     push!(tick_labels, GRTickLabel(tick_label.tick, unsafe_string(tick_label.label), tick_label.width))
   end
 
-  return GRAxis(min=c_axis.min, max=c_axis.max, tick=c_axis.tick, org=c_axis.org, position=c_axis.position, major_count=c_axis.major_count, ticks=ticks, tick_labels=tick_labels, tick_size=c_axis.tick_size, draw_grid_lines=c_axis.draw_grid_lines)
+  return GRAxis(min=c_axis.min, max=c_axis.max, tick=c_axis.tick, org=c_axis.org, position=c_axis.position, major_count=c_axis.major_count, ticks=ticks, tick_labels=tick_labels, tick_size=c_axis.tick_size, draw_axis_line=c_axis.draw_axis_line)
 end
 
-function drawaxis(which::Char, axis::GRAxis, drawaxisline::Bool=true, drawgridlines::Bool=true)
-  c_axis = c_axis_t(min=axis.min, max=axis.max, tick=axis.tick, org=axis.org, position=axis.position, major_count=axis.major_count, tick_size=axis.tick_size, draw_grid_lines=axis.draw_grid_lines)
+function drawaxis(which::Char, axis::GRAxis, options::Int=AXES_WITH_GRID|AXES_WITH_FRAME)
+  c_axis = c_axis_t(min=axis.min, max=axis.max, tick=axis.tick, org=axis.org, position=axis.position, major_count=axis.major_count, tick_size=axis.tick_size, draw_axis_line=axis.draw_axis_line)
   if axis.ticks != nothing
     ticks = c_tick_t[]
     for tick in axis.ticks
@@ -4498,8 +4501,8 @@ function drawaxis(which::Char, axis::GRAxis, drawaxisline::Bool=true, drawgridli
   end
   ccall( libGR_ptr(:gr_drawaxis),
         Nothing,
-        (Cchar, Ptr{c_axis_t}, Cint, Cint),
-        which, Ref(c_axis), drawaxisline ? 1 : 0, drawgridlines ? 1 : 0)
+        (Cchar, Ptr{c_axis_t}, Cint),
+        which, Ref(c_axis), options)
 end
 
 # JS functions
