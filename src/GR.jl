@@ -247,6 +247,7 @@ export
   mainloop,
   axis,
   drawaxis,
+  drawaxes,
   GRAxis,
   GRTick,
   GRTickLabel
@@ -4475,7 +4476,7 @@ function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, o
   return GRAxis(min=c_axis.min, max=c_axis.max, tick=c_axis.tick, org=c_axis.org, position=c_axis.position, major_count=c_axis.major_count, ticks=ticks, tick_labels=tick_labels, tick_size=c_axis.tick_size, draw_axis_line=c_axis.draw_axis_line)
 end
 
-function drawaxis(which::Char, axis::GRAxis, options::Int=AXES_WITH_GRID|AXES_WITH_FRAME)
+function to_c_axis(axis::GRAxis)::c_axis_t
   c_axis = c_axis_t(min=axis.min, max=axis.max, tick=axis.tick, org=axis.org, position=axis.position, major_count=axis.major_count, tick_size=axis.tick_size, draw_axis_line=axis.draw_axis_line)
   if axis.ticks != nothing
     ticks = c_tick_t[]
@@ -4499,10 +4500,24 @@ function drawaxis(which::Char, axis::GRAxis, options::Int=AXES_WITH_GRID|AXES_WI
     c_axis.tick_labels = C_NULL
     c_axis.num_tick_labels = 0
   end
+  c_axis
+end
+
+function drawaxis(which::Char, axis::GRAxis)
+  c_axis = to_c_axis(axis)
   ccall( libGR_ptr(:gr_drawaxis),
         Nothing,
-        (Cchar, Ptr{c_axis_t}, Cint),
-        which, Ref(c_axis), options)
+        (Cchar, Ptr{c_axis_t}),
+        which, Ref(c_axis))
+end
+
+function drawaxes(x_axis::GRAxis, y_axis::GRAxis, options::Int=AXES_WITH_GRID|AXES_WITH_FRAME)
+  c_x_axis = to_c_axis(x_axis)
+  c_y_axis = to_c_axis(y_axis)
+  ccall( libGR_ptr(:gr_drawaxes),
+        Nothing,
+        (Ptr{c_axis_t}, Ptr{c_axis_t}, Cint),
+        Ref(c_x_axis), Ref(c_y_axis), options)
 end
 
 # JS functions

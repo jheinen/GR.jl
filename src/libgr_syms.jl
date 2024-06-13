@@ -165,4 +165,5 @@
 :gr_inqclipregion
 :gr_axis
 :gr_drawaxis
+:gr_drawaxes
 ]
