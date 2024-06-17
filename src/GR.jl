@@ -4472,7 +4472,9 @@ function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, o
   tick_labels = GRTickLabel[]
   for i in 1:c_axis.num_tick_labels
     tick_label = unsafe_load(c_axis.tick_labels, i)
-    push!(tick_labels, GRTickLabel(tick_label.tick, unsafe_string(tick_label.label), tick_label.width))
+    if tick_label.label != C_NULL
+      push!(tick_labels, GRTickLabel(tick_label.tick, unsafe_string(tick_label.label), tick_label.width))
+    end
   end
 
   return GRAxis(min=c_axis.min, max=c_axis.max, tick=c_axis.tick, org=c_axis.org, position=c_axis.position, major_count=c_axis.major_count, ticks=ticks, tick_size=c_axis.tick_size, tick_labels=tick_labels, label_position=c_axis.label_position, draw_axis_line=c_axis.draw_axis_line)
