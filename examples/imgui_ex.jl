@@ -1,6 +1,6 @@
-# This example requires CImGui#master
+# This example requires CImGui#v1.82.2
 #
-# import Pkg; Pkg.add(name="CImGui", rev="master")
+# import Pkg; Pkg.add(name="CImGui", rev="v1.82.2")
 #
 using CImGui
 using CImGui.ImGuiGLFWBackend
