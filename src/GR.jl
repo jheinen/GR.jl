@@ -4515,13 +4515,17 @@ function drawaxis(which::Char, axis::GRAxis)
         which, Ref(c_axis))
 end
 
-function drawaxes(x_axis::GRAxis, y_axis::GRAxis, options::Int=AXES_WITH_GRID|AXES_WITH_FRAME)
-  c_x_axis = to_c_axis(x_axis)
-  c_y_axis = to_c_axis(y_axis)
+function drawaxes(x_axis::Union{GRAxis, Nothing}, y_axis::Union{GRAxis, Nothing}, options::Int=AXES_WITH_GRID|AXES_WITH_FRAME)
+  if x_axis !== nothing
+    c_x_axis = to_c_axis(x_axis)
+  end
+  if y_axis !== nothing
+    c_y_axis = to_c_axis(y_axis)
+  end
   ccall( libGR_ptr(:gr_drawaxes),
         Nothing,
         (Ptr{c_axis_t}, Ptr{c_axis_t}, Cint),
-        Ref(c_x_axis), Ref(c_y_axis), options)
+        x_axis !== nothing ? Ref(c_x_axis) : C_NULL, y_axis !== nothing ? Ref(c_y_axis) : C_NULL, options)
 end
 
 # JS functions
