@@ -24,6 +24,11 @@ module GR
     Base.Experimental.@optlevel 1
 end
 
+if haskey(ENV, "WAYLAND_DISPLAY") || get(ENV, "XDG_SESSION_TYPE", "") == "wayland"
+  # loading this automatially on Wayland ensures that applications run natively on Wayland without user intervention
+  using Qt6Wayland_jll
+end
+
 import Base64
 import Libdl
 

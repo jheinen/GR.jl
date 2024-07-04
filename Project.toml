@@ -22,6 +22,7 @@ TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 Tar = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 p7zip_jll = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+Qt6Wayland_jll = "e99dba38-086e-5de3-a5b1-6e4c66e897c3"
 
 [compat]
 Artifacts = "1"
