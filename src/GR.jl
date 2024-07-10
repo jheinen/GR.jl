@@ -3642,8 +3642,9 @@ const XFORM_LOGLOG = 3
 const XFORM_CUBIC = 4
 const XFORM_EQUALIZED = 5
 
-const AXES_WITH_GRID = 1
-const AXES_WITH_FRAME = 2
+const AXES_SIMPLE_AXES = 1
+const AXES_TWIN_AXES = 2
+const AXES_WITH_GRID = 4
 
 # GR3 functions
 include("gr3.jl")
@@ -4520,7 +4521,7 @@ function drawaxis(which::Char, axis::GRAxis)
         which, Ref(c_axis))
 end
 
-function drawaxes(x_axis::Union{GRAxis, Nothing}, y_axis::Union{GRAxis, Nothing}, options::Int=AXES_WITH_GRID|AXES_WITH_FRAME)
+function drawaxes(x_axis::Union{GRAxis, Nothing}, y_axis::Union{GRAxis, Nothing}, options::Int=AXES_SIMPLE_AXES|AXES_TWIN_AXES|AXES_WITH_GRID)
   if x_axis !== nothing
     c_x_axis = to_c_axis(x_axis)
   end
