@@ -592,17 +592,21 @@ function draw_axes(kind, pass=1, plt=plt[])
         GR.setcharheight(charheight)
         if kind === :heatmap || kind === :nonuniformheatmap || kind === :shade
             ticksize = -ticksize
-        else
-            drawgrid && GR.grid(xtick, ytick, 0, 0, majorx, majory)
         end
         if haskey(plt.kvs, :xticklabels) || haskey(plt.kvs, :yticklabels)
+            drawgrid && GR.grid(xtick, ytick, 0, 0, majorx, majory)
             fx = get(plt.kvs, :xticklabels, identity) |> ticklabel_fun
             fy = get(plt.kvs, :yticklabels, identity) |> ticklabel_fun
             GR.axeslbl(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize, fx, fy)
         else
-            GR.axes(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize)
+            x_axis = GR.axis('X', tick=xtick, org=xorg[1], major_count=majorx, tick_size=ticksize)
+            y_axis = GR.axis('Y', tick=ytick, org=yorg[1], major_count=majory, tick_size=ticksize)
+            options = GR.AXES_SIMPLE_AXES|GR.AXES_TWIN_AXES
+            if drawgrid
+                options |= GR.AXES_WITH_GRID
+            end
+            GR.drawaxes(x_axis, y_axis, options)
         end
-        GR.axes(xtick, ytick, xorg[2], yorg[2], -majorx, -majory, -ticksize)
     end
 
     if haskey(plt.kvs, :title)
@@ -811,10 +815,12 @@ function colorbar(off=0, colors=256, plt=plt[])
     GR.setcharheight(charheight)
     if plt.kvs[:scale] & GR.OPTION_Z_LOG == 0
         ztick = auto_tick(zmin, zmax)
-        GR.axes(0, ztick, 1, zmin, 0, 1, 0.005)
+        y_axis = GR.axis('Y', position=1, tick=ztick, org=zmin, major_count=1, tick_size=0.005)
+        GR.drawaxis('Y', y_axis)
     else
         GR.setscale(GR.OPTION_Y_LOG)
-        GR.axes(0, 2, 1, zmin, 0, 1, 0.005)
+        y_axis = GR.axis('Y', position=1, tick=2, org=zmin, major_count=1, tick_size=0.005)
+        GR.drawaxis('Y', y_axis)
     end
     GR.restorestate()
 end

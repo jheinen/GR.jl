@@ -150,7 +150,10 @@ if !haskey(ENV, "GRDISPLAY")
     surface(x, y, z, 5)
     contour(x, y, h, z, 0)
     polymarker(xd, yd)
-    GR.axes(0.25, 0.25, -2, -2, 2, 2, 0.01)
+
+    x_axis = axis('X', tick=0.25, org=-2, major_count=2, tick_size=0.01)
+    y_axis = axis('Y', tick=0.25, org=-2, major_count=2, tick_size=0.01)
+    drawaxes(x_axis, y_axis, GR.AXES_SIMPLE_AXES)
 
     updatews()
 end
