@@ -592,6 +592,7 @@ function draw_axes(kind, pass=1, plt=plt[])
         GR.setcharheight(charheight)
         if kind === :heatmap || kind === :nonuniformheatmap || kind === :shade
             ticksize = -ticksize
+            drawgrid = false
         end
         if haskey(plt.kvs, :xticklabels) || haskey(plt.kvs, :yticklabels)
             drawgrid && GR.grid(xtick, ytick, 0, 0, majorx, majory)
