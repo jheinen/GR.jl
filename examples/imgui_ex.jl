@@ -1,27 +1,16 @@
-# This example requires CImGui#v1.82.2
-#
-# import Pkg; Pkg.add(name="CImGui", rev="v1.82.2")
-#
 using CImGui
-using CImGui.ImGuiGLFWBackend
-using CImGui.ImGuiGLFWBackend.LibCImGui
-using CImGui.ImGuiGLFWBackend.LibGLFW
-using CImGui.ImGuiOpenGLBackend
-using CImGui.ImGuiOpenGLBackend.ModernGL
+using CImGui.lib
 using CImGui.CSyntax
 using CImGui.CSyntax.CStatic
-using Printf
+
+import GLFW
+import ModernGL as GL
 
 using GR
 using LaTeXStrings
+using Printf
 
-glfwDefaultWindowHints()
-glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
-glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2)
-if Sys.isapple()
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) # 3.2+ only
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
-end
+CImGui.set_backend(:GlfwOpenGL3)
 
 function draw(phi)
     formulas = (
@@ -48,78 +37,59 @@ function draw(phi)
     updatews()
 end
 
-# create window
-window = glfwCreateWindow(960, 720, "Demo", C_NULL, C_NULL)
-@assert window != C_NULL
-glfwMakeContextCurrent(window)
-glfwSwapInterval(1)  # enable vsync
+function gr_demo(; engine=nothing)
+    # setup Dear ImGui context
+    ctx = CImGui.CreateContext()
 
-# create OpenGL and GLFW context
-window_ctx = ImGuiGLFWBackend.create_context(window)
-gl_ctx = ImGuiOpenGLBackend.create_context()
+    # enable docking and multi-viewport
+    io = CImGui.GetIO()
+    io.ConfigFlags = unsafe_load(io.ConfigFlags) | CImGui.ImGuiConfigFlags_DockingEnable
+    io.ConfigFlags = unsafe_load(io.ConfigFlags) | CImGui.ImGuiConfigFlags_ViewportsEnable
 
-# setup Dear ImGui context
-ctx = CImGui.CreateContext()
+    # setup Dear ImGui style
+    CImGui.StyleColorsDark()
 
-# create texture for image drawing
-img_width, img_height = 500, 500
-image_id = ImGuiOpenGLBackend.ImGui_ImplOpenGL3_CreateImageTexture(img_width, img_height)
+    # When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    style = Ptr{ImGuiStyle}(CImGui.GetStyle())
+    if unsafe_load(io.ConfigFlags) & ImGuiConfigFlags_ViewportsEnable == ImGuiConfigFlags_ViewportsEnable
+        style.WindowRounding = 5.0f0
+        col = CImGui.c_get(style.Colors, CImGui.ImGuiCol_WindowBg)
+        CImGui.c_set!(style.Colors, CImGui.ImGuiCol_WindowBg, ImVec4(col.x, col.y, col.z, 1.0f0))
+    end
 
-ENV["GKS_WSTYPE"] = "100"
-image = rand(GLuint, img_width, img_height) # allocate the memory
-mem = Printf.@sprintf("%p",pointer(image))
-conid = Printf.@sprintf("!%dx%d@%s.mem",  img_width, img_height, mem[3:end])
+    # create texture for image drawing
+    img_width, img_height = 500, 500
+    image_id = nothing
 
-# setup Platform/Renderer bindings
-ImGuiGLFWBackend.init(window_ctx)
-ImGuiOpenGLBackend.init(gl_ctx)
+    ENV["GKS_WSTYPE"] = "100"
+    image = rand(GL.GLubyte, 4, img_width, img_height)
+    mem = Printf.@sprintf("%p",pointer(image))
+    conid = Printf.@sprintf("!%dx%d@%s.mem",  img_width, img_height, mem[3:end])
 
-try
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
-    while glfwWindowShouldClose(window) == 0
-        glfwPollEvents()
-        # start the Dear ImGui frame
-        ImGuiOpenGLBackend.new_frame(gl_ctx)
-        ImGuiGLFWBackend.new_frame(window_ctx)
-        CImGui.NewFrame()
+    image_id = nothing
 
-        # show image example
-        CImGui.Begin("GR Demo")
-
+    CImGui.render(ctx; engine, clear_color=Ref(clear_color)) do
         @cstatic phi = Cfloat(0.0) begin
+            CImGui.Begin("GR Demo")
+            if isnothing(image_id)
+                image_id = CImGui.create_image_texture(img_width, img_height)
+            end
             @c CImGui.SliderFloat("Angle", &phi, 0, 360, "%.4f")
+
             beginprint(conid)
             draw(phi * π/180)
             endprint()
 
-            ImGuiOpenGLBackend.ImGui_ImplOpenGL3_UpdateImageTexture(image_id, image, img_width, img_height)
+            CImGui.update_image_texture(image_id, image, img_width, img_height)
             CImGui.Image(Ptr{Cvoid}(image_id), CImGui.ImVec2(img_width, img_height))
             CImGui.End()
         end
-
-        # rendering
-        CImGui.Render()
-        glfwMakeContextCurrent(window)
-
-        width, height = Ref{Cint}(), Ref{Cint}() #! need helper fcn
-        glfwGetFramebufferSize(window, width, height)
-        display_w = width[]
-        display_h = height[]
-
-        glViewport(0, 0, display_w, display_h)
-        glClearColor(clear_color...)
-        glClear(GL_COLOR_BUFFER_BIT)
-        ImGuiOpenGLBackend.render(gl_ctx)
-
-        glfwMakeContextCurrent(window)
-        glfwSwapBuffers(window)
     end
-catch e
-    @error "Error in renderloop!" exception=e
-    Base.show_backtrace(stderr, catch_backtrace())
-finally
-    ImGuiOpenGLBackend.shutdown(gl_ctx)
-    ImGuiGLFWBackend.shutdown(window_ctx)
-    CImGui.DestroyContext(ctx)
-    glfwDestroyWindow(window)
+end
+
+
+# Run automatically if the script is launched from the command-line
+if !isempty(Base.PROGRAM_FILE)
+    gr_demo()
 end
