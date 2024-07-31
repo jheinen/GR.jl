@@ -590,7 +590,7 @@ function draw_axes(kind, pass=1, plt=plt[])
     else
         charheight = max(0.018 * diag, 0.012)
         GR.setcharheight(charheight)
-        if kind === :heatmap || kind === :nonuniformheatmap || kind === :shade
+        if kind === :heatmap || kind === :nonuniformheatmap || kind === :shade || kind === :contourf
             ticksize = -ticksize
             if kind === :shade
                 drawgrid = false
