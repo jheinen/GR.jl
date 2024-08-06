@@ -652,14 +652,14 @@ function draw_polar_axes(plt=plt[])
     n = trunc(Int, (rmax - rmin) / tick)
     for i in 0:n
         r = rmin + i * tick / (rmax - rmin)
-        if i % 2 == 0
-            GR.setlinecolorind(88)
-            if i > 0
+        if 0 < r < 1
+            if i % 2 == 0
+                GR.setlinecolorind(88)
+                GR.drawarc(-r, r, -r, r, 0, 360)
+            else
+                GR.setlinecolorind(90)
                 GR.drawarc(-r, r, -r, r, 0, 360)
             end
-        else
-            GR.setlinecolorind(90)
-            GR.drawarc(-r, r, -r, r, 0, 360)
         end
     end
 
@@ -688,6 +688,11 @@ function draw_polar_axes(plt=plt[])
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
         text(0.5 * (viewport[1] + viewport[2]), vp[4] - 0.02, plt.kvs[:title])
     end
+
+    GR.setclip(0)
+    GR.setlinecolorind(88)
+    GR.drawarc(-1, 1, -1, 1, 0, 360)
+
     GR.restorestate()
 end
 
