@@ -651,7 +651,7 @@ function draw_polar_axes(plt=plt[])
     tick = auto_tick(rmin, rmax)
     n = trunc(Int, (rmax - rmin) / tick)
     for i in 0:n
-        r = rmin + i * tick / (rmax - rmin)
+        r = i * tick / (rmax - rmin)
         if 0 < r < 1
             if i % 2 == 0
                 GR.setlinecolorind(88)
@@ -675,12 +675,16 @@ function draw_polar_axes(plt=plt[])
         GR.text(x, y, string(alpha, "°"))
     end
 
+    start = trunc(Int, floor(rmin / tick))
     for i in 0:n
-        r = rmin + i * tick / (rmax - rmin)
-        if i % 2 == 0 || i == n
-            GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
-            x, y = GR.wctondc(0.05, r)
-            GR.text(x, y, string(signif(rmin + i * tick, 12)))
+        j = start + i
+        if j * tick >= rmin
+            r = i * tick / (rmax - rmin)
+            if i % 2 == 0
+                GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
+                x, y = GR.wctondc(0.05, r)
+                GR.text(x, y, string(signif(j * tick, 12)))
+            end
         end
     end
 
@@ -1143,7 +1147,7 @@ function plot_polar(θ, ρ, plt=plt[])
     rmin, rmax = window[3], window[4]
     sign = if get(plt.kvs, :theta_direction, 1) > 0 1 else -1 end
     offs = theta_zero_location[get(plt.kvs, :theta_zero_location, "E")]
-    ρ = ρ ./ rmax
+    ρ = (ρ .- rmin) ./ (rmax - rmin)
     n = length(ρ)
     x, y = zeros(n), zeros(n)
     for i in 1:n
