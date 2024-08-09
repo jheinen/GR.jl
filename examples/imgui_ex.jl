@@ -75,7 +75,19 @@ function gr_demo(; engine=nothing)
             if isnothing(image_id)
                 image_id = CImGui.create_image_texture(img_width, img_height)
             end
+
             @c CImGui.SliderFloat("Angle", &phi, 0, 360, "%.4f")
+
+            size = CImGui.GetWindowSize()
+            canvas = CImGui.GetWindowPos()
+            mouse_x = unsafe_load(CImGui.GetIO().MousePos.x)
+            mouse_y = unsafe_load(CImGui.GetIO().MousePos.y)
+            x = (mouse_x - canvas.x) / size.x
+            y = 1 - (mouse_y - canvas.y) / size.y
+            if 0 <= x <= 1 && 0 <= y <= 1
+                @c CImGui.Text("($(round(x, digits=4)), $(round(y, digits=4)))")
+            end
+            CImGui.SetCursorPos(0, 0)
 
             beginprint(conid)
             draw(phi * π/180)
@@ -87,7 +99,6 @@ function gr_demo(; engine=nothing)
         end
     end
 end
-
 
 # Run automatically if the script is launched from the command-line
 if !isempty(Base.PROGRAM_FILE)
