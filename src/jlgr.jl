@@ -503,8 +503,10 @@ function set_window(kind, plt=plt[])
     plt.kvs[:window] = xmin, xmax, ymin, ymax
     if !(kind === :polar || kind === :polarhist || kind === :polarheatmap || kind === :nonuniformpolarheatmap)
         GR.setwindow(xmin, xmax, ymin, ymax)
+        GR.setclipregion(GR.REGION_RECTANGLE)
     else
         GR.setwindow(-1, 1, -1, 1)
+        GR.setclipregion(GR.REGION_ELLIPSE)
     end
     if kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :trisurf || kind === :volume
         rotation = get(plt.kvs, :rotation, 40)

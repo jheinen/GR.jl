@@ -3646,6 +3646,9 @@ const AXES_SIMPLE_AXES = 1
 const AXES_TWIN_AXES = 2
 const AXES_WITH_GRID = 4
 
+const REGION_RECTANGLE = 0
+const REGION_ELLIPSE = 1
+
 # GR3 functions
 include("gr3.jl")
 
