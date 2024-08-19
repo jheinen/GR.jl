@@ -663,6 +663,11 @@ function draw_polar_axes(plt=plt[])
         end
     end
 
+    GR.setclip(0)
+    GR.setlinecolorind(88)
+    GR.drawarc(-1, 1, -1, 1, 0, 360)
+
+    GR.setclip(1)
     sign = if get(plt.kvs, :theta_direction, 1) > 0 1 else -1 end
     offs = theta_zero_location[get(plt.kvs, :theta_zero_location, "E")]
     for alpha in 0:45:315
@@ -692,10 +697,6 @@ function draw_polar_axes(plt=plt[])
         GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
         text(0.5 * (viewport[1] + viewport[2]), vp[4] - 0.02, plt.kvs[:title])
     end
-
-    GR.setclip(0)
-    GR.setlinecolorind(88)
-    GR.drawarc(-1, 1, -1, 1, 0, 360)
 
     GR.restorestate()
 end
