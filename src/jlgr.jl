@@ -637,7 +637,7 @@ function draw_axes(kind, pass=1, plt=plt[])
     end
 end
 
-function draw_polar_axes(plt=plt[])
+function draw_polar_axes(pass=1, plt=plt[])
     viewport = plt.kvs[:viewport]
     vp = plt.kvs[:vp]
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
@@ -647,57 +647,68 @@ function draw_polar_axes(plt=plt[])
     rmin, rmax = window[3], window[4]
 
     GR.savestate()
-    GR.setcharheight(charheight)
     GR.setlinetype(GR.LINETYPE_SOLID)
+    GR.setcharheight(charheight)
 
     tick = auto_tick(rmin, rmax)
     n = trunc(Int, (rmax - rmin) / tick)
-    for i in 0:n
-        r = i * tick / (rmax - rmin)
-        if 0 < r < 1
-            if i % 2 == 0
-                GR.setlinecolorind(88)
-                GR.drawarc(-r, r, -r, r, 0, 360)
-            else
-                GR.setlinecolorind(90)
-                GR.drawarc(-r, r, -r, r, 0, 360)
-            end
-        end
+    if n <= 4
+      tick /= 2
+      n *= 2
     end
 
-    GR.setclip(0)
-    GR.setlinecolorind(88)
-    GR.drawarc(-1, 1, -1, 1, 0, 360)
-
-    GR.setclip(1)
-    sign = if get(plt.kvs, :theta_direction, 1) > 0 1 else -1 end
-    offs = theta_zero_location[get(plt.kvs, :theta_zero_location, "E")]
-    for alpha in 0:45:315
-        sinf = sin((alpha * sign) * π / 180 + offs)
-        cosf = cos((alpha * sign) * π / 180 + offs)
-        GR.setlinecolorind(88)
-        GR.polyline([cosf, 0], [sinf, 0])
-        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_HALF)
-        x, y = GR.wctondc(1.1 * cosf, 1.1 * sinf)
-        GR.text(x, y, string(alpha, "°"))
-    end
-
-    start = trunc(Int, floor(rmin / tick))
-    for i in 0:n
-        j = start + i
-        if j * tick >= rmin
+    if pass == 1
+        for i in 0:n
             r = i * tick / (rmax - rmin)
-            if i % 2 == 0
-                GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
-                x, y = GR.wctondc(0.05, r)
-                GR.text(x, y, string(signif(j * tick, 12)))
+            if 0 < r < 1
+                if i % 2 == 0
+                    GR.setlinecolorind(88)
+                    GR.drawarc(-r, r, -r, r, 0, 360)
+                else
+                    GR.setlinecolorind(90)
+                    GR.drawarc(-r, r, -r, r, 0, 360)
+                end
             end
+        end
+
+        GR.setclip(0)
+        GR.setlinecolorind(88)
+        GR.drawarc(-1, 1, -1, 1, 0, 360)
+
+        GR.setclip(1)
+        sign = if get(plt.kvs, :theta_direction, 1) > 0 1 else -1 end
+        offs = theta_zero_location[get(plt.kvs, :theta_zero_location, "E")]
+        for alpha in 0:45:315
+            sinf = sin((alpha * sign) * π / 180 + offs)
+            cosf = cos((alpha * sign) * π / 180 + offs)
+            GR.setlinecolorind(88)
+            GR.polyline([cosf, 0], [sinf, 0])
+            GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_HALF)
+            x, y = GR.wctondc(1.1 * cosf, 1.1 * sinf)
+            GR.text(x, y, string(alpha, "°"))
+        end
+
+        if haskey(plt.kvs, :title)
+            GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
+            text(0.5 * (viewport[1] + viewport[2]), vp[4] - 0.02, plt.kvs[:title])
         end
     end
 
-    if haskey(plt.kvs, :title)
-        GR.settextalign(GR.TEXT_HALIGN_CENTER, GR.TEXT_VALIGN_TOP)
-        text(0.5 * (viewport[1] + viewport[2]), vp[4] - 0.02, plt.kvs[:title])
+    if pass == 2
+        start = trunc(Int, floor(rmin / tick))
+        for i in 0:n
+            j = start + i
+            if j * tick >= rmin
+                r = i * tick / (rmax - rmin)
+                if i % 2 == 0
+                    GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
+                    x, y = GR.wctondc(0.05, r)
+                    s = string(signif(j * tick, 12))
+                    if endswith(s, ".0") s = s[1:end-2] end
+                    GR.text(x, y, s)
+                end
+            end
+        end
     end
 
     GR.restorestate()
@@ -1434,6 +1445,7 @@ function plot_data(flag=true, plt=plt[])
                 GR.setfillintstyle(GR.INTSTYLE_HOLLOW)
                 GR.fillarc(-ρ[i], ρ[i], -ρ[i], ρ[i], θ[i-1], θ[i])
             end
+            draw_polar_axes(2)
         elseif kind === :polarheatmap || kind === :nonuniformpolarheatmap
             w, h = size(z)
             cmap = colormap()
@@ -1454,7 +1466,8 @@ function plot_data(flag=true, plt=plt[])
                 θ = x * 180/π
                 GR.nonuniformpolarcellarray(θ, ρ, w, h, colors)
             end
-            draw_polar_axes()
+            draw_polar_axes(1)
+            draw_polar_axes(2)
             plt.kvs[:zrange] = cmin, cmax
             colorbar(0.025)
         elseif kind === :contour
@@ -1587,6 +1600,7 @@ function plot_data(flag=true, plt=plt[])
         elseif kind === :polar
             GR.uselinespec(spec)
             plot_polar(x, y)
+            draw_polar_axes(2)
         elseif kind === :trisurf
             GR.trisurface(x, y, z)
             draw_axes(kind, 2)
