@@ -658,6 +658,7 @@ function draw_polar_axes(pass=1, plt=plt[])
     end
 
     if pass == 1
+        GR.setclip(1)
         for i in 0:n
             r = i * tick / (rmax - rmin)
             if 0 < r < 1
@@ -670,7 +671,6 @@ function draw_polar_axes(pass=1, plt=plt[])
                 end
             end
         end
-
         GR.setclip(0)
         GR.setlinecolorind(88)
         GR.drawarc(-1, 1, -1, 1, 0, 360)
