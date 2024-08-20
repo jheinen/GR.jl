@@ -194,6 +194,8 @@ export
   inqmathfont,
   setclipregion,
   inqclipregion,
+  getformat,
+  ftoa,
   # Convenience functions
   jlgr,
   colormap,
@@ -4449,6 +4451,24 @@ function inqclipregion()
         (Ptr{Cint}, ),
         _region)
   return _region[1]
+end
+
+function getformat(origin::Real, amin::Real, amax::Real, tick::Real, major::Int)
+  _format = Cint[0, 0]
+  ccall( libGR_ptr(:gr_getformat),
+        Nothing,
+        (Ptr{Cint}, Cdouble, Cdouble, Cdouble, Cdouble, Cint),
+        _format, origin, amin, amax, tick, major)
+  return Int32[_format...]
+end
+
+function ftoa(value::Real, format::Vector{Int32})
+  string = Vector{UInt8}(undef, 256)
+  s = ccall( libGR_ptr(:gr_ftoa),
+            Cstring,
+            (Ptr{UInt8}, Cdouble, Ptr{Cint}),
+            string, value, format)
+  return unsafe_string(s)
 end
 
 function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, org::Real = NaN, position::Real = NaN, major_count::Int = 1, ticks::Union{Vector{GRTick}, Nothing} = nothing, tick_size::Real = NaN, tick_labels::Union{Vector{GRTickLabel}, Nothing} = nothing, label_position::Real = NaN, draw_axis_line::Int = 1)::GRAxis
