@@ -61,8 +61,6 @@ shade,
 setpanzoom,
 mainloop
 
-signif(x, digits; base = 10) = round(x, sigdigits = digits, base = base)
-
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
 const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :clines, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi, :keepaspect]
@@ -703,8 +701,8 @@ function draw_polar_axes(pass=1, plt=plt[])
                 if i % 2 == 0
                     GR.settextalign(GR.TEXT_HALIGN_LEFT, GR.TEXT_VALIGN_HALF)
                     x, y = GR.wctondc(0.05, r)
-                    s = string(signif(j * tick, 12))
-                    if endswith(s, ".0") s = s[1:end-2] end
+                    fmt = GR.getformat(start, rmin, rmax, tick, 2)
+                    s = GR.ftoa(j * tick, fmt)
                     GR.text(x, y, s)
                 end
             end
