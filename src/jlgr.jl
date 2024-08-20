@@ -820,6 +820,7 @@ function colorbar(off=0, colors=256, plt=plt[])
     end
     h = 0 ###0.5 * (zmax - zmin) / (colors - 1)
     GR.setwindow(0, 1, zmin, zmax)
+    GR.setclipregion(GR.REGION_RECTANGLE)
     GR.setviewport(viewport[2] + 0.02 + off, viewport[2] + 0.05 + off,
                    viewport[3], viewport[4])
     l = Int32[round(1000 + _i * 255, RoundNearestTiesUp) for _i in linspace(0, 1, colors)]
