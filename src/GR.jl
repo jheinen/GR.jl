@@ -194,6 +194,8 @@ export
   inqmathfont,
   setclipregion,
   inqclipregion,
+  setclipsector,
+  inqclipsector,
   getformat,
   ftoa,
   # Convenience functions
@@ -4451,6 +4453,23 @@ function inqclipregion()
         (Ptr{Cint}, ),
         _region)
   return _region[1]
+end
+
+function setclipsector(start_angle::Real, end_angle::Real)
+  ccall( libGR_ptr(:gr_setclipsector),
+        Nothing,
+        (Cdouble, Cdouble),
+        start_angle, end_angle)
+end
+
+function inqclipsector()
+  _start_angle = Cdouble[0]
+  _end_angle = Cdouble[0]
+  ccall( libGR_ptr(:gr_inqclipsector),
+        Nothing,
+        (Ptr{Cdouble}, Ptr{Cdouble}),
+        _start_angle, _end_angle)
+  return _start_angle[1], _end_angle[1]
 end
 
 function getformat(origin::Real, amin::Real, amax::Real, tick::Real, major::Int)

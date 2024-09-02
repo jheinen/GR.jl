@@ -163,6 +163,8 @@
 :gr_inqmathfont
 :gr_setclipregion
 :gr_inqclipregion
+:gr_setclipsector
+:gr_inqclipsector
 :gr_getformat
 :gr_ftoa
 :gr_axis
