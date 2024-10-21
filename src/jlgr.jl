@@ -2287,7 +2287,6 @@ function heatmap(D, plt=plt[]; kv...)
     else
         error("expected 2-D array")
     end
-    nothing
 end
 
 is_uniformly_spaced(v; tol = 1e-6) =
@@ -2309,7 +2308,6 @@ function heatmap(x, y, z, plt=plt[]; kv...)
     else
         error("expected 2-D array")
     end
-    nothing
 end
 
 function polarheatmap(D; kv...)
@@ -2325,7 +2323,6 @@ function polarheatmap(D; kv...)
     else
         error("expected 2-D array")
     end
-    nothing
 end
 
 function polarheatmap(x, y, z, plt=plt[]; kv...)
@@ -2342,7 +2339,6 @@ function polarheatmap(x, y, z, plt=plt[]; kv...)
     else
         error("expected 2-D array")
     end
-    nothing
 end
 
 """
