@@ -154,7 +154,7 @@
 :gr_inqtransformationparameters
 :gr_polygonmesh3d
 :gr_setscientificformat
-:gr_setresizebehaviour
+:gr_setnominalsize
 :gr_inqprojectiontype
 :gr_beginselection
 :gr_endselection

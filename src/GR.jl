@@ -188,7 +188,7 @@ export
   inqtransformationparameters,
   polygonmesh3d,
   setscientificformat,
-  setresizebehaviour,
+  setnominalsize,
   inqprojectiontype,
   setmathfont,
   inqmathfont,
@@ -4386,11 +4386,11 @@ function setscientificformat(format_option)
         format_option)
 end
 
-function setresizebehaviour(flag)
-    ccall( libGR_ptr(:gr_setresizebehaviour),
+function setnominalsize(factor)
+    ccall( libGR_ptr(:gr_setnominalsize),
         Nothing,
-        (Int32, ),
-        flag)
+        (Float64, ),
+        factor)
 end
 
 function inqprojectiontype()
