@@ -87,14 +87,14 @@ function gr_demo(; engine=nothing)
             if 0 <= x <= 1 && 0 <= y <= 1
                 @c CImGui.Text("($(round(x, digits=4)), $(round(y, digits=4)))")
             end
-            CImGui.SetCursorPos(0, 0)
+            CImGui.SetCursorPos((0, 0))
 
             beginprint(conid)
             draw(phi * π/180)
             endprint()
 
             CImGui.update_image_texture(image_id, image, img_width, img_height)
-            CImGui.Image(Ptr{Cvoid}(image_id), CImGui.ImVec2(img_width, img_height))
+            CImGui.Image(image_id, CImGui.ImVec2(img_width, img_height))
             CImGui.End()
         end
     end
