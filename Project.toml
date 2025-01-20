@@ -1,7 +1,7 @@
 name = "GR"
 uuid = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
 author = ["Josef Heinen (@jheinen)"]
-version = "0.73.10"
+version = "0.73.11"
 
 [deps]
 Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -28,7 +28,7 @@ Qt6Wayland_jll = "e99dba38-086e-5de3-a5b1-6e4c66e897c3"
 Artifacts = "1"
 DelimitedFiles = "1"
 Downloads = "1"
-GR_jll = "=0.73.10"
+GR_jll = "=0.73.11"
 HTTP = "0.8, 0.9, 1"
 JSON = "0.20, 0.21, 1"
 Preferences = "1"
