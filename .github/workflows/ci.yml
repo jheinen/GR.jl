@@ -27,12 +27,12 @@ jobs:
             prefix: xvfb-run  # julia-actions/julia-runtest/blob/master/README.md
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
         with:
@@ -41,7 +41,7 @@ jobs:
         run: |
           julia --code-coverage --project=@. --color=yes test/downstream_test.jl
       - uses: julia-actions/julia-processcoverage@latest
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v5
         with:
           file: lcov.info
 
