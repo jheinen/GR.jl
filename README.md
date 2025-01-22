@@ -2,7 +2,8 @@
 
 [![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE.md)
 [![GitHub tag](https://img.shields.io/github/tag/jheinen/GR.jl.svg)](https://github.com/jheinen/GR.jl/releases)
-[![GR Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/GR)](https://pkgs.genieframework.com?packages=GR)
+<!---[![GR Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/GR)](https://pkgs.genieframework.com?packages=GR)--->
+[![GR Downloads](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2Fjuliapkgstats.com%2Fapi%2Fv1%2Ftotal_downloads%2FGR&query=total_requests&label=Total)](http://juliapkgstats.com/pkg/GR) 
 [![DOI](https://zenodo.org/badge/29193648.svg)](https://zenodo.org/badge/latestdoi/29193648)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jheinen/GR.jl/master)
 [![Join the chat at https://gitter.im/jheinen/GR.jl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jheinen/GR.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
