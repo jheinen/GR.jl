@@ -198,6 +198,9 @@ export
   inqclipsector,
   getformat,
   ftoa,
+  beginselection,
+  endselection,
+  moveselection,
   # Convenience functions
   jlgr,
   colormap,
