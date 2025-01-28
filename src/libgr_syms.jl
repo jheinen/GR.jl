@@ -159,6 +159,8 @@
 :gr_beginselection
 :gr_endselection
 :gr_moveselection
+:gr_setbackground
+:gr_clearbackground
 :gr_setmathfont
 :gr_inqmathfont
 :gr_setclipregion

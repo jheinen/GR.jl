@@ -201,6 +201,8 @@ export
   beginselection,
   endselection,
   moveselection,
+  setbackground,
+  clearbackground,
   # Convenience functions
   jlgr,
   colormap,
@@ -4424,6 +4426,20 @@ function moveselection(x, y)
         Nothing,
         (Cdouble, Cdouble),
         x, y)
+end
+
+function setbackground()
+    ccall( libGR_ptr(:gr_setbackground),
+        Nothing,
+        (),
+        )
+end
+
+function clearbackground()
+    ccall( libGR_ptr(:gr_clearbackground),
+        Nothing,
+        (),
+        )
 end
 
 function setmathfont(font::Int)
