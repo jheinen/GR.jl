@@ -3,14 +3,16 @@
 # Calculate Mandelbrot set using OpenCL
 
 using OpenCL
+using pocl_jll
+
 import GR
 
-const mandel_kernel = "
-#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
-__kernel void mandelbrot(__global double2 *q, __global ushort *output,
-                         double const min_x, double const max_x,
-                         double const min_y, double const max_y,
-                         ushort const width, ushort const height,
+mandel_source = "
+__kernel void mandelbrot(__global double2 *q,
+                         __global ushort *output,
+                         double const minX, double const maxX,
+                         double const minY, double const maxY,
+                         ushort const w, ushort const h,
                          ushort const iters)
 {
     int ci = 0, inc = 1;
@@ -18,8 +20,8 @@ __kernel void mandelbrot(__global double2 *q, __global ushort *output,
     double nreal, real = 0;
     double imag = 0;
 
-    q[gid].x = min_x + (gid % width) * (max_x - min_x) / width;
-    q[gid].y = min_y + (gid / width) * (max_y - min_y) / height;
+    q[gid].x = minX + (gid % w) * (maxX - minX) / w;
+    q[gid].y = minY + (gid / w) * (maxY - minY) / h;
 
     output[gid] = iters;
 
@@ -36,60 +38,35 @@ __kernel void mandelbrot(__global double2 *q, __global ushort *output,
         if (ci == 0 || ci == 255)
             inc = -inc;
     }
-}"
+}";
 
-for device in reverse(cl.available_devices(cl.platforms()[1]))
-    global ctx, queue, prg
+function mandel_opencl(q::Array{ComplexF64}, minX::Float64, maxX::Float64, minY::Float64, maxY::Float64, w, h, iters)
+    q = CLArray(q)
+    o = CLArray{Cushort}(undef, size(q))
 
-    ctx = cl.Context(device)
-    queue = cl.CmdQueue(ctx)
-    try
-        prg = cl.Program(ctx, source = mandel_kernel) |> cl.build!
-        println(device[:name])
-        break
-    catch
-        true
-    end
-end
-
-function calc_fractal(q, min_x, max_x, min_y, max_y, width, height, iters)
-    global ctx, queue, prg
-
-    output = Array{UInt16}(undef, size(q))
-
-    q_opencl = cl.Buffer(ComplexF64, ctx, (:r, :copy), hostbuf=q)
-    output_opencl = cl.Buffer(UInt16, ctx, :w, length(output))
-
+    prg = cl.Program(source=mandel_source) |> cl.build!
     k = cl.Kernel(prg, "mandelbrot")
-    queue(k, length(q), nothing, q_opencl, output_opencl,
-          min_x, max_x, min_y, max_y,
-          UInt16(width), UInt16(height), UInt16(iters))
-    cl.copy!(queue, output, output_opencl)
 
-    return output
+    clcall(k, Tuple{Ptr{ComplexF64}, Ptr{Cushort}, Float64, Float64, Float64, Float64, Cushort, Cushort, Cushort},
+           q, o, minX, maxX, minY, maxY, w, h, iters; global_size=length(q))
+
+    return Array(o)
 end
-
-function create_fractal(min_x, max_x, min_y, max_y, width, height, iters)
-    q = zeros(ComplexF64, (width, height))
-
-    output = calc_fractal(q, min_x, max_x, min_y, max_y, width, height, iters)
-
-    return output
-end
-
 
 x = -0.9223327810370947027656057193752719757635
 y = 0.3102598350874576432708737495917724836010
 
+GR.setviewport(0, 1, 0, 1)
+GR.setcolormap(13)
+
 for i in 1:200
 
     f = 0.5 * 0.9^i
-    dt = @elapsed image = create_fractal(x-f, x+f, y-f, y+f, 500, 500, 400)
+    q = zeros(ComplexF64, (500, 500))
+    dt = @elapsed image = mandel_opencl(q, x-f, x+f, y-f, y+f, 500, 500, 400)
     println("Mandelbrot created in $dt s")
 
     GR.clearws()
-    GR.setviewport(0, 1, 0, 1)
-    GR.setcolormap(13)
     GR.cellarray(0, 1, 0, 1, 500, 500, image .+ 1000)
     GR.updatews()
 
