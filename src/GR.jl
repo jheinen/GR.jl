@@ -3703,6 +3703,7 @@ Base.@kwdef mutable struct c_axis_t
   tick_labels::Ptr{c_tick_label_t} = C_NULL
   label_position::Cdouble = NaN
   draw_axis_line::Cint = 1
+  label_orientation::Cint = 0
 end
 
 mutable struct GRTick
@@ -3729,6 +3730,7 @@ Base.@kwdef mutable struct GRAxis
   tick_labels::Vector{GRTickLabel} = nothing
   label_position::Real = NaN
   draw_axis_line::Int = 1
+  label_orientation::Int = 0
 end
 
 function _readfile(path)
@@ -4509,8 +4511,8 @@ function ftoa(value::Real, format::Vector{Int32})
   return unsafe_string(s)
 end
 
-function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, org::Real = NaN, position::Real = NaN, major_count::Int = 1, ticks::Union{Vector{GRTick}, Nothing} = nothing, tick_size::Real = NaN, tick_labels::Union{Vector{GRTickLabel}, Nothing} = nothing, label_position::Real = NaN, draw_axis_line::Int = 1)::GRAxis
-  c_axis = c_axis_t(min=min, max=max, tick=tick, org=org, position=position, major_count=major_count, tick_size=tick_size, label_position=label_position, draw_axis_line=draw_axis_line)
+function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, org::Real = NaN, position::Real = NaN, major_count::Int = 1, ticks::Union{Vector{GRTick}, Nothing} = nothing, tick_size::Real = NaN, tick_labels::Union{Vector{GRTickLabel}, Nothing} = nothing, label_position::Real = NaN, draw_axis_line::Int = 1, label_orientation::Int = 0)::GRAxis
+  c_axis = c_axis_t(min=min, max=max, tick=tick, org=org, position=position, major_count=major_count, tick_size=tick_size, label_position=label_position, draw_axis_line=draw_axis_line, label_orientation=label_orientation)
   if ticks != nothing
     c_axis.ticks = pointer(ticks)
     c_axis.num_ticks = size(ticks)[1]
@@ -4544,11 +4546,11 @@ function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, o
     end
   end
 
-  return GRAxis(min=c_axis.min, max=c_axis.max, tick=c_axis.tick, org=c_axis.org, position=c_axis.position, major_count=c_axis.major_count, ticks=ticks, tick_size=c_axis.tick_size, tick_labels=tick_labels, label_position=c_axis.label_position, draw_axis_line=c_axis.draw_axis_line)
+  return GRAxis(min=c_axis.min, max=c_axis.max, tick=c_axis.tick, org=c_axis.org, position=c_axis.position, major_count=c_axis.major_count, ticks=ticks, tick_size=c_axis.tick_size, tick_labels=tick_labels, label_position=c_axis.label_position, draw_axis_line=c_axis.draw_axis_line, label_orientation=c_axis.label_orientation)
 end
 
 function to_c_axis(axis::GRAxis)::c_axis_t
-  c_axis = c_axis_t(min=axis.min, max=axis.max, tick=axis.tick, org=axis.org, position=axis.position, major_count=axis.major_count, tick_size=axis.tick_size, label_position=axis.label_position, draw_axis_line=axis.draw_axis_line)
+  c_axis = c_axis_t(min=axis.min, max=axis.max, tick=axis.tick, org=axis.org, position=axis.position, major_count=axis.major_count, tick_size=axis.tick_size, label_position=axis.label_position, draw_axis_line=axis.draw_axis_line, label_orientation=axis.label_orientation)
   if axis.ticks != nothing
     ticks = c_tick_t[]
     for tick in axis.ticks
