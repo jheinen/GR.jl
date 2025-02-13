@@ -9,7 +9,7 @@ using Tar
 using Downloads
 using p7zip_jll
 
-const version = v"0.73.12"
+const version = v"0.73.13"
 
 """
     get_grdir()
