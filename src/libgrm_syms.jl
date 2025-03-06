@@ -4,7 +4,14 @@
 :grm_send_ref
 :grm_recv
 :grm_plot
+:grm_args_new
+:grm_args_push
+:grm_args_clear
+:grm_args_remove
+:grm_args_contains
 :grm_args_delete
 :grm_close
 :grm_plot_from_file
+:grm_dump_html
+:grm_dump_html_args
 ]

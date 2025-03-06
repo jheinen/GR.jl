@@ -255,6 +255,7 @@ export
   libGR3,
   gr3,
   libGRM,
+  grm,
   isinline,
   inline,
   displayname,
@@ -336,8 +337,8 @@ function init(always::Bool = false)
         ENV["GKS_USE_CAIRO_PNG"] = "true"
         if "GRDISPLAY" in keys(ENV)
             display_name[] = ENV["GRDISPLAY"]
-            if display_name[] == "js" || display_name[] == "pluto" || display_name[] == "js-server"
-                send_c[], recv_c[] = js.initjs()
+            if display_name[] == "js" || display_name[] == "pluto"
+                js.initjs()
             elseif display_name[] == "plot" || display_name[] == "edit"
                 ENV["GR_PLOT"] = if Sys.iswindows()
                     "set PATH=$(GRPreferences.libpath[]) & \"$(GRPreferences.grplot[])\" --listen"
@@ -3663,6 +3664,10 @@ include("gr3.jl")
 
 const gr3 = GR.GR3
 
+# GRM functions
+include("grm.jl")
+const grm = GR.GRM
+
 # Convenience functions
 include("jlgr.jl")
 # Rather than redefining the methods in GR
@@ -3763,7 +3768,7 @@ function inline(mime="svg", scroll=true)
         elseif mime == "js"
             file_path[] = nothing
             ENV["GRDISPLAY"] = "js"
-            send_c[], recv_c[] = js.initjs()
+            js.initjs()
         else
             file_path[] = tempname() * "." * mime
             ENV["GKS_WSTYPE"] = mime

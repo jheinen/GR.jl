@@ -1244,6 +1244,51 @@ function send_meta(target, plt=plt[])
     nothing
 end
 
+function convert_grm_args(plt=plt[])::GR.grm.ArgsT
+    args = GR.grm.args_new()
+    for (k, v) in plt.kvs
+        if haskey(grm_aliases, k)
+            k = grm_aliases[k]
+        end
+        if k === :backgroundcolor || k === :color || k === :colormap || k === :location || k === :nbins ||
+            k === :rotation || k === :tilt || k === :transform
+            args[string(k)] = Int32(v)
+        elseif k === :alpha || k === :isovalue
+            args[string(k)] = Float64(v)
+        elseif k === :x_lim || k === :y_lim || k === :z_lim || k === :c_lim || k === :size
+            args[string(k)] = to_double(v)
+        elseif k === :title || k === :x_label || k === :y_label || k === :z_label
+            args[string(k)] = String(v)
+        elseif k === :labels
+            s = [String(el) for el in v]
+            args[string(k)] = v
+        elseif k === :x_flip || k === :y_flip || k === :z_flip || k === :x_log || k === :y_log || k === :z_log
+            args[string(k)] = Int32(v ? 1 : 0)
+        end
+    end
+
+    num_series = length(plt.args)
+    series = [GR.grm.args_new() for _ in (1:num_series)]
+    for (i, (x, y, z, c, spec)) in enumerate(plt.args)
+        x !== nothing && (series[i]["x"] = to_double(x))
+        y !== nothing && (series[i]["y"] = to_double(y))
+        z !== nothing && (series[i]["z"] = to_double(z))
+        c !== nothing && (series[i]["c"] = to_double(c))
+        spec !== nothing && (series[i]["line_spec"] = spec)
+    end
+    args["series"] = series
+
+    if plt.kvs[:kind] === :hist
+        args["kind"] = "barplot"
+    else
+        args["kind"] = string(plt.kvs[:kind])
+    end
+    if get(plt.kvs, :keepaspect, false)
+        args["keep_aspect_ratio"] = 1
+    end
+    args
+end
+
 function send_serialized(target, plt=plt[])
     sock = connect(target, 8001)
     serialize(sock, Dict("kvs" => plt.kvs, "args" => plt.args))
@@ -1269,13 +1314,15 @@ function plot_data(flag=true, plt=plt[])
 
     target = GR.displayname()
     if flag && target !== ""
-        if target == "js" || target == "meta" || target == "plot" || target == "edit" || target == "pluto" || target == "js-server"
+        if target == "pluto" || target == "js"
+            jsterm_include = GR.js.get_jsterm().content
+            jsterm_data = GR.grm.dump_html(string(Base.UUID(rand(UInt128))), convert_grm_args(plt)).content
+            return HTML(jsterm_include * jsterm_data)
+        end
+        if target == "meta" || target == "plot" || target == "edit"
             send_meta(0)
         else
             send_serialized(target)
-        end
-        if target == "pluto" || target == "js"
-          return GR.js.get_html()
         end
         return
     end
