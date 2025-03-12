@@ -4,7 +4,7 @@ import GR
 
 
 mutable struct ArgsT
-    const ptr::Ptr{Nothing}
+    ptr::Ptr{Nothing}
     deleted::Bool  # could also be named _is_child, analogous to python-gr
 end
 
