@@ -63,7 +63,7 @@ mainloop
 
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
-const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :clines, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi, :keepaspect]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :clines, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi, :keepaspect, :markersize, :borderwidth]
 
 const grm_aliases = Dict(
     :nbins => :num_bins, :xform => :transform, :xlim => :x_lim, :ylim => :y_lim, :zlim => :z_lim, :clim => :c_lim, :xlabel => :x_label, :ylabel => :y_label, :zlabel => :z_label, :xflip => :x_flip, :yflip => :y_flip, :zflip => :z_flip, :xlog => :x_log, :ylog => :y_log, :zlog => :z_log)
@@ -1397,7 +1397,13 @@ function plot_data(flag=true, plt=plt[])
                     GR.setlinewidth(linewidth)
                     GR.polyline(x, y)
                 end
-                hasmarker(mask) && GR.polymarker(x, y)
+                if hasmarker(mask)
+                    markersize = get(plt.kvs, :markersize, 1)
+                    GR.setmarkersize(markersize)
+                    borderwidth = get(plt.kvs, :borderwidth, 1)
+                    GR.setborderwidth(borderwidth)
+                    GR.polymarker(x, y)
+                end
             end
         elseif kind === :stairs
             mask = GR.uselinespec(spec)
