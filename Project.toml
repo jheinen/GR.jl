@@ -31,7 +31,14 @@ Downloads = "1"
 GR_jll = "=0.73.14"
 HTTP = "0.8, 0.9, 1"
 JSON = "0.20, 0.21, 1"
+Pkg = "1"
 Preferences = "1"
 TOML = "1"
 Tar = "1"
 julia = "1.6"
+
+[extras]
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+
+[targets]
+test = ["Pkg"]
