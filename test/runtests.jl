@@ -1,5 +1,5 @@
 using Pkg
-VERSION > v"1.6" && Pkg.status(; outdated = true, mode = Pkg.PKGMODE_MANIFEST)
+VERSION > v"1.10" && Pkg.status(; outdated = true, mode = Pkg.PKGMODE_MANIFEST)
 
 ENV["JULIA_DEBUG"] = "GR"
 
