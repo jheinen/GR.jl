@@ -8,7 +8,7 @@ const jssource = Ref("https://gr-framework.org/downloads/gr-0.73.14.js")
 
 function get_jsterm()
   if GR.isijulia()
-    display(HTML(string("""
+    result = HTML(string("""
       <script type="text/javascript">
         if (typeof JSTerm === "undefined" && document.getElementById('jstermImport') == null) {
           let jstermScript = document.createElement("script");
@@ -18,10 +18,11 @@ function get_jsterm()
           document.body.appendChild(jstermScript);
         }
       </script>
-    """)))
-    return
+    """))
+  else
+    result = HTML(string("""<script type="text/javascript" src=" """, jssource[], """ "></script>"""))
   end
-  return HTML(string("""<script type="text/javascript" src=" """, jssource[], """ "></script>"""))
+  result
 end
 
 function initjs()
