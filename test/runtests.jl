@@ -1,3 +1,6 @@
+using Pkg
+VERSION > v"1.10" && Pkg.status(; outdated = true, mode = Pkg.PKGMODE_MANIFEST)
+
 ENV["JULIA_DEBUG"] = "GR"
 
 using Random
