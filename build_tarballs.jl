@@ -3,13 +3,13 @@
 using BinaryBuilder
 
 name = "GR"
-version = v"0.73.14"
+version = v"0.73.16"
 
 # Collection of sources required to complete build
 sources = [
-    GitSource("https://github.com/sciapp/gr.git", "9a62289c2e4e36c28e045c3a34f02d0d01c4231c"),
+    GitSource("https://github.com/sciapp/gr.git", "a31792ee21340a137bba477c6149d87be8b508ad"),
     FileSource("https://github.com/sciapp/gr/releases/download/v$version/gr-$version.js",
-               "7f94982b410c686d67be956f1e0317b6e2644702b3f3d69328ee8217e7be5217", "gr.js"),
+               "4b330a80b1c24f579f9800430ea85efe66c11f28d046378435ff30f8299d1d6b", "gr.js"),
     ArchiveSource("https://github.com/roblabla/MacOSX-SDKs/releases/download/macosx14.0/MacOSX14.0.sdk.tar.xz",
                   "4a31565fd2644d1aec23da3829977f83632a20985561a2038e198681e7e7bf49")
 ]
@@ -88,15 +88,15 @@ products = [
 
 # Dependencies that must be installed before this package can be built
 dependencies = [
-    Dependency("Bzip2_jll"),
-    Dependency("Cairo_jll"),
+    Dependency("Bzip2_jll"; compat="1.0.9"),
+    Dependency("Cairo_jll"; compat="1.16.1"),
     Dependency("FFMPEG_jll"),
     Dependency("Fontconfig_jll"),
     Dependency("FreeType2_jll"; compat="2.13.4"),
     Dependency("GLFW_jll"),
     Dependency("JpegTurbo_jll"),
     Dependency("libpng_jll"),
-    Dependency("Libtiff_jll"),
+    Dependency("Libtiff_jll"; compat="4.7.1"),
     Dependency("Pixman_jll"),
     HostBuildDependency("Qt6Base_jll"),
     Dependency("Qt6Base_jll"; compat="~6.8.2"), # Never allow upgrading more than the minor version without recompilation
