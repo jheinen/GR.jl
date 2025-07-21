@@ -1201,6 +1201,7 @@ function send_meta(target, plt=plt[])
         atexit(shutdown)
     end
     if handle[] != C_NULL
+        labels = []
         for (k, v) in plt.kvs
             if haskey(grm_aliases, k)
                 k = grm_aliases[k]
@@ -1215,8 +1216,7 @@ function send_meta(target, plt=plt[])
             elseif k === :title || k === :x_label || k === :y_label || k === :z_label
                 GR.sendmetaref(handle[], string(k), 's', String(v))
             elseif k === :labels
-                s = [String(el) for el in v]
-                GR.sendmetaref(handle[], string(k), 'S', s, length(s))
+                labels = [String(el) for el in v]
             elseif k === :x_flip || k === :y_flip || k === :z_flip || k === :x_log || k === :y_log || k === :z_log
                 GR.sendmetaref(handle[], string(k), 'i', v ? 1 : 0)
             end
@@ -1229,6 +1229,9 @@ function send_meta(target, plt=plt[])
             z !== nothing && send_data(handle[], "z", to_double(z))
             c !== nothing && send_data(handle[], "c", to_double(c))
             spec !== nothing && GR.sendmetaref(handle[], "line_spec", 's', spec)
+            if i <= length(labels)
+                GR.sendmetaref(handle[], "label", 's', labels[i])
+            end
             GR.sendmetaref(handle[], "", 'O', i < num_series ? "," : "]", 1)
         end
         if plt.kvs[:kind] === :hist
@@ -1246,6 +1249,7 @@ end
 
 function convert_grm_args(plt=plt[])::GR.grm.ArgsT
     args = GR.grm.args_new()
+    labels = []
     for (k, v) in plt.kvs
         if haskey(grm_aliases, k)
             k = grm_aliases[k]
@@ -1260,8 +1264,7 @@ function convert_grm_args(plt=plt[])::GR.grm.ArgsT
         elseif k === :title || k === :x_label || k === :y_label || k === :z_label
             args[string(k)] = String(v)
         elseif k === :labels
-            s = [String(el) for el in v]
-            args[string(k)] = v
+            labels = [String(el) for el in v]
         elseif k === :x_flip || k === :y_flip || k === :z_flip || k === :x_log || k === :y_log || k === :z_log
             args[string(k)] = Int32(v ? 1 : 0)
         end
@@ -1275,6 +1278,9 @@ function convert_grm_args(plt=plt[])::GR.grm.ArgsT
         z !== nothing && (series[i]["z"] = to_double(z))
         c !== nothing && (series[i]["c"] = to_double(c))
         spec !== nothing && (series[i]["line_spec"] = spec)
+        if i <= length(labels)
+            series[i]["label"] = labels[i]
+        end
     end
     args["series"] = series
 
