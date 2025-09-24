@@ -4520,14 +4520,22 @@ end
 function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, org::Real = NaN, position::Real = NaN, major_count::Int = 1, ticks::Union{Vector{GRTick}, Nothing} = nothing, tick_size::Real = NaN, tick_labels::Union{Vector{GRTickLabel}, Nothing} = nothing, label_position::Real = NaN, draw_axis_line::Int = 1, label_orientation::Int = 0)::GRAxis
   c_axis = c_axis_t(min=min, max=max, tick=tick, org=org, position=position, major_count=major_count, tick_size=tick_size, label_position=label_position, draw_axis_line=draw_axis_line, label_orientation=label_orientation)
   if ticks != nothing
-    c_axis.ticks = pointer(ticks)
+    array = c_tick_t[]
+    for tick in ticks
+      push!(array, c_tick_t(tick.value, tick.is_major))
+    end
+    c_axis.ticks = pointer(array)
     c_axis.num_ticks = size(ticks)[1]
   else
     c_axis.ticks = C_NULL
     c_axis.num_ticks = 0
   end
   if tick_labels != nothing
-    c_axis.tick_labels = pointer(tick_labels)
+    array = c_tick_label_t[]
+    for tick_label in tick_labels
+      push!(array, c_tick_label_t(tick_label.tick, tick_label.label, tick_label.width))
+    end
+    c_axis.tick_labels = pointer(array)
     c_axis.num_tick_labels = size(tick_labels)[1]
   else
     c_axis.tick_labels = C_NULL
