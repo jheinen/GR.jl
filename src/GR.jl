@@ -4533,7 +4533,7 @@ function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, o
   if tick_labels != nothing
     array = c_tick_label_t[]
     for tick_label in tick_labels
-      push!(array, c_tick_label_t(tick_label.tick, tick_label.label, tick_label.width))
+      push!(array, c_tick_label_t(tick_label.tick, Base.unsafe_convert(Cstring, tick_label.label), tick_label.width))
     end
     c_axis.tick_labels = pointer(array)
     c_axis.num_tick_labels = size(tick_labels)[1]
