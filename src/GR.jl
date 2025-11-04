@@ -279,7 +279,9 @@ const recv_c = Ref(C_NULL)
 const text_encoding = Ref(ENCODING_UTF8)
 const check_env = Ref(true)
 
-isijulia() = isdefined(Main, :IJulia) && Main.IJulia isa Module && isdefined(Main.IJulia, :clear_output)
+_ijulia_loaded::Bool = false
+
+isijulia() = _ijulia_loaded
 isatom() = isdefined(Main, :Atom) && Main.Atom isa Module && Main.Atom.isconnected() && (isdefined(Main.Atom, :PlotPaneEnabled) ? Main.Atom.PlotPaneEnabled[] : true)
 ispluto() = isdefined(Main, :PlutoRunner) && Main.PlutoRunner isa Module
 isvscode() = isdefined(Main, :VSCodeServer) && Main.VSCodeServer isa Module && (isdefined(Main.VSCodeServer, :PLOT_PANE_ENABLED) ? Main.VSCodeServer.PLOT_PANE_ENABLED[] : true)
