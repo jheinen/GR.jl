@@ -1,4 +1,4 @@
-module GRIJuliaExt
+module IJuliaExt
 
 import GR
 import IJulia
