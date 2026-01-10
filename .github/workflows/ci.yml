@@ -39,6 +39,12 @@ jobs:
           project: GR
       - name: Run downstream Plots tests
         run: julia --project=GR --color=yes GR/test/downstream_test.jl
+      - uses: julia-actions/julia-processcoverage@latest
+      - uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          files: lcov.info
 
   Skip:
     if: contains(github.event.head_commit.message, '[skip ci]')
