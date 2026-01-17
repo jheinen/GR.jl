@@ -1487,6 +1487,10 @@ The available text fonts are:
     +--------------------------------------+-----+
     |FONT_ZAPFDINGBATS                     |  131|
     +--------------------------------------+-----+
+    |FONT_COMPUTERMODERN                   |  232|
+    +--------------------------------------+-----+
+    |FONT_DEJAVUSANS                       |  233|
+    +--------------------------------------+-----+
 
 The available text precisions are:
 
@@ -1496,6 +1500,8 @@ The available text precisions are:
     |TEXT_PRECISION_CHAR        |  1|Character precision (medium quality)  |
     +---------------------------+---+--------------------------------------+
     |TEXT_PRECISION_STROKE      |  2|Stroke precision (lower quality)      |
+    +---------------------------+---+--------------------------------------+
+    |TEXT_PRECISION_OUTLINE     |  3|Outline precision (highest quality)   |
     +---------------------------+---+--------------------------------------+
 
 The appearance of a font depends on the text precision value specified.
@@ -3629,6 +3635,8 @@ const FONT_PALATINO_BOLD = 128
 const FONT_PALATINO_BOLDITALIC = 129
 const FONT_ZAPFCHANCERY_MEDIUMITALIC = 130
 const FONT_ZAPFDINGBATS = 131
+const FONT_COMPUTERMODERN = 232
+const FONT_DEJAVUSANS = 233
 
 const TEXT_USE_WC = 1
 const TEXT_ENABLE_INLINE_MATH = 2
