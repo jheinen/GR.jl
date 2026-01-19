@@ -18,6 +18,7 @@ catch
     maximum(VersionNumber.(keys(TOML.parse(read(depot, String)))))
 end
 
+@show stable
 for i ∈ 1:6
     try
         global repo = Pkg.GitTools.ensure_clone(stdout, Plots_jl, "https://github.com/JuliaPlots/Plots.jl")
@@ -27,10 +28,15 @@ for i ∈ 1:6
         sleep(20i)
     end
 end
-@assert isfile(Plots_toml) "spurious network error: clone failed, bailing out"
-tag = LibGit2.GitObject(repo, "v$stable")
-hash = string(LibGit2.target(tag))
+obj = LibGit2.GitObject(repo, "v$stable")
+hash = if isa(obj, LibGit2.GitTag)
+    LibGit2.target(obj)
+else
+    LibGit2.GitHash(obj)
+end |> string
+@show hash
 LibGit2.checkout!(repo, hash)
+@assert isfile(Plots_toml) "checkout repo failed, bailing out"
 
 # fake the supported GR version for testing (for `Pkg.develop`)
 toml = TOML.parse(read(Plots_toml, String))
