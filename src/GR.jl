@@ -670,7 +670,7 @@ function latin1(string)
     end
   end
   b = unsafe_wrap(Array{UInt8,1}, pointer(string), sizeof(string))
-  s = zeros(UInt8, sizeof(string) * 2)
+  s = zeros(UInt8, sizeof(string) * 2 + 1)
   len = 0
   mask = 0
   for c in b
@@ -694,6 +694,8 @@ function latin1(string)
       mask = 0
     end
   end
+  len += 1
+  s[len] = '\0'
   return s[1:len]
 end
 
