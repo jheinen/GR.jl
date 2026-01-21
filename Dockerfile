@@ -4,10 +4,10 @@ USER root
 RUN arch=$(arch | sed 's/arm64/aarch64/') && \
     dir=$(echo ${arch} | sed 's/x86_64/x64/') && \
     apt-get update && apt-get install -my wget curl gnupg && \
-    wget https://julialang-s3.julialang.org/bin/linux/${dir}/1.12/julia-1.12.1-linux-${arch}.tar.gz && \
-    tar -xzvf julia-1.12.1-linux-${arch}.tar.gz && ls && \
-    cp -R julia-1.12.1/* /usr && \
-    rm -rf ${HOME}/julia-1.12.1*
+    wget https://julialang-s3.julialang.org/bin/linux/${dir}/1.12/julia-1.12.4-linux-${arch}.tar.gz && \
+    tar -xzvf julia-1.12.4-linux-${arch}.tar.gz && ls && \
+    cp -R julia-1.12.4/* /usr && \
+    rm -rf ${HOME}/julia-1.12.4*
 RUN apt-get install -my libnlopt0
 # GR3 dependencies
 RUN apt-get install -my xvfb
