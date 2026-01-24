@@ -1,7 +1,6 @@
 using WAV
 using GR
 
-file = joinpath(dirname(Base.find_package("GR")), "..", "examples", "Monty_Python.wav")
-y, fs = WAV.wavread(file)
+y, fs = WAV.wavread("Monty_Python.wav")
 
 shade(y, colormap=-GR.COLORMAP_BLUESCALE, ylim=(-1,1))
