@@ -4,7 +4,7 @@ import GR
 
 const init = Ref(false)
 
-const jssource = Ref("https://gr-framework.org/downloads/gr-0.73.20.js")
+const jssource = Ref("https://gr-framework.org/downloads/gr-0.73.21.js")
 
 function get_jsterm()
   if GR.isijulia()
