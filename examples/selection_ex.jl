@@ -45,6 +45,10 @@ function main()
 
     while true
         x, y, buttons = GR.samplelocator()
+        if buttons < 0
+            GR.emergencyclosegks()
+            break
+        end
         if mouse != Nothing && buttons != 0
             x_offset += x - mouse[1]
             y_offset += y - mouse[2]
