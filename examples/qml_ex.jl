@@ -19,7 +19,7 @@ function paint(p::CxxPtr{QPainter}, item::CxxPtr{JuliaPaintedItem})
   global zoom
 
   ENV["GKSwstype"] = 381
-  ENV["GKSconid"] = split(repr(p.cpp_object), "@")[2]
+  ENV["GKSconid"] = repr(UInt64(p.cpp_object))
 
   dev = device(p[])[]
   r = effectiveDevicePixelRatio(window(item[])[])

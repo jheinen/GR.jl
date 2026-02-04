@@ -1,7 +1,7 @@
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Layouts 1.0
-import org.julialang
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import jlqml
 
 ApplicationWindow {
   id: mainwindow
