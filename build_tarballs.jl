@@ -1,13 +1,16 @@
 # Note that this script can accept some limited command-line arguments, run
 # `julia build_tarballs.jl --help` to see a usage message.
 using BinaryBuilder
+import Pkg
+
+#include("../../fancy_toys.jl")  # for `should_build_platform`
 
 name = "GR"
 version = v"0.73.22"
 
 # Collection of sources required to complete build
 sources = [
-    GitSource("https://github.com/sciapp/gr.git", "30e6b712d2915275388cf552f57480e73f5224ad"),
+    GitSource("https://github.com/sciapp/gr.git", "ba79df1bec4191abfc6eaed314d8336669e08ad5"),
     FileSource("https://github.com/sciapp/gr/releases/download/v$version/gr-$version.js",
                "a33da3ce2879467dcdef023881982106e2fa57100aa4b5dec362926a06a34278", "gr.js"),
     ArchiveSource("https://github.com/roblabla/MacOSX-SDKs/releases/download/macosx14.0/MacOSX14.0.sdk.tar.xz",
@@ -43,9 +46,11 @@ if [[ "${target}" == arm-* ]]; then
     export CXXFLAGS="-Wl,-rpath-link,/opt/${target}/${target}/lib"
 fi
 
+cmakeflags=-DQT_FORCE_MIN_CMAKE_VERSION_FOR_USING_QT=3.21
+
 mkdir build
 cd build
-cmake $winflags -DCMAKE_INSTALL_PREFIX=$prefix -DCMAKE_FIND_ROOT_PATH=$prefix -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TARGET_TOOLCHAIN} -DGR_USE_BUNDLED_LIBRARIES=ON $tifflags -DCMAKE_BUILD_TYPE=Release ..
+cmake $cmakeflags $winflags -DCMAKE_INSTALL_PREFIX=$prefix -DCMAKE_FIND_ROOT_PATH=$prefix -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TARGET_TOOLCHAIN} -DGR_USE_BUNDLED_LIBRARIES=ON $tifflags -DCMAKE_BUILD_TYPE=Release ..
 
 VERBOSE=ON cmake --build . --config Release --target install -- -j${nproc}
 cp ../../gr.js ${libdir}/
@@ -63,11 +68,11 @@ fi
 # These are the platforms we will build for by default, unless further
 # platforms are passed in on the command line
 platforms = [
-    Platform("armv7l",  "linux"; libc="glibc"),
-    Platform("aarch64", "linux"; libc="glibc"),
-    Platform("x86_64",  "linux"; libc="glibc"),
-    Platform("i686",  "linux"; libc="glibc"),
-    Platform("powerpc64le",  "linux"; libc="glibc"),
+    Platform("armv7l",  "linux"; libc="glibc", cxxstring_abi="cxx11"),
+    Platform("aarch64", "linux"; libc="glibc", cxxstring_abi="cxx11"),
+    Platform("x86_64",  "linux"; libc="glibc", cxxstring_abi="cxx11"),
+    Platform("i686",  "linux"; libc="glibc", cxxstring_abi="cxx11"),
+    Platform("powerpc64le",  "linux"; libc="glibc", cxxstring_abi="cxx11"),
     Platform("x86_64",  "windows"),
     Platform("i686",  "windows"),
     Platform("x86_64",  "macos"),
@@ -89,7 +94,7 @@ products = [
 # Dependencies that must be installed before this package can be built
 dependencies = [
     Dependency("Bzip2_jll"; compat="1.0.9"),
-    Dependency("Cairo_jll"; compat="1.16.1"),
+    Dependency("Cairo_jll", compat="1.16.1"),
     Dependency("FFMPEG_jll"),
     Dependency("Fontconfig_jll"),
     Dependency("FreeType2_jll"; compat="2.13.4"),
@@ -98,14 +103,27 @@ dependencies = [
     Dependency("libpng_jll"),
     Dependency("Libtiff_jll"; compat="4.7.1"),
     Dependency("Pixman_jll"),
-    HostBuildDependency("Qt6Base_jll"),
-    Dependency("Qt6Base_jll"; compat="~6.8.2"), # Never allow upgrading more than the minor version without recompilation
+    HostBuildDependency(Pkg.PackageSpec(; name="Qt6Base_jll", version = v"6.10.2")),
+    Dependency("Qt6Base_jll"; compat="=6.10.2"),
     BuildDependency("Xorg_libX11_jll"),
     BuildDependency("Xorg_xproto_jll"),
     Dependency("Zlib_jll"),
 ]
 
+#platforms_win = filter(Sys.iswindows, platforms)
+#platforms_rest = setdiff(platforms, platforms_win)
+
 # Build the tarballs, and possibly a `build.jl` as well.
-# GCC version 13 because of Qt6.8
+# GCC version 10 because of Qt6.7
+#if any(should_build_platform.(triplet.(platforms_win)))
+#    # GCC 12 and before fail with internal compiler error on mingw
+#    build_tarballs(ARGS, name, version, sources, script, platforms_win, products, dependencies;
+#                   preferred_gcc_version=v"13", julia_compat="1.6")
+#end
+#if any(should_build_platform.(triplet.(platforms_rest)))
+#    build_tarballs(ARGS, name, version, sources, script, platforms_rest, products, dependencies;
+#                   preferred_gcc_version=v"10", julia_compat="1.6")
+#end
 build_tarballs(ARGS, name, version, sources, script, platforms, products, dependencies;
-               preferred_gcc_version = v"13", julia_compat="1.6")
+               preferred_gcc_version=v"11", julia_compat="1.6")
+
