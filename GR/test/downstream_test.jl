@@ -3,8 +3,53 @@ using Pkg, GR
 LibGit2 = Pkg.GitTools.LibGit2
 TOML = Pkg.TOML
 
+Pkg.activate(; temp = true)
+Pkg.add(["JSON", "Downloads"])
+
+using Downloads, JSON
+
+function available_channels()
+    juliaup = "https://julialang-s3.julialang.org/juliaup"
+    for i in 1:6
+        buf = PipeBuffer()
+        Downloads.download("$juliaup/DBVERSION", buf)
+        dbversion = VersionNumber(readline(buf))
+        dbversion.major == 1 || continue
+        buf = PipeBuffer()
+        Downloads.download(
+            "$juliaup/versiondb/versiondb-$dbversion-x86_64-unknown-linux-gnu.json",
+            buf,
+        )
+        json = JSON.parse(buf)
+        haskey(json, "AvailableChannels") || continue
+        return json["AvailableChannels"]
+        sleep(10i)
+    end
+    return
+end
+
+"""
+julia> is_latest("lts")
+julia> is_latest("release")
+"""
+function is_latest(variant)
+    channels = available_channels()
+    ver = VersionNumber(split(channels[variant]["Version"], '+') |> first)
+    dev = occursin("DEV", string(VERSION))  # or length(VERSION.prerelease) < 2
+    return !dev &&
+        VersionNumber(ver.major, ver.minor, 0, ("",)) ≤
+        VERSION <
+        VersionNumber(ver.major, ver.minor + 1)
+end
+
+if !is_latest("release")
+    @warn "skipping test on julia $VERSION"
+    exit(0)
+end
+
 Plots_jl = joinpath(mkpath(tempname()), "Plots.jl")
-Plots_toml = joinpath(Plots_jl, "Project.toml")
+Plots_subdir = joinpath(Plots_jl, "Plots")
+Plots_toml = joinpath(Plots_subdir, "Project.toml")
 
 # clone and checkout the latest stable version of Plots
 stable = try
@@ -28,7 +73,7 @@ for i ∈ 1:6
         sleep(20i)
     end
 end
-obj = LibGit2.GitObject(repo, "v$stable")
+obj = LibGit2.GitObject(repo, "Plots-v$stable")
 hash = if isa(obj, LibGit2.GitTag)
     LibGit2.target(obj)
 else
@@ -44,8 +89,12 @@ toml["compat"]["GR"] = GR.version()
 open(Plots_toml, "w") do io
   TOML.print(io, toml)
 end
-Pkg.develop(path=Plots_jl)
-Pkg.status(["GR", "Plots"])
+# Pkg.develop(path=Plots_subdir)
+Pkg.activate(Plots_subdir)
+# Pkg.resolve()
+Pkg.instantiate(; workspace = true)
+# Pkg.status(; workspace = true)
+Pkg.status(["GR", "Plots"];  workspace = true)
 
 # test basic plots creation and bitmap or vector exports
 using Plots, Test
