@@ -47,8 +47,8 @@ open(Plots_toml, "w") do io
 end
 # Pkg.develop(path=Plots_subdir)
 Pkg.activate(Plots_jl)
-Pkg.instantiate(; workspace = true)
 Pkg.resolve()
+Pkg.instantiate(; workspace = true)
 # Pkg.status(; workspace = true)
 Pkg.status(["GR", "Plots"];  workspace = true)
 
