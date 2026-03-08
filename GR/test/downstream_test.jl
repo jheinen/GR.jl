@@ -3,6 +3,45 @@ using Pkg, GR
 LibGit2 = Pkg.GitTools.LibGit2
 TOML = Pkg.TOML
 
+function available_channels()
+    juliaup = "https://julialang-s3.julialang.org/juliaup"
+    for i in 1:6
+        buf = PipeBuffer()
+        Downloads.download("$juliaup/DBVERSION", buf)
+        dbversion = VersionNumber(readline(buf))
+        dbversion.major == 1 || continue
+        buf = PipeBuffer()
+        Downloads.download(
+            "$juliaup/versiondb/versiondb-$dbversion-x86_64-unknown-linux-gnu.json",
+            buf,
+        )
+        json = JSON.parse(buf)
+        haskey(json, "AvailableChannels") || continue
+        return json["AvailableChannels"]
+        sleep(10i)
+    end
+    return
+end
+
+"""
+julia> is_latest("lts")
+julia> is_latest("release")
+"""
+function is_latest(variant)
+    channels = available_channels()
+    ver = VersionNumber(split(channels[variant]["Version"], '+') |> first)
+    dev = occursin("DEV", string(VERSION))  # or length(VERSION.prerelease) < 2
+    return !dev &&
+        VersionNumber(ver.major, ver.minor, 0, ("",)) ≤
+        VERSION <
+        VersionNumber(ver.major, ver.minor + 1)
+end
+
+if !is_latest("release")
+    @warn "skipping test on julia $VERSION"
+    exit(0)
+end
+
 Plots_jl = joinpath(mkpath(tempname()), "Plots.jl")
 Plots_subdir = joinpath(Plots_jl, "Plots")
 Plots_toml = joinpath(Plots_subdir, "Project.toml")
