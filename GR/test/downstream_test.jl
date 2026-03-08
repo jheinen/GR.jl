@@ -4,7 +4,8 @@ LibGit2 = Pkg.GitTools.LibGit2
 TOML = Pkg.TOML
 
 Plots_jl = joinpath(mkpath(tempname()), "Plots.jl")
-Plots_toml = joinpath(Plots_jl, "Plots", "Project.toml")
+Plots_subdir = joinpath(Plots_jl, "Plots")
+Plots_toml = joinpath(Plots_subdir, "Project.toml")
 
 # clone and checkout the latest stable version of Plots
 stable = try
@@ -44,8 +45,11 @@ toml["compat"]["GR"] = GR.version()
 open(Plots_toml, "w") do io
   TOML.print(io, toml)
 end
-Pkg.develop(path=Plots_jl)
-Pkg.status(["GR", "Plots"])
+# Pkg.develop(path=Plots_subdir)
+Pkg.activate(Plots_jl)
+Pkg.instantiate(; workspace = true)
+# Pkg.status(; workspace = true)
+Pkg.status(["GR", "Plots"];  workspace = true)
 
 # test basic plots creation and bitmap or vector exports
 using Plots, Test
