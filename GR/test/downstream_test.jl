@@ -3,6 +3,11 @@ using Pkg, GR
 LibGit2 = Pkg.GitTools.LibGit2
 TOML = Pkg.TOML
 
+Pkg.activate(; temp = true)
+Pkg.add(["JSON", "Downloads"])
+
+using Downloads, JSON
+
 function available_channels()
     juliaup = "https://julialang-s3.julialang.org/juliaup"
     for i in 1:6
