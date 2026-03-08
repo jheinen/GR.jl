@@ -48,6 +48,7 @@ end
 # Pkg.develop(path=Plots_subdir)
 Pkg.activate(Plots_jl)
 Pkg.instantiate(; workspace = true)
+Pkg.resolve()
 # Pkg.status(; workspace = true)
 Pkg.status(["GR", "Plots"];  workspace = true)
 
