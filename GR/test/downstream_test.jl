@@ -46,8 +46,8 @@ open(Plots_toml, "w") do io
   TOML.print(io, toml)
 end
 # Pkg.develop(path=Plots_subdir)
-Pkg.activate(Plots_jl)
-Pkg.resolve()
+Pkg.activate(Plots_subdir)
+# Pkg.resolve()
 Pkg.instantiate(; workspace = true)
 # Pkg.status(; workspace = true)
 Pkg.status(["GR", "Plots"];  workspace = true)
