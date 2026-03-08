@@ -28,7 +28,7 @@ for i ∈ 1:6
         sleep(20i)
     end
 end
-obj = LibGit2.GitObject(repo, "v$stable")
+obj = LibGit2.GitObject(repo, "Plots-v$stable")
 hash = if isa(obj, LibGit2.GitTag)
     LibGit2.target(obj)
 else
