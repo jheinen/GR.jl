@@ -4,7 +4,7 @@ LibGit2 = Pkg.GitTools.LibGit2
 TOML = Pkg.TOML
 
 Plots_jl = joinpath(mkpath(tempname()), "Plots.jl")
-Plots_toml = joinpath(Plots_jl, "Project.toml")
+Plots_toml = joinpath(Plots_jl, "Plots", "Project.toml")
 
 # clone and checkout the latest stable version of Plots
 stable = try
