@@ -218,7 +218,7 @@ function set_viewport(kind, subplot, plt=plt[])
         location = get(plt.kvs, :location, 1)
         if location == 11 || location == 12 || location == 13
             w, h = legend_size()
-            viewport[2] -= w + 0.1
+            viewport[2] -= w
         end
     end
 
