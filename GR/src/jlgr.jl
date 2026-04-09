@@ -63,7 +63,7 @@ mainloop
 
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
-const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :clines, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi, :keepaspect, :markersize, :borderwidth]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :clines, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi, :keepaspect, :markersize, :borderwidth, :viewport, :charheight]
 
 const grm_aliases = Dict(
     :nbins => :num_bins, :xform => :transform, :xlim => :x_lim, :ylim => :y_lim, :zlim => :z_lim, :clim => :c_lim, :xlabel => :x_label, :ylabel => :y_label, :zlabel => :z_label, :xflip => :x_flip, :yflip => :y_flip, :zflip => :z_flip, :xlog => :x_log, :ylog => :y_log, :zlog => :z_log)
@@ -237,9 +237,11 @@ function set_viewport(kind, subplot, plt=plt[])
         viewport[4] = ycenter + r;
     end
 
+    if haskey(plt.kvs, :viewport)
+        viewport = plt.kvs[:viewport]
+    end
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
 
-    plt.kvs[:viewport] = viewport
     plt.kvs[:vp] = vp
     plt.kvs[:ratio] = ratio
 
@@ -547,7 +549,11 @@ function draw_axes(kind, pass=1, plt=plt[])
     GR.setlinewidth(1)
     ticksize = 0.0075 * diag
     if kind === :wireframe || kind === :surface || kind === :plot3 || kind === :scatter3 || kind === :trisurf || kind === :volume
-        charheight = max(0.024 * diag, 0.012)
+        if haskey(plt.kvs, :charheight)
+            charheight = plt.kvs[:charheight]
+        else
+            charheight = max(0.024 * diag, 0.012)
+        end
         ztick, zorg, majorz = plt.kvs[:zaxis]
         rotation = get(plt.kvs, :rotation, 40)
         tilt = get(plt.kvs, :tilt, 60)
@@ -588,7 +594,11 @@ function draw_axes(kind, pass=1, plt=plt[])
             end
         end
     else
-        charheight = max(0.018 * diag, 0.012)
+        if haskey(plt.kvs, :charheight)
+            charheight = plt.kvs[:charheight]
+        else
+            charheight = max(0.018 * diag, 0.012)
+        end
         GR.setcharheight(charheight)
         if kind === :heatmap || kind === :nonuniformheatmap || kind === :shade || kind === :contourf
             ticksize = -ticksize
@@ -639,7 +649,11 @@ function draw_polar_axes(pass=1, plt=plt[])
     viewport = plt.kvs[:viewport]
     vp = plt.kvs[:vp]
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
-    charheight = max(0.018 * diag, 0.012)
+    if haskey(plt.kvs, :charheight)
+        charheight = plt.kvs[:charheight]
+    else
+        charheight = max(0.018 * diag, 0.012)
+    end
 
     window = plt.kvs[:window]
     rmin, rmax = window[3], window[4]
@@ -836,7 +850,11 @@ function colorbar(off=0, colors=256, plt=plt[])
     GR.cellarray(0, 1, zmax + h, zmin - h, 1, colors, l)
     GR.setlinecolorind(1)
     diag = sqrt((viewport[2] - viewport[1])^2 + (viewport[4] - viewport[3])^2)
-    charheight = max(0.016 * diag, 0.012)
+    if haskey(plt.kvs, :charheight)
+        charheight = plt.kvs[:charheight]
+    else
+        charheight = max(0.016 * diag, 0.012)
+    end
     GR.setcharheight(charheight)
     if plt.kvs[:scale] & GR.OPTION_Z_LOG == 0
         ztick = auto_tick(zmin, zmax)
