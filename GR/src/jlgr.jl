@@ -610,8 +610,8 @@ function draw_axes(kind, pass=1, plt=plt[])
             fy = get(plt.kvs, :yticklabels, identity) |> ticklabel_fun
             GR.axeslbl(xtick, ytick, xorg[1], yorg[1], majorx, majory, ticksize, fx, fy)
         else
-            x_axis = GR.axis('X', tick=xtick, org=xorg[1], major_count=majorx, tick_size=ticksize)
-            y_axis = GR.axis('Y', tick=ytick, org=yorg[1], major_count=majory, tick_size=ticksize)
+            x_axis = GR.axis("X", tick=xtick, org=xorg[1], major_count=majorx, tick_size=ticksize)
+            y_axis = GR.axis("Y", tick=ytick, org=yorg[1], major_count=majory, tick_size=ticksize)
             options = GR.AXES_SIMPLE_AXES|GR.AXES_TWIN_AXES
             if drawgrid
                 options |= GR.AXES_WITH_GRID
@@ -856,7 +856,7 @@ function colorbar(off=0, colors=256, plt=plt[])
     GR.setcharheight(charheight)
     if plt.kvs[:scale] & GR.OPTION_Z_LOG == 0
         ztick = auto_tick(zmin, zmax)
-        y_axis = GR.axis('Y', position=1, tick=ztick, org=zmin, major_count=1, tick_size=0.005)
+        y_axis = GR.axis("Y", position=1, tick=ztick, org=zmin, major_count=1, tick_size=0.005)
         GR.drawaxis('Y', y_axis)
     else
         GR.setscale(GR.OPTION_Y_LOG)

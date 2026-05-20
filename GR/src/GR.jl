@@ -4554,7 +4554,7 @@ function ftoa(value::Real, format::Vector{Int32})
   return unsafe_string(s)
 end
 
-function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, org::Real = NaN, position::Real = NaN, major_count::Int = 1, ticks::Union{Vector{GRTick}, Nothing} = nothing, tick_size::Real = NaN, tick_labels::Union{Vector{GRTickLabel}, Nothing} = nothing, label_position::Real = NaN, draw_axis_line::Int = 1, label_orientation::Int = 0)::GRAxis
+function axis(spec::String; min::Real = NaN, max::Real = NaN, tick::Real = NaN, org::Real = NaN, position::Real = NaN, major_count::Int = 1, ticks::Union{Vector{GRTick}, Nothing} = nothing, tick_size::Real = NaN, tick_labels::Union{Vector{GRTickLabel}, Nothing} = nothing, label_position::Real = NaN, draw_axis_line::Int = 1, label_orientation::Int = 0)::GRAxis
   c_axis = c_axis_t(min=min, max=max, tick=tick, org=org, position=position, major_count=major_count, tick_size=tick_size, label_position=label_position, draw_axis_line=draw_axis_line, label_orientation=label_orientation)
   if ticks != nothing
     array = c_tick_t[]
@@ -4580,8 +4580,8 @@ function axis(which::Char; min::Real = NaN, max::Real = NaN, tick::Real = NaN, o
   end
   ccall( libGR_ptr(:gr_axis),
         Nothing,
-        (Cchar, Ptr{c_axis_t}),
-        which, Ref(c_axis))
+        (Cstring, Ptr{c_axis_t}),
+        spec, Ref(c_axis))
 
   ticks = GRTick[]
   for i in 1:c_axis.num_ticks
