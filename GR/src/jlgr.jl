@@ -857,11 +857,11 @@ function colorbar(off=0, colors=256, plt=plt[])
     if plt.kvs[:scale] & GR.OPTION_Z_LOG == 0
         ztick = auto_tick(zmin, zmax)
         y_axis = GR.axis("Y", position=1, tick=ztick, org=zmin, major_count=1, tick_size=0.005)
-        GR.drawaxis('Y', y_axis)
+        GR.drawaxis(y_axis)
     else
         GR.setscale(GR.OPTION_Y_LOG)
         y_axis = GR.axis('Y', position=1, tick=2, org=zmin, major_count=1, tick_size=0.005)
-        GR.drawaxis('Y', y_axis)
+        GR.drawaxis(y_axis)
     end
     GR.restorestate()
 end
