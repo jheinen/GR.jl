@@ -4110,9 +4110,9 @@ end
 
 function check_for_updates()
     @eval GR begin
-        import HTTP
-        requ = HTTP.request("GET", "https://api.github.com/repos/sciapp/gr/releases/latest")
-        body = String(requ.body)
+        import Downloads
+        requ = Downloads.download("https://api.github.com/repos/sciapp/gr/releases/latest"; method="GET")
+        body = read(requ, String)
 
         import JSON
         tag = JSON.parse(body)["tag_name"]
