@@ -14,4 +14,5 @@
 :grm_plot_from_file
 :grm_dump_html
 :grm_dump_html_args
+:grm_get_tooltip
 ]
