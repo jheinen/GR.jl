@@ -177,14 +177,4 @@ function dump_html(plotId::AbstractString, args::ArgsT)
           )
     HTML(unsafe_string(ret))
 end
-
-function get_tooltip(x::Real, y::Real)
-    ret = ccall(GR.libGRM_ptr(:grm_get_tooltip),
-          Cstring,
-          (Float64, Float64,),
-          x, y
-          )
-    unsafe_string(ret)
-end
-
 end
