@@ -63,7 +63,7 @@ mainloop
 
 const PlotArg = Union{AbstractString, AbstractVector, AbstractMatrix, Function}
 
-const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :clines, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi, :keepaspect, :markersize, :borderwidth, :charheight]
+const kw_args = [:accelerate, :algorithm, :alpha, :backgroundcolor, :barwidth, :baseline, :clabels, :clines, :color, :colormap, :figsize, :font, :isovalue, :labels, :levels, :location, :nbins, :rotation, :size, :tilt, :title, :where, :xflip, :xform, :xlabel, :xlim, :xlog, :yflip, :ylabel, :ylim, :ylog, :zflip, :zlabel, :zlim, :zlog, :clim, :subplot, :linewidth, :grid, :scale, :theta_direction, :theta_zero_location, :dpi, :keepaspect, :markersize, :borderwidth, :charheight, :timestamp]
 
 const grm_aliases = Dict(
     :nbins => :num_bins, :xform => :transform, :xlim => :x_lim, :ylim => :y_lim, :zlim => :z_lim, :clim => :c_lim, :xlabel => :x_label, :ylabel => :y_label, :zlabel => :z_label, :xflip => :x_flip, :yflip => :y_flip, :zflip => :z_flip, :xlog => :x_log, :ylog => :y_log, :zlog => :z_log)
@@ -231,10 +231,10 @@ function set_viewport(kind, subplot, plt=plt[])
             r *= 0.975
             ycenter -= 0.025 * r
         end
-        viewport[1] = xcenter - r;
-        viewport[2] = xcenter + r;
-        viewport[3] = ycenter - r;
-        viewport[4] = ycenter + r;
+        viewport[1] = xcenter - r
+        viewport[2] = xcenter + r
+        viewport[3] = ycenter - r
+        viewport[4] = ycenter + r
     end
 
     GR.setviewport(viewport[1], viewport[2], viewport[3], viewport[4])
@@ -1133,10 +1133,10 @@ function plot_img(I, plt=plt[])
     GR.selntran(0)
     GR.setscale(0)
     if get(plt.kvs, :xflip, false)
-        tmp = xmax; xmax = xmin; xmin = tmp;
+        tmp = xmax; xmax = xmin; xmin = tmp
     end
     if get(plt.kvs, :yflip, false)
-        tmp = ymax; ymax = ymin; ymin = tmp;
+        tmp = ymax; ymax = ymin; ymin = tmp
     end
     if isa(I, AbstractString)
         GR.drawimage(xmin, xmax, ymin, ymax, width, height, data)
@@ -1206,8 +1206,8 @@ end
 
 function shutdown()
     if handle[] != C_NULL
-        GR.sendmetaref(handle[], "request", 's', "close");
-        GR.sendmetaref(handle[], "", '\0', "", 0);
+        GR.sendmetaref(handle[], "request", 's', "close")
+        GR.sendmetaref(handle[], "", '\0', "", 0)
     end
 end
 
@@ -1251,14 +1251,14 @@ function send_meta(target, plt=plt[])
             GR.sendmetaref(handle[], "", 'O', i < num_series ? "," : "]", 1)
         end
         if plt.kvs[:kind] === :hist
-            GR.sendmetaref(handle[], "kind", 's', "barplot");
+            GR.sendmetaref(handle[], "kind", 's', "barplot")
         else
-            GR.sendmetaref(handle[], "kind", 's', string(plt.kvs[:kind]));
+            GR.sendmetaref(handle[], "kind", 's', string(plt.kvs[:kind]))
         end
         if get(plt.kvs, :keepaspect, false)
             GR.sendmetaref(handle[], "keep_aspect_ratio", 'i', 1)
         end
-        GR.sendmetaref(handle[], "", '\0', "", 0);
+        GR.sendmetaref(handle[], "", '\0', "", 0)
     end
     nothing
 end
@@ -1281,7 +1281,7 @@ function convert_grm_args(plt=plt[])::GR.grm.ArgsT
             args[string(k)] = String(v)
         elseif k === :labels
             labels = [String(el) for el in v]
-        elseif k === :x_flip || k === :y_flip || k === :z_flip || k === :x_log || k === :y_log || k === :z_log
+        elseif k === :x_flip || k === :y_flip || k === :z_flip || k === :x_log || k === :y_log || k === :z_log || k === :timestamp
             args[string(k)] = Int32(v ? 1 : 0)
         end
     end
