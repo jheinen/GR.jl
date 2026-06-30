@@ -1597,13 +1597,21 @@ function plot_data(flag=true, plt=plt[])
             end
         elseif kind === :heatmap || kind === :nonuniformheatmap
             w, h = size(z)
+            xmin, xmax = plt.kvs[:xrange]
+            x = plt.args[1][1]
+            xmin -= 0.5 * (x[2] - x[1])
+            xmax += 0.5 * (x[end] - x[end-1])
+            ymin, ymax = plt.kvs[:yrange]
+            y = plt.args[1][2]
+            ymin -= 0.5 * (y[2] - y[1])
+            ymax += 0.5 * (y[end] - y[end-1])
             cmap = colormap()
             cmin, cmax = plt.kvs[:crange]
             levels = get(plt.kvs, :levels, 256)
             data = map(x -> normalize_color(x, cmin, cmax), z)
             if kind === :heatmap && !haskey(ENV, "GR_SCALE_FACTOR")
                 rgba = [to_rgba(value, cmap) for value = data]
-                GR.drawimage(0.5, w + 0.5, h + 0.5, 0.5, w, h, rgba)
+                GR.drawimage(xmin, xmax, ymax, ymin, w, h, rgba)
             else
                 colors = Int[round(isnan(_i) ? 1256 : 1000 + _i * 255, RoundNearestTiesUp) for _i in data]
                 GR.nonuniformcellarray(x, y, w, h, colors)
